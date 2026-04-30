@@ -1,0 +1,33 @@
+# Stage 2c — search_text composition recipe.
+# Flip these flags to A/B test retrieval quality without editing code.
+#
+# Field selection philosophy:
+#   - include_question   : always true (core semantic payload)
+#   - include_choices    : recommended (adds discriminative vocabulary)
+#   - include_subjects   : recommended (topic anchor)
+#   - include_quiz_title : recommended (secondary topic cue)
+#   - include_correct_answers : false (excluded to avoid answer leakage at retrieval;
+#                                      LLM still sees correct answers via payload)
+#   - include_levels     : false (filter-only, too noisy as semantic signal)
+
+search_text:
+  recipe: default
+  recipes:
+    default:
+      include_subjects: true
+      include_quiz_title: true
+      include_question: true
+      include_choices: true
+      include_correct_answers: false
+      include_levels: false
+  separators:
+    part: ". "          # between major sections
+    subjects: ", "      # between multiple subjects
+    choices: " | "      # between answer choices
+  # Rows exceeding this whitespace-token count are flagged in stats
+  # (approximate proxy for BPE token count; model context is 128 BPE)
+  token_warning_threshold: 100
+  # Convert LaTeX markup to plain math text so the embedder can read it.
+  # Affects only search_text; original question_text and choices_text are
+  # preserved untouched in the payload (LLM still gets the raw LaTeX).
+  normalize_latex: true

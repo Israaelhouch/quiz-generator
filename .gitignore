@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+
+# Environment
+.env
+
+# Notebooks
+.ipynb_checkpoints/
+notebooks/data/
+
+# OS
+.DS_Store
+
+# Build/artifacts — legacy (rebuilt fresh in Stage 3)
+data/embeddings/faiss_index/index.faiss
+data/embeddings/faiss_index/metadata.pkl
+data/embeddings/chroma_db/
+data/embeddings/chroma_db_*/
+
+# Build/artifacts — new pipeline (these are large generated outputs)
+# Keep raw source in git; everything downstream is regenerated.
+data/interim/flat.jsonl
+data/interim/normalized.jsonl
+data/processed/ready.jsonl
+data/vector_store/
+data/vector_store/**
+
+# Stats files ARE tracked (small, useful for audit diffs in reviews).
+
+# CLI debug artifact — overwritten on every `--save-run` invocation.
+last_run.json
+
+# Raw + generated data — delivered separately, too big for git
+data/raw/
+data/interim/
+data/processed/

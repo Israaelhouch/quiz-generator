@@ -1,0 +1,90 @@
+# Stage 3 — Embedding model + vector store configuration.
+#
+# Single-model architecture: BGE-M3 handles en + fr + ar in one collection.
+# Chosen after empirical testing in notebooks/stage3_model_exploration.ipynb.
+
+model:
+  name: BAAI/bge-m3
+  embedding_dim: 1024
+  batch_size: 16                    # BGE-M3 is slower than smaller models
+  device: auto                      # auto-detect MPS (Mac) / CUDA / CPU
+  normalize_embeddings: true
+  passage_prefix: ""                # BGE-M3 needs no prefix (unlike e5)
+  query_prefix: ""                  # must stay symmetric with passage_prefix
+
+vector_store:
+  type: chroma
+  persist_directory: data/vector_store/chroma_db
+  collection_name: quiz_questions
+  distance_metric: cosine
+  add_batch_size: 128               # rows per Chroma insert
+  reset_on_build: true              # wipe + rebuild each `build` invocation
+
+# Optional cross-encoder reranker. Two-stage retrieval:
+#   1. Chroma + BGE-M3 (bi-encoder) fetches a wide candidate pool.
+#   2. Reranker scores (query, candidate) pairs more accurately and reorders.
+# Set enabled=false to skip reranking entirely (fast path).
+reranker:
+  enabled: true
+  model_name: BAAI/bge-reranker-v2-m3
+  candidate_pool_size: 60           # Chroma fetches this many before reranking
+  device: auto                      # auto-detect MPS / CUDA / CPU
+  batch_size: 16
+
+# Stage 6 — LLM used by the QuizPipeline orchestrator.
+# Only the `ollama` provider is wired up for now. To add OpenAI/Anthropic
+# later, extend src/pipeline.py with a new provider branch.
+llm:
+  provider: ollama
+  model: qwen2.5:14b                     # multilingual model from Cohere
+  host: null                        # null = default http://localhost:11434
+  default_temperature: 0.3
+  max_attempts: 3                   # retries on JSON / validation failure
+  default_few_shot_count: 7         # retrieved examples fed to LLM per prompt
+                                    # 1–3 = thin context, faster / less guidance
+                                    # 5   = sweet spot for most cases
+                                    # 7–10 = richer style, more prompt tokens
+
+indexing:
+  # Which column of ready.jsonl gets embedded
+  embedding_text_column: search_text
+
+  # Scalar fields copied into Chroma metadata (filterable via Chroma `where`).
+  # Note: `subject` is derived from `subjects[0]` at index time
+  # (99.97% of rows have at most one subject; 3 rows lose their secondary
+  # tag, which is acceptable). This lets Chroma pre-filter subject queries
+  # natively instead of post-filtering JSON strings.
+  metadata_scalar_fields:
+    - quiz_id
+    - quiz_title
+    - language
+    - question_type
+    - multiple_correct_answers
+    - author_name
+    - author_email
+    - points
+    - time
+
+  # List fields stored as JSON strings in Chroma metadata — post-filtered
+  # in Python. Use only when pre-filter isn't needed (i.e. not critical filters).
+  metadata_list_fields_as_json: []
+
+  # List fields expanded into boolean keys per value, so Chroma can pre-filter
+  # natively. Row with levels=["X","Y"] gets {"levels_X": True, "levels_Y": True}.
+  # Missing keys mean False — no bloat from False entries.
+  # Use for ESSENTIAL filters on multi-valued fields (like `levels` for a
+  # student's grade — always filtered, always pre-filter).
+  metadata_list_fields_as_booleans:
+    - levels
+
+  # After a build, run a quick retrieval test to catch obvious problems
+  smoke_test:
+    enabled: true
+    queries:
+      - lang: en
+        text: "past tense verbs"
+      - lang: fr
+        text: "dérivée d'une fonction"
+      - lang: ar
+        text: "الدوال والمعادلات"
+    top_k: 3

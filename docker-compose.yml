@@ -1,0 +1,57 @@
+# Single-service stack for the Quiz Generator.
+#
+#   api  — FastAPI app + the Python pipeline (BGE-M3 + reranker)
+#
+# Ollama runs NATIVELY on the Mac (not in a container) so it can use the
+# Apple Silicon GPU via Metal Performance Shaders. Containerized Ollama on
+# Mac falls back to CPU-only and is 5–10x slower.
+#
+# Setup on the host (one-time):
+#   brew install ollama        # if not already installed
+#   ollama serve &             # background process — leaves Ollama listening on :11434
+#   ollama pull aya:8b         # or whatever model is in configs/models.yaml
+#
+# Then:
+#   docker compose up -d                              # start the API container
+#   docker compose run --rm api python -m src.indexing.build  # one-time index build
+#   docker compose down                               # stop
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quiz-api
+    ports:
+      - "8000:8000"
+    environment:
+      # `host.docker.internal` is Docker's DNS alias for the Mac host. The
+      # API container talks to Ollama running natively on the Mac at port
+      # 11434. Read by orchestrator._build_llm_client.
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      # HF_HOME is also set in the Dockerfile but we re-state it here to
+      # make the cache mount obvious in this file.
+      - HF_HOME=/cache/huggingface
+    volumes:
+      # Bind mounts — these point at folders on YOUR machine, so changes
+      # to data persist between rebuilds and you don't have to re-index
+      # the whole corpus every time you change a line of code.
+      - ./data/vector_store:/app/data/vector_store   # Chroma DB
+      - ./data/processed:/app/data/processed         # ready.jsonl
+      - ./configs:/app/configs                       # models.yaml
+      # Named volume for HuggingFace model cache (BGE-M3, reranker).
+      # First request after `docker compose up` is slow (downloads ~1.2 GB);
+      # every subsequent request reuses these files.
+      - hf_cache:/cache/huggingface
+    healthcheck:
+      # Hit our own /health endpoint to confirm the pipeline loaded.
+      # start_period is generous because BGE-M3 + reranker load takes ~30s.
+      test: ["CMD", "python", "-c", "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+volumes:
+  hf_cache:       # BGE-M3 + reranker (~1.2 GB)

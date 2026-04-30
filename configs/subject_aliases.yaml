@@ -1,0 +1,11 @@
+# Stage 2b subject canonicalization.
+# Maps raw subject strings to canonical names.
+# Any subject NOT listed here passes through unchanged.
+#
+# Rationale:
+#   PHYSICS_1-MECHANICS and MECHANIC are specializations/typos of PHYSICS
+#   in the source dataset (5 rows total). Collapsing them improves
+#   retrieval recall when a student filters by "PHYSICS".
+
+PHYSICS_1-MECHANICS: PHYSICS
+MECHANIC: PHYSICS

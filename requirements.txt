@@ -1,0 +1,16 @@
+pandas
+numpy
+pyyaml
+pydantic>=2.0
+pylatexenc
+langdetect
+python-dotenv
+sentence-transformers
+chromadb
+faiss-cpu
+scikit-learn
+openai
+ollama
+fastapi
+uvicorn[standard]
+pytest
