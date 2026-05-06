@@ -18,8 +18,12 @@ already attached.
 
 from __future__ import annotations
 
+import datetime as _dt
+import json
 import logging
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -107,6 +111,33 @@ def _get_pipeline(request: Request) -> Any:
 
 
 # ---------------------------------------------------------------------------
+# Append-only run log
+# ---------------------------------------------------------------------------
+# Every successful /quiz/generate call appends one JSON line to this file.
+# Useful for testing — you accumulate every query+result pair in one place.
+# Set LOG_RUNS=0 in the environment to disable.
+
+RUNS_LOG_PATH = Path(os.environ.get("RUNS_LOG_PATH", "/app/logs/runs.jsonl"))
+
+
+def _append_run_log(*, request_dict: dict, response_dict: dict) -> None:
+    """Append one timestamped run to the JSONL log file. Best-effort."""
+    if os.environ.get("LOG_RUNS", "1") != "1":
+        return
+    try:
+        RUNS_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        entry = {
+            "timestamp": _dt.datetime.now().isoformat(timespec="seconds"),
+            "request": request_dict,
+            "response": response_dict,
+        }
+        with RUNS_LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as exc:                                # don't break the API on logging failure
+        logger.warning("Failed to append run log: %s", exc)
+
+
+# ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
@@ -170,6 +201,9 @@ def generate_quiz(req: GenerateRequest, request: Request) -> dict:
     # Lazy import — keeps the module loadable in tests that don't have ML deps.
     from src.generation.generator import GenerationError
 
+    import time as _time
+    _t0 = _time.perf_counter()
+
     # `temperature`, `max_attempts`, and `few_shot_count` come from
     # configs/models.yaml — not from the request. The pipeline reads the
     # config defaults when these are not passed.
@@ -203,6 +237,20 @@ def generate_quiz(req: GenerateRequest, request: Request) -> dict:
         response["retrieval"] = [
             _retrieved_to_dict(c) for c in p.last_retrieval
         ]
+
+    duration = round(_time.perf_counter() - _t0, 2)
+
+    # Append the run to the JSONL log (best-effort). Always includes the
+    # retrieval and timing — useful for offline review even if the caller
+    # didn't ask for retrieval in the response.
+    log_response = dict(response)
+    if "retrieval" not in log_response:
+        log_response["retrieval"] = [
+            _retrieved_to_dict(c) for c in p.last_retrieval
+        ]
+    log_response["duration_seconds"] = duration
+    _append_run_log(request_dict=req.model_dump(), response_dict=log_response)
+
     return response
 
 

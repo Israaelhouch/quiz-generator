@@ -36,7 +36,13 @@ data/vector_store/**
 # CLI debug artifact — overwritten on every `--save-run` invocation.
 last_run.json
 
+# API run log — append-only, accumulates every /quiz/generate call.
+logs/
+
 # Raw + generated data — delivered separately, too big for git
 data/raw/
 data/interim/
 data/processed/
+
+# Claude / IDE metadata
+.claude/
