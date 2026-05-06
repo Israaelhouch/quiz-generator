@@ -90,6 +90,14 @@ class QuizPipeline:
             from src.generation.llm_client import OllamaClient
             host = os.environ.get("OLLAMA_HOST") or llm_cfg.host
             return OllamaClient(model=llm_cfg.model, host=host)
+        if provider == "groq":
+            from src.generation.llm_client import GroqClient
+            # GROQ_API_KEY is read from the environment by GroqClient itself.
+            return GroqClient(model=llm_cfg.model)
+        if provider == "gemini":
+            from src.generation.llm_client import GeminiClient
+            # GEMINI_API_KEY is read from the environment by GeminiClient itself.
+            return GeminiClient(model=llm_cfg.model)
         raise ValueError(
             f"Unsupported llm provider {provider!r}. "
             "Add a branch in QuizPipeline._build_llm_client to wire it up."
@@ -131,6 +139,9 @@ class QuizPipeline:
             max_attempts = self.llm_config.max_attempts
         if few_shot_count is None:
             few_shot_count = self.llm_config.default_few_shot_count
+        # Quality floor for retrieval — chunks with distance > this get dropped
+        # before the few_shot_count ceiling is applied.
+        max_distance = self.llm_config.default_max_distance
 
         first_level: str | None = None
         if levels:
@@ -158,6 +169,9 @@ class QuizPipeline:
         #   2. Avoids the previous double-fetch (probe + Generator's retrieve).
         # The Generator below uses these examples directly via
         # generate_with_examples().
+        #
+        # max_distance is the QUALITY FLOOR (drops noisy chunks);
+        # top_k is the CEILING (caps prompt size).
         examples = self.retriever.retrieve(
             query=topic,
             language=language,
@@ -165,6 +179,7 @@ class QuizPipeline:
             question_type=question_type,
             subject=subject,
             levels=levels,
+            max_distance=max_distance,
         )
         self.last_retrieval = list(examples)
 

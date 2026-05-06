@@ -32,6 +32,12 @@ services:
       # HF_HOME is also set in the Dockerfile but we re-state it here to
       # make the cache mount obvious in this file.
       - HF_HOME=/cache/huggingface
+      # Groq API key — read from the .env file at the project root or
+      # from your shell environment. Required when llm.provider=groq.
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      # Gemini API key — required when llm.provider=gemini.
+      # Read from .env at project root.
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:
       # Bind mounts — these point at folders on YOUR machine, so changes
       # to data persist between rebuilds and you don't have to re-index
@@ -39,6 +45,7 @@ services:
       - ./data/vector_store:/app/data/vector_store   # Chroma DB
       - ./data/processed:/app/data/processed         # ready.jsonl
       - ./configs:/app/configs                       # models.yaml
+      - ./logs:/app/logs                             # append-only runs.jsonl log
       # Named volume for HuggingFace model cache (BGE-M3, reranker).
       # First request after `docker compose up` is slow (downloads ~1.2 GB);
       # every subsequent request reuses these files.

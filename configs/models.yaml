@@ -32,18 +32,28 @@ reranker:
   batch_size: 16
 
 # Stage 6 — LLM used by the QuizPipeline orchestrator.
-# Only the `ollama` provider is wired up for now. To add OpenAI/Anthropic
-# later, extend src/pipeline.py with a new provider branch.
+# Supported providers:
+#   ollama  — local Ollama server
+#   groq    — hosted (requires GROQ_API_KEY)
+#   gemini  — Google Gemini (requires GEMINI_API_KEY)
 llm:
-  provider: ollama
-  model: qwen2.5:14b                     # multilingual model from Cohere
-  host: null                        # null = default http://localhost:11434
-  default_temperature: 0.3
+  provider: gemini
+  model: gemini-2.5-pro             # best multilingual quality
+  host: null                        # only used by Ollama provider
+  default_temperature: 0.4
   max_attempts: 3                   # retries on JSON / validation failure
-  default_few_shot_count: 7         # retrieved examples fed to LLM per prompt
-                                    # 1–3 = thin context, faster / less guidance
-                                    # 5   = sweet spot for most cases
-                                    # 7–10 = richer style, more prompt tokens
+
+  # CEILING — never send more than this many examples to the LLM, even if
+  # more pass the distance filter below. Acts as a prompt-size guard.
+  default_few_shot_count: 12
+
+  # QUALITY FLOOR — drop retrieved chunks weaker than this distance, BEFORE
+  # the count ceiling is applied. Each query gets between 0 and
+  # default_few_shot_count examples based on actual retrieval quality.
+  # Set to null to disable distance filtering.
+  # 0.50 chosen based on the corpus's distance distribution (analyze_runs.py
+  # showed 80% of chunks below 0.50 — the noisy tail starts there).
+  default_max_distance: 0.50
 
 indexing:
   # Which column of ready.jsonl gets embedded

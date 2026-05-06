@@ -36,7 +36,7 @@ class GenerationRequest(BaseModel):
     question_type: SUPPORTED_QUESTION_TYPES = "MULTIPLE_CHOICE"
     subject: str | None = None                 # optional retrieval filter
     level: str | None = None                   # optional retrieval filter
-    few_shot_count: int = Field(default=6, ge=1, le=10)
+    few_shot_count: int = Field(default=6, ge=1, le=20)
     temperature: float = Field(default=0.75, ge=0.0, le=2.0)
 
 

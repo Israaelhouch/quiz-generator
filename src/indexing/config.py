@@ -86,21 +86,32 @@ def load_models_config(config_path: Path) -> "ModelsConfig":
         batch_size: int = 16
 
     class LLMConfigPyd(BaseModel):
-        """Stage 6 — LLM client config (Ollama-only for now)."""
+        """Stage 6 — LLM client config.
+
+        Supported providers:
+          - 'ollama' — local Ollama server (uses `host` to connect)
+          - 'groq'   — Groq hosted API (requires GROQ_API_KEY env var)
+          - 'gemini' — Google Gemini (requires GEMINI_API_KEY env var)
+        """
         model_config = ConfigDict(extra="forbid")
         provider: str = "ollama"
         model: str = "qwen2.5:7b"
-        host: str | None = None
+        host: str | None = None        # only used by Ollama provider
         default_temperature: float = Field(default=0.75, ge=0.0, le=2.0)
         max_attempts: int = Field(default=3, ge=1, le=10)
-        default_few_shot_count: int = Field(default=5, ge=1, le=10)
+        # Ceiling on examples passed to the LLM (after distance filter applies).
+        default_few_shot_count: int = Field(default=5, ge=1, le=20)
+        # Quality floor — chunks with distance > this are dropped. Set to None
+        # to disable distance filtering and rely only on few_shot_count.
+        default_max_distance: float | None = Field(default=None, ge=0.0, le=2.0)
 
         @field_validator("provider")
         @classmethod
         def _check_provider(cls, v: str) -> str:
-            if v != "ollama":
+            allowed = {"ollama", "groq", "gemini"}
+            if v not in allowed:
                 raise ValueError(
-                    f"Only 'ollama' provider is wired up for now, got {v!r}"
+                    f"Provider must be one of {sorted(allowed)}, got {v!r}"
                 )
             return v
 

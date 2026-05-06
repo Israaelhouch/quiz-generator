@@ -11,6 +11,8 @@ faiss-cpu
 scikit-learn
 openai
 ollama
+groq
+google-genai
 fastapi
 uvicorn[standard]
 pytest
