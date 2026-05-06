@@ -29,6 +29,33 @@ STRINGS: dict[str, dict] = {
             "HERE ARE {n} EXAMPLES FROM OUR CURRICULUM "
             "(for style reference only, do NOT copy):"
         ),
+        "context_filter_template": (
+            "CONTEXT FILTERING — about the examples above:\n"
+            "Not every retrieved example is guaranteed to be on-topic for \"{topic}\". "
+            "Some may be loosely related or off-topic.\n"
+            "- Use ONLY the examples that are clearly relevant to \"{topic}\" "
+            "as your content/style reference.\n"
+            "- IGNORE examples that don't match the topic when choosing what to "
+            "write about — they may still be useful for general formatting style.\n"
+            "- Every NEW question you generate MUST be directly about \"{topic}\". "
+            "Do not drift to adjacent topics."
+        ),
+        "concept_anchor_template": (
+            "CONCEPT ANCHORING (critical for accuracy):\n"
+            "The examples above ARE your source of truth for what \"{topic}\" "
+            "means in this curriculum. Do NOT rely solely on your general training "
+            "knowledge — it may be imprecise or wrong for this specific concept.\n"
+            "\n"
+            "Before writing each question:\n"
+            "  1. Examine the relevant examples carefully.\n"
+            "  2. Identify what EXACTLY makes each one a \"{topic}\" "
+            "(the specific structural / grammatical / conceptual features).\n"
+            "  3. Write your question to test THAT specific feature — not a "
+            "vague or generic version of it.\n"
+            "\n"
+            "If the examples conflict with what you think you know about \"{topic}\", "
+            "TRUST THE EXAMPLES."
+        ),
         "rules_MULTIPLE_CHOICE": (
             "RULES FOR MULTIPLE_CHOICE QUESTIONS:\n"
             "- Exactly 3 or 4 choices per question\n"
@@ -91,6 +118,36 @@ STRINGS: dict[str, dict] = {
         "examples_header_template": (
             "VOICI {n} EXEMPLES DE NOTRE CURRICULUM "
             "(pour référence stylistique uniquement, NE PAS copier) :"
+        ),
+        "context_filter_template": (
+            "FILTRAGE CONTEXTUEL — concernant les exemples ci-dessus :\n"
+            "Tous les exemples récupérés ne sont pas garantis d'être parfaitement "
+            "liés au sujet « {topic} ». Certains peuvent être hors-sujet ou "
+            "seulement vaguement liés.\n"
+            "- Utilisez UNIQUEMENT les exemples clairement liés à « {topic} » "
+            "comme référence de contenu/style.\n"
+            "- IGNOREZ les exemples qui ne correspondent pas au sujet pour le "
+            "choix du contenu — ils peuvent toujours servir pour le style général.\n"
+            "- Chaque NOUVELLE question générée DOIT porter directement sur "
+            "« {topic} ». Ne dérivez pas vers des sujets connexes."
+        ),
+        "concept_anchor_template": (
+            "ANCRAGE CONCEPTUEL (critique pour la précision) :\n"
+            "Les exemples ci-dessus SONT votre source de vérité pour ce que "
+            "« {topic} » signifie dans ce curriculum. Ne vous fiez PAS uniquement "
+            "à vos connaissances d'entraînement générales — elles peuvent être "
+            "imprécises ou incorrectes pour ce concept spécifique.\n"
+            "\n"
+            "Avant d'écrire chaque question :\n"
+            "  1. Examinez attentivement les exemples pertinents.\n"
+            "  2. Identifiez ce qui fait EXACTEMENT de chacun un « {topic} » "
+            "(les caractéristiques structurelles / grammaticales / conceptuelles "
+            "précises).\n"
+            "  3. Rédigez votre question pour tester CETTE caractéristique "
+            "spécifique — pas une version vague ou générique.\n"
+            "\n"
+            "Si les exemples sont en conflit avec ce que vous pensez savoir sur "
+            "« {topic} », FAITES CONFIANCE AUX EXEMPLES."
         ),
         "rules_MULTIPLE_CHOICE": (
             "RÈGLES POUR MULTIPLE_CHOICE :\n"
@@ -155,6 +212,32 @@ STRINGS: dict[str, dict] = {
         "level_line_template": "المستوى: {level}",
         "examples_header_template": (
             "في ما يلي {n} أمثلة من منهجنا (للمرجع الأسلوبي فقط، لا تنسخ):"
+        ),
+        "context_filter_template": (
+            "تصفية السياق — بخصوص الأمثلة أعلاه:\n"
+            "ليست كل الأمثلة المسترجعة مضمونة الارتباط الكامل بالموضوع «{topic}». "
+            "بعضها قد يكون خارج الموضوع أو مرتبطًا به بشكل ضعيف.\n"
+            "- استخدم فقط الأمثلة المرتبطة بوضوح بـ «{topic}» كمرجع للمحتوى والأسلوب.\n"
+            "- تجاهل الأمثلة التي لا تطابق الموضوع عند اختيار محتواك — يمكنك مع "
+            "ذلك الاستفادة منها للأسلوب العام للتنسيق.\n"
+            "- كل سؤال جديد تنشئه يجب أن يكون مباشرًا حول «{topic}». "
+            "لا تنحرف إلى مواضيع مجاورة."
+        ),
+        "concept_anchor_template": (
+            "تثبيت المفهوم (حاسم للدقة):\n"
+            "الأمثلة أعلاه هي مرجعك الأساسي لمعنى «{topic}» في هذا المنهج. "
+            "لا تعتمد فقط على معرفتك العامة من التدريب — فقد تكون غير دقيقة أو "
+            "خاطئة لهذا المفهوم بالذات.\n"
+            "\n"
+            "قبل كتابة كل سؤال:\n"
+            "  ١. افحص الأمثلة ذات الصلة بعناية.\n"
+            "  ٢. حدّد ما الذي يجعل كل مثال «{topic}» بالضبط "
+            "(الخصائص البنيوية / النحوية / المفاهيمية المحددة).\n"
+            "  ٣. اكتب سؤالك ليختبر تلك الخاصية المحددة — ليس نسخة عامة أو "
+            "غامضة منها.\n"
+            "\n"
+            "إذا تعارضت الأمثلة مع ما تظن أنك تعرفه عن «{topic}»، "
+            "اعتمد على الأمثلة."
         ),
         "rules_MULTIPLE_CHOICE": (
             "قواعد MULTIPLE_CHOICE:\n"

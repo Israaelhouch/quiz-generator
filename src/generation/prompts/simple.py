@@ -82,12 +82,16 @@ def build_prompt(
     examples_text = "\n\n".join(
         _render_example(i + 1, ex) for i, ex in enumerate(examples)
     )
+    context_filter = s["context_filter_template"].format(topic=topic)
+    concept_anchor = s["concept_anchor_template"].format(topic=topic)
     final_instruction = s["final_instruction_template"].format(count=count)
 
     user_message = (
         f"{task_line}{subject_line}{level_line}\n\n"
         f"{examples_header}\n\n"
         f"{examples_text}\n\n"
+        f"{context_filter}\n\n"
+        f"{concept_anchor}\n\n"
         f"{rules}\n\n"
         f"{s['ignore_inline_warning']}\n\n"
         f"{s['output_format_header']}\n"
