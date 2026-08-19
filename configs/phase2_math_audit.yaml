@@ -1,0 +1,59 @@
+# Phase-2 math audit scope.
+#
+# Purpose:
+#   Run the production ingest + normalize pipeline over JUST the
+#   math subset of the corpus, producing
+#     data/interim/flat_math_audit.jsonl
+#     data/interim/normalized_math_audit.jsonl
+#   for the math-discovery notebook to consume.
+#
+#   Nothing in production (vector store, ready_phase1.jsonl) is touched.
+#   This file exists solely to drive the audit; no math content will
+#   land in the live index until we add MATHEMATICS to phase1_scope.yaml
+#   in a separate step.
+#
+# Used by:
+#   python -m src.data.ingest \
+#       --scope configs/phase2_math_audit.yaml \
+#       --output data/interim/flat_math_audit.jsonl \
+#       --stats  data/interim/flat_math_audit_stats.json
+#
+#   python -m src.data.normalize \
+#       --input  data/interim/flat_math_audit.jsonl \
+#       --output data/interim/normalized_math_audit.jsonl \
+#       --stats  data/interim/normalized_math_audit_stats.json
+#
+# Filtering rules (applied at ingest, per src/data/scope.py):
+#   1. Drop rows with NO subjects.
+#   2. Keep rows where ANY subject is in `subjects`.
+#   3. `languages` is descriptive only — not enforced at ingest.
+#      normalize.py allows {en, fr, ar}; we filter to {fr, ar} in
+#      the audit notebook itself.
+#   4. Drop rows whose first level doesn't start with any prefix in
+#      `level_prefixes`.
+#
+# Once the math audit is done and we decide to ship math, the right
+# follow-up is to merge MATHEMATICS into configs/phase1_scope.yaml
+# (and probably rename phase1 → something subject-agnostic).
+
+scope:
+  name: phase2_math_audit
+
+  subjects:
+    - MATHEMATICS
+
+  level_prefixes:
+    - PRIMARY_SCHOOL
+    - MIDDLE_SCHOOL
+    - HIGH_SCHOOL
+
+  languages:
+    # Descriptive only (see header note). Tunisian math curriculum:
+    #   primary/middle → Arabic
+    #   high           → French
+    # We still list `en` because some raw rows mis-label French math as
+    # "english" in the source; normalize.py's subject domain rule
+    # rewrites those to fr/ar. Dropping `en` here would be a noop.
+    - ar
+    - fr
+    - en

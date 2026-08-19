@@ -1,0 +1,107 @@
+# Single-service stack for the Quiz Generator.
+#
+#   api  — FastAPI app + the Python pipeline (BGE-M3 + reranker)
+#
+# GPU support:
+#   - Mac (Apple Silicon): Apple's GPU CANNOT be passed through to Docker.
+#     The container runs on CPU; retrieval is 5-10x slower than native.
+#     For dev speed on Mac, run the API natively instead:
+#       set -a; source .env; set +a
+#       source venv/bin/activate
+#       python -m src.api --host 127.0.0.1 --port 8000
+#   - NVIDIA host (Linux server, Windows + WSL2): use the GPU override:
+#       docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+#     See docker-compose.gpu.yml for prerequisites.
+#
+# Ollama (if used as the LLM provider) runs NATIVELY on Mac for the same
+# Apple-GPU reason. On NVIDIA hosts you can containerize Ollama too.
+#
+# Setup on the host (one-time, Ollama users only):
+#   brew install ollama        # if not already installed
+#   ollama serve &             # background process — leaves Ollama listening on :11434
+#   ollama pull aya:8b         # or whatever model is in configs/models.yaml
+#
+# Then:
+#   docker compose up -d                              # start the API container (CPU)
+#   docker compose run --rm api python -m src.indexing.build  # one-time index build
+#   docker compose down                               # stop
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "8000:8000"
+    environment:
+      # `host.docker.internal` is Docker's DNS alias for the Mac host. The
+      # API container talks to Ollama running natively on the Mac at port
+      # 11434. Read by orchestrator._build_llm_client.
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      # HF_HOME is also set in the Dockerfile but we re-state it here to
+      # make the cache mount obvious in this file.
+      - HF_HOME=/cache/huggingface
+      # Groq API key — read from the .env file at the project root or
+      # from your shell environment. Required when llm.provider=groq.
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      # Gemini API key — required when llm.provider=gemini.
+      # Read from .env at project root.
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      # Comma-separated keys the HTTP API will accept in the X-API-Key
+      # header (or as `Authorization: Bearer <key>`). UNSET = authentication
+      # DISABLED — the server logs a loud warning at startup. Set this before
+      # the port is reachable by anything you don't control: an unauthenticated
+      # /quiz/generate is a direct path from any caller to your LLM bill.
+      - API_KEYS=${API_KEYS:-}
+      # Per-caller budget for /retrieve + /quiz/generate, counted PER PROCESS
+      # over a rolling 60s. 0 disables. Raise it if you run multiple workers
+      # and enforce the real limit at Nginx instead.
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-30}
+      # Per-call LLM timeout. Without one, a hung provider pins a worker
+      # thread — and the retry loop means up to 3 per request. 0 disables.
+      - LLM_TIMEOUT_SECONDS=${LLM_TIMEOUT_SECONDS:-90}
+      # Roll logs/runs.jsonl past this size (keeps 3 generations). 0 disables.
+      - RUNS_LOG_MAX_BYTES=${RUNS_LOG_MAX_BYTES:-52428800}
+      # Human judgements on generated questions (POST /feedback). Kept apart
+      # from runs.jsonl: runs are voluminous and machine-made, feedback is
+      # scarce and is the only generation-quality signal that exists.
+      - FEEDBACK_LOG_PATH=${FEEDBACK_LOG_PATH:-/app/logs/feedback.jsonl}
+      # Set to 1 to put the source questions' author name + email back into
+      # API responses and the run log. Off by default: that is real teachers'
+      # personal data and it accumulates on disk.
+      - INCLUDE_AUTHOR_METADATA=${INCLUDE_AUTHOR_METADATA:-0}
+      # Browser origins allowed to call this API directly, comma-separated.
+      # UNSET = no CORS headers, which is correct when the school platform's
+      # BACKEND is the caller (server-to-server is not subject to CORS).
+      # Never combine "*" with a real API key.
+      - CORS_ALLOW_ORIGINS=${CORS_ALLOW_ORIGINS:-}
+    volumes:
+      # Bind mounts — these point at folders on YOUR machine, so changes
+      # to data persist between rebuilds and you don't have to re-index
+      # the whole corpus every time you change a line of code.
+      - ./data/raw:/app/data/raw                     # quizzes-raw-data.json
+      - ./data/interim:/app/data/interim             # flat/normalized JSONLs
+      - ./data/vector_store:/app/data/vector_store   # Chroma DB
+      - ./data/processed:/app/data/processed         # ready_phase1.jsonl
+      - ./configs:/app/configs                       # models.yaml
+      - ./logs:/app/logs                             # append-only runs.jsonl log
+      # Named volume for HuggingFace model cache (BGE-M3, reranker).
+      # First request after `docker compose up` is slow (downloads ~1.2 GB);
+      # every subsequent request reuses these files.
+      - hf_cache:/cache/huggingface
+    healthcheck:
+      # Hit our own /health endpoint to confirm the pipeline loaded.
+      # start_period is generous because BGE-M3 + reranker load takes ~30s.
+      # /ready (not /health) — it probes Chroma and the payload, so a
+      # container with a missing or empty index reports unhealthy instead of
+      # accepting traffic it will 502 on. Unauthenticated by design.
+      test: ["CMD", "python", "-c", "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/ready').status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+volumes:
+  hf_cache:       # BGE-M3 + reranker (~1.2 GB)

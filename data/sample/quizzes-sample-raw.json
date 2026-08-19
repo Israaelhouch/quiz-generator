@@ -1,0 +1,4562 @@
+[
+  {
+    "_id": "741290ea441f5742d4fd2609",
+    "title": "Quiz: Everyday words and simple sentences",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "PRIMARY_SCHOOL_5TH_GRADE"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>What is the plural of 'child'?</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "childs",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "childes",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "children",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "childrens",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Choose the correct article: ___ apple a day keeps the doctor away.&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "The",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Some",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "A",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "An",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Which word is a colour?</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "blue",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "table",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "run",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "quickly",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>How many days are there in a week?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "ten",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "five",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "seven",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "six",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>What do we call a baby cat?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "a kitten",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "a calf",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "a cub",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "a puppy",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Which word is a fruit?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "onion",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "banana",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "potato",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "carrot",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Choose the correct spelling.</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "friand",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "frend",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "friend",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "freind",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Complete the sentence: She ___ to school every day.</span>&nbsp;</div>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "going",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "gone",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "goes",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "go",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "5adedb126ba8a1dbde7d0f02",
+    "title": "Quiz: Opposites and simple past",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "PRIMARY_SCHOOL_6TH_GRADE"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>What is the past tense of 'go'?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "went",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "goes",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "gone",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "goed",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Which word means the opposite of 'hot'?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "cold",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "sunny",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "warm",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "dry",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;What is the opposite of 'always'?&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "often",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "sometimes",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "never",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "usually",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>What is the past tense of 'eat'?</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "eaten",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "eated",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "eating",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "ate",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which sentence is correct?<br></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "They was happy yesterday.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "They were happy yesterday.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "They is happy yesterday.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "They be happy yesterday.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>Fill in the blank: Yesterday I ___ a letter to my cousin.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "wrote",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Which word is a verb?</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "table",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "swim",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "slowly",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "green",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>What is the plural of 'mouse'?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "mices",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "mouses",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "mice",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "mouse",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "6b56aab598a68e6b12ba64d9",
+    "title": "Quiz: Present perfect and irregular verbs",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_1ST_GRADE"
+    ],
+    "createdBy": {
+      "name": "Placeholder Contributor",
+      "email": "placeholder.contributor@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>What is the past participle of 'buy'?</span>&nbsp;</div>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "buyed",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "bought",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "buys",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "buying",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Complete: I have ___ been to London.<br></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "never",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "ago",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "last year",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "yesterday",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Choose the correct sentence.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "She lives here since 2015.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "She is living here since 2015.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "She has lived here since five years.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "She has lived here since 2015.",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which tense is used in 'They have finished their homework'?<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "Past perfect",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Past simple",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Present continuous",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Present perfect",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Choose the correct preposition: She is good ___ mathematics.&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "at",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "in",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "of",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "on",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p><strong>Fill in the blank: If it rains tomorrow, we ___ at home.</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "will stay",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>What is the comparative form of 'good'?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "more good",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "gooder",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "better",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "best",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Identify the adverb in: 'He speaks softly.'<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "softly",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "speaks",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "sof",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "he",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "1c338ce93648e6d92d579729",
+    "title": "Quiz: Vocabulary building and word families",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_3RD_GRADE"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which word is a synonym of 'happy'?<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "silent",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "tired",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "angry",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "glad",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which word is the opposite of 'ancient'?<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "antique",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "modern",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "old",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "historic",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>A person who writes books is called a(n) ___.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "editor",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "printer",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "reader",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "author",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Which of these are adjectives? (choose two)</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "curious",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "bright",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "quickly",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "arrive",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Choose the correct question tag: You are coming, ___?</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "isn't it",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "don't you",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "won't he",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "aren't you",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which word describes a place where books are borrowed?</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "bakery",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "gallery",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "laboratory",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "library",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "TEXT_MULTIPLE_CHOICE",
+        "description": "<p>Read the short text and choose the best summary: 'Amina wakes up early, waters the garden, then walks to school with her brother.'</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "Amina has a simple morning routine before school.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "Amina spends the whole morning at the market.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Amina walks to school alone every evening.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Amina refuses to go to school in the morning.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>Fill in the blank: The opposite of 'expensive' is ___.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "cheap",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "5ed16b2cf195bbde917e7f8a",
+    "title": "Quiz: Reported speech and conditionals",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "HIGH_SCHOOL_2ND_GRADE_LETTRES"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Report this sentence: He said, 'I am tired.'</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "He said that I am tired.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "He said that he was tired.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "He said that he is tired.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "He says that he was tired.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Complete the third conditional: If she had studied, she ___ the exam.<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "would pass",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "will pass",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "had passed",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "would have passed",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Choose the correct relative pronoun: The book ___ I read was fascinating.</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "who",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "where",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "that",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "whose",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which modal expresses deduction about the past?<br></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "may leave",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "should leave",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "must have left",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "can leave",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Identify the figure of speech: 'The wind whispered through the trees.'<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "Simile",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Hyperbole",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Metonymy",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Personification",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Choose the best linking word: The plan was risky. ___, the team approved it.<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "Because",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Nevertheless",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "Moreover",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Therefore",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>Fill in the blank: Change to passive — They built the bridge in 1990. The bridge ___ in 1990.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "was built",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which word is a synonym of 'reluctant'?<br></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "generous",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "unwilling",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "eager",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "cheerful",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "1ea86303b135da769f60f777",
+    "title": "Quiz: Exam practice — writing and register",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "HIGH_SCHOOL_4TH_GRADE_ENGLISH"
+    ],
+    "createdBy": {
+      "name": "Placeholder Contributor",
+      "email": "placeholder.contributor@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Which sentence is the most formal?&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "Sorry, the office is shut.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "We regret to inform you that the office is closed.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "Office closed, sorry!",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "No one is in today, mate.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which sentence uses the present perfect continuous correctly?<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "She is been studying for three hours.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "She has been studying for three hours.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "She has been study for three hours.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "She has study for three hours.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;What is the main purpose of a topic sentence?&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "To state the main idea of a paragraph.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "To list the references used.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "To repeat the essay title.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "To introduce a new character.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Choose the correct word: The results had a strong ___ on the debate.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "effect",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "affection",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "efect",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "affect",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Which pair of words are both connectors of contrast? (choose two)</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "whereas",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "however",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "moreover",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "furthermore",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which sentence contains a relative clause?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "The teacher retired last year.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Last year the teacher retired.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Our teacher retired, sadly.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "The teacher who taught us retired last year.",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>Fill in the blank: Rewrite formally — 'The plan didn't work out.' The plan was ___.<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "unsuccessful",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Which word is closest in meaning to 'concise'?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "lengthy",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "brief",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "loud",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "vague",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "fbfa209f32556232aa4d87cb",
+    "title": "Quiz : Vocabulaire et pluriel",
+    "language": "french",
+    "subjects": [
+      "FRENCH"
+    ],
+    "levels": [
+      "PRIMARY_SCHOOL_4TH_GRADE"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quel est le pluriel de « cheval » ?&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "chevals",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "chevales",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "chevaux",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "chevaus",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Quelle est la capitale de la France ?</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "Bordeaux",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Paris",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "Marseille",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Lyon",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Quel article convient : ___ maison est grande.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "La",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "Le",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Un",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Les",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quel est le contraire de « grand » ?&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "long",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "large",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "petit",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "haut",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Quelle couleur obtient-on en mélangeant le bleu et le jaune ?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "le gris",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "l'orange",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "le violet",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "le vert",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Combien de lettres y a-t-il dans l'alphabet français ?</span>&nbsp;</div>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "30",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "24",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "26",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "28",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Quel est le pluriel de « journal » ?</span>&nbsp;</div>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "journals",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "journalles",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "journeaux",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "journaux",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>&nbsp;Complète : Je ___ à l'école tous les matins.&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "vais",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "dfe99be4334f8e88d42eaaa9",
+    "title": "Quiz : Conjugaison au passé composé",
+    "language": "french",
+    "subjects": [
+      "FRENCH"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_2ND_GRADE"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Quel est le passé composé du verbe « aller » à la première personne ?<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "je suis allait",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "j'allais",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "je suis allé",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "j'ai allé",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Quel est l'infinitif du verbe dans « nous faisons » ?<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "fais",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "faire",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "fairer",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "faisir",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Quel temps est employé dans « il mangeait » ?</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "le passé composé",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "le présent",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "le futur simple",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "l'imparfait",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Choisis le bon homophone : Il ___ parti hier.</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "es",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "et",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "est",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "ait",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quel est le féminin de « acteur » ?&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "actrice",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "acteuse",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "acteure",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "actrisse",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Quelles formes sont au futur simple ? (choisis deux réponses)</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "nous finissions",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "nous finirons",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "je partais",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "je partirai",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>Complète au futur simple : nous (finir) ___ le travail demain.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "finirons",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Quel est le contraire de « toujours » ?</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "parfois",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "souvent",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "encore",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "jamais",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "c7e4357465b7481068ce4b26",
+    "title": "Quiz : Grammaire — nature et fonction des mots",
+    "language": "french",
+    "subjects": [
+      "FRENCH"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_3RD_GRADE"
+    ],
+    "createdBy": {
+      "name": "Placeholder Contributor",
+      "email": "placeholder.contributor@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>Quelle est la nature du mot « rapidement » ?</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "un adjectif",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "un adverbe",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "un verbe",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "un nom",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Dans « Le chat dort sur le tapis », quel est le sujet ?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "dort",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "le tapis",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Le chat",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "sur le tapis",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quel est le synonyme de « rapide » ?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "calme",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "lent",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "lourd",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "vif",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Quelle phrase contient un complément d'objet direct ?<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "Elle est heureuse.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Elle lit un roman.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "Elle vient de Tunis.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Elle parle à son frère.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quel est le sens du préfixe « anti- » ?&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "contre",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "avant",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "avec",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "sous",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Quel mot est un adjectif qualificatif ?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "maison",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "courir",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "joyeux",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "vite",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<div><span>Complète : Les fleurs que j'ai ___ sont belles.</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "cueillies",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quel est le pluriel de « un travail » ?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "des travails",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "des travaux",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "des travailles",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "des travauxs",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "4a6d7063881f19b262eca7ad",
+    "title": "Quiz : Subjonctif et figures de style",
+    "language": "french",
+    "subjects": [
+      "FRENCH"
+    ],
+    "levels": [
+      "HIGH_SCHOOL_1ST_GRADE"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Complète : Il faut que tu ___ demain.</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "venais",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "viendras",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "viennes",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "viens",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quelle figure de style est employée dans « cet homme est un lion » ?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "l'anaphore",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "la métaphore",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "l'ironie",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "la comparaison",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Quel est le registre de langue du mot « bagnole » ?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "courant",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "soutenu",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "technique",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "familier",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quelle proposition exprime la conséquence ?&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "S'il pleut, le match sera annulé.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Il pleuvait parce que le ciel était couvert.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Il pleuvait, si bien que le match fut annulé.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "Bien qu'il pleuve, le match a eu lieu.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Quel connecteur logique exprime l'opposition ?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "donc",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "car",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "ainsi",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "cependant",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Quelle est la fonction du mot souligné dans « Je pense à mon avenir » ?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "complément d'objet indirect",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "complément d'objet direct",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "attribut du sujet",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "sujet",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p><strong>Complète au subjonctif : Je souhaite qu'il (être) ___ présent.</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "soit",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Quelles phrases sont au discours indirect ? (choisis deux réponses)<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "« Je pars », dit-il.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Il a dit qu'il partait.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "« Êtes-vous prêts ? » demanda-t-elle.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "Elle demanda si nous étions prêts.",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "c6688152a1566b6c5f758afa",
+    "title": "اختبار: المفرد والجمع والأضداد",
+    "language": "arabic",
+    "subjects": [
+      "ARABIC"
+    ],
+    "levels": [
+      "PRIMARY_SCHOOL_6TH_GRADE"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>ما هو جمع كلمة «كتاب» ؟</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "كتب",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "كتابات",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "كواتب",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "كتيبات",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>ما هو مفرد كلمة «أقلام» ؟</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "قلم",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "أقلامة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "قلمان",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "قلوم",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;ما ضد كلمة «كبير» ؟&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "ثقيل",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "واسع",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "صغير",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "طويل",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;ما ضد كلمة «ليل» ؟&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "ظلام",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "فجر",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "نهار",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "مساء",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;كم عدد أيام الأسبوع ؟&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "خمسة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "سبعة",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "عشرة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "ستة",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما هو مؤنث كلمة «معلم» ؟</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "معلمة",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "معلوم",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "معلمات",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "تعليم",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<div><span>أكمل الجملة: تشرق الشمس في ___ .</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "الصباح",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>أي الكلمات التالية تبدأ بحرف الميم ؟</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "مدرسة",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "شجرة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "بيت",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "قلم",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "559527584a1b3096f441b000",
+    "title": "اختبار: الجملة الاسمية والفعلية",
+    "language": "arabic",
+    "subjects": [
+      "ARABIC"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_1ST_GRADE"
+    ],
+    "createdBy": {
+      "name": "Placeholder Contributor",
+      "email": "placeholder.contributor@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>ما نوع الجملة في «الطالبُ مجتهدٌ» ؟</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "جملة استفهامية",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "جملة فعلية",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "جملة اسمية",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "جملة شرطية",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما نوع الفعل في «كتبَ الطالبُ الدرسَ» ؟</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "فعل مضارع",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "اسم فعل",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "فعل أمر",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "فعل ماضٍ",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;ما إعراب كلمة «الطالبُ» في الجملة السابقة ؟&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "مفعول به منصوب",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "فاعل مرفوع",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "مبتدأ مرفوع",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "خبر مرفوع",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما جمع كلمة «مدينة» ؟<br></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "مدائن صغيرة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "مدينات",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "أمدنة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "مدن",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;أي الحروف التالية من حروف الجر ؟&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "لم",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "سوف",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "في",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "قد",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>ما ضد كلمة «الصدق» ؟</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "الكذب",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "الأمانة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "الصبر",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "الوفاء",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>أكمل: إنّ العلمَ ___ يضيء طريق الإنسان.</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "نورٌ",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>ما مثنى كلمة «قلم» ؟</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "أقلام",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "قلمان",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "قليمان",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "قلمات",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "7e7a79b1c287af98abe53604",
+    "title": "اختبار: النحو والبلاغة",
+    "language": "arabic",
+    "subjects": [
+      "ARABIC"
+    ],
+    "levels": [
+      "HIGH_SCHOOL_3RD_GRADE_LETTRES"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;ما إعراب المستثنى في «حضر الطلابُ إلا زيدًا» ؟&nbsp;</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "مجرور",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "مبني على السكون",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "منصوب",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "مرفوع",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>ما نوع الأسلوب البلاغي في «الليلُ نهارٌ عندما نتعلم» ؟</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "الطباق",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "السجع",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "الجناس",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "التورية",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما عمل «كان» وأخواتها ؟</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "ترفع المبتدأ وتنصب الخبر",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "تجر الاسم بعدها",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "تنصب المبتدأ وترفع الخبر",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "تجزم الفعل المضارع",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;ما نوع «إنّ» في «إنّ الطالبَ مجتهدٌ» ؟&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "اسم موصول",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "فعل ماضٍ ناقص",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "حرف توكيد ونصب",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "حرف جر",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما إعراب كلمة «كتابةً» في «كتبتُ كتابةً جميلةً» ؟</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "حال",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "مفعول مطلق",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "مفعول به",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "تمييز",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>أي الجمل التالية تتضمن حالًا ؟</span>&nbsp;</div>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "التلميذُ مجتهدٌ.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "قرأ التلميذُ الدرسَ.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "عاد التلميذُ مسرورًا.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "في الصفِّ تلميذٌ.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>أكمل: من يجتهد ___ .</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "ينجح",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما نوع التمييز في «اشتريتُ لترًا حليبًا» ؟<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "بدل",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "تمييز ملحوظ",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "تمييز ملفوظ",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "حال",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "ae84fa65d5b6be50cea71348",
+    "title": "اختبار: العمليات الحسابية والكسور",
+    "language": "arabic",
+    "subjects": [
+      "MATHEMATICS"
+    ],
+    "levels": [
+      "PRIMARY_SCHOOL_5TH_GRADE"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>احسب حاصل الضرب التالي: \\(7 \\times 8\\)</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "64",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "56",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "54",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "48",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;بسّط الكسر التالي إلى أبسط صورة: \\(\\frac{4}{8}\\)&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(\\frac{1}{4}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{4}{6}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{1}{2}\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{2}{3}\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>ما هو ناتج الجمع: \\(\\frac{1}{2} + \\frac{1}{4}\\) ؟</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "\\(\\frac{3}{4}\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{2}{6}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{1}{6}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{2}{4}\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>احسب الجذر التربيعي التالي: \\(\\sqrt{81}\\)<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "9",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "8",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "81",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "18",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>احسب محيط مربع طول ضلعه خمسة سنتمترات.</span>&nbsp;</div>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "20 سم",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "15 سم",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "10 سم",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "25 سم",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>كم دقيقة في ساعة ونصف من الزمن ؟</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "60 دقيقة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "75 دقيقة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "120 دقيقة",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "90 دقيقة",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>&nbsp;أكمل الحساب التالي: \\(\\left( 3 + 5 \\right) \\times 2 = \\) ___&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "16",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما هو العدد الذي يأتي مباشرة بعد العدد تسعة وتسعين ؟<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "98",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "100",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "110",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "101",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "98f51a8bd8ae1af510e1ee97",
+    "title": "اختبار: المعادلات والنسب المئوية",
+    "language": "arabic",
+    "subjects": [
+      "MATHEMATICS"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_2ND_GRADE"
+    ],
+    "createdBy": {
+      "name": "Placeholder Contributor",
+      "email": "placeholder.contributor@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>حل المعادلة التالية: \\(2x + 3 = 11\\)</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(x = 4\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 7\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 2\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 5\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما قيمة \\(x\\) إذا كان \\(\\frac{x}{3} = 4\\) ؟</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "\\(x = \\frac{4}{3}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 12\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 3\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 7\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<div><span>احسب الجذر التربيعي للعدد: \\(\\sqrt{144}\\)</span>&nbsp;</div>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "24",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "72",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "14",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "12",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;احسب خمسة وعشرين بالمائة من العدد مائتين.&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "75",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "100",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "25",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "50",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>في مثلث قائم الزاوية، ما اسم النظرية التي تربط بين أطوال الأضلاع ؟</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "نظرية فيثاغورس",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "نظرية الوسط",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "نظرية الجيب",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "نظرية طاليس",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>احسب المجموع التالي: \\(\\frac{2}{5} + \\frac{1}{5}\\)</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(\\frac{3}{5}\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{1}{5}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{2}{10}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{3}{10}\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;ما هي مساحة مستطيل طوله ثمانية أمتار وعرضه ثلاثة أمتار ؟&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "16 متر مربع",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "22 متر مربع",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "11 متر مربع",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "24 متر مربع",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>أكمل: حل المعادلة \\(x - 7 = 0\\) هو \\(x = \\) ___</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "7",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "0b5b59f402c3068017b2395e",
+    "title": "Quiz : Fonctions, racines et fractions",
+    "language": "french",
+    "subjects": [
+      "MATHEMATICS"
+    ],
+    "levels": [
+      "HIGH_SCHOOL_2ND_GRADE_SCIENCE"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Simplifier l'expression suivante : \\(\\sqrt{50}\\)</strong></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(5\\sqrt{2}\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(\\sqrt{5}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(2\\sqrt{5}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(25\\sqrt{2}\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Calculer le produit : \\(\\left( \\frac{3}{4} \\right) \\times \\frac{2}{3}\\)</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "\\(\\frac{1}{2}\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{5}{7}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{2}{4}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{6}{7}\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Résoudre l'équation : \\(2x + 6 = 0\\)</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "\\(x = -6\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 3\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 6\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = -3\\)",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Résoudre dans \\(\\mathbb{R}\\) l'équation \\(x^2 - 4 = 0\\)<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(x = -4\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 0\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 2\\) ou \\(x = -2\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(x = 4\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quelle est l'aire d'un disque de rayon r ?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(\\pi r\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(2 \\pi r\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\pi r^2\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{\\pi r}{2}\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Si \\(u_n = 2n + 1\\), que vaut \\(u_5\\) ?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "10",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "9",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "11",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "12",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>&nbsp;Compléter : la solution de l'équation \\(3x = 12\\) est \\(x = \\) ___&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "4",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Quelles expressions sont égales à \\(\\frac{1}{2}\\) ? (choisir deux réponses)</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "\\(\\frac{2}{5}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{3}{4}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{5}{10}\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{2}{4}\\)",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "5e193956c7739731e9204a99",
+    "title": "Quiz : Limites, dérivées et logarithme",
+    "language": "french",
+    "subjects": [
+      "MATHEMATICS"
+    ],
+    "levels": [
+      "HIGH_SCHOOL_4TH_GRADE_MATHEMATICS"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Calculer la limite : \\(\\lim_{x \\rightarrow +\\infty} \\frac{2x + 1}{x - 3}\\)</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(+\\infty\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(\\frac{1}{3}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "2",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "0",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>Quelle est la dérivée de la fonction \\(f(x) = x^2\\) ?</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "\\(f'(x) = 2x\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(f'(x) = 2\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(f'(x) = x^3\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(f'(x) = x\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Quelle est la dérivée de la fonction \\(f(x) = \\ln(x)\\) sur \\(]0, +\\infty[\\) ?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(f'(x) = \\frac{1}{x^2}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(f'(x) = \\ln(x)\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(f'(x) = \\frac{1}{x}\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(f'(x) = x \\ln(x)\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Que vaut \\(\\log_{10}(1000)\\) ?&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "100",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "10",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "2",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "3",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;Calculer \\(\\lim_{x \\rightarrow 0} \\frac{\\sin(x)}{x}\\)&nbsp;</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "0",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "n'existe pas",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "1",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(+\\infty\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 6,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Quelle est une primitive de \\(f(x) = 2x\\) ?<br></p>",
+        "image": null,
+        "points": 2.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "\\(F(x) = 2\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(F(x) = \\frac{x^2}{2}\\)",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "\\(F(x) = x^2\\)",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "\\(F(x) = 2x^2\\)",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 7,
+        "type": "FILL_IN_THE_BLANKS",
+        "description": "<p>Compléter : \\(\\sqrt{\\left( 3 \\right)^2} = \\) ___<br></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "3",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 8,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p><strong>La fonction \\(x \\rightarrow e^x\\) est :</strong></p>",
+        "image": null,
+        "points": 1.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "strictement décroissante sur R",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "strictement croissante sur R",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "constante sur R",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "négative sur R",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "42bcf9cf9c854500c5e14cfb",
+    "title": "Quiz: Mixed quality rows (demo of the cleaning stages)",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_1ST_GRADE"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>What is the past participle of 'buy'?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "bought",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "buyed",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "buying",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "buys",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which sentence is grammatically correct?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "He don't like coffee.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "He doesn't likes coffee.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "He not like coffee.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Write a short paragraph about your school day.</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 120,
+        "choices": []
+      },
+      {
+        "order": 4,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>&nbsp;</p>",
+        "image": "https://example.invalid/sample-diagram.png",
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "A",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "B",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which picture shows a library?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "",
+            "isTrue": true,
+            "media": "https://example.invalid/a.png"
+          },
+          {
+            "answer": "",
+            "isTrue": false,
+            "media": "https://example.invalid/b.png"
+          }
+        ]
+      },
+      {
+        "order": 5,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which word is a <strong>noun</strong>?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "happiness",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "quickly",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "brightly",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "run",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "ec956fc738013c488ce4209b",
+    "title": "اختبار: أعداد مخزّنة كقيم رقمية",
+    "language": "arabic",
+    "subjects": [
+      "MATHEMATICS"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_2ND_GRADE"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما هو ناتج العملية الحسابية التالية: \\(12 \\div 3\\) ؟</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": 4,
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": 6,
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": 36,
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": 3.5,
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>ما هو العدد الزوجي بين الأعداد التالية ؟</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": 8,
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": 7,
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": 9,
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": 11,
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "391b2230f3337478f4a06687",
+    "title": "Quiz : Notions de mécanique (hors périmètre)",
+    "language": "french",
+    "subjects": [
+      "PHYSICS"
+    ],
+    "levels": [
+      "HIGH_SCHOOL_2ND_GRADE_SCIENCE"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Quelle est l'unité de la force dans le système international ?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "le newton",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "le joule",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "le watt",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "b0ce37f7a343c5b7ece7c056",
+    "title": "Quiz: Academic writing (out-of-scope level)",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "LICENCE_1ST_YEAR"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>What is the main function of an abstract?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 45,
+        "choices": [
+          {
+            "answer": "To summarise the whole paper.",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "To list the authors.",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "To thank the reviewers.",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "9886612573b36a6fc1ab66c6",
+    "title": "Quiz: Untagged quiz with no subject",
+    "language": "english",
+    "subjects": [],
+    "levels": [
+      "MIDDLE_SCHOOL_2ND_GRADE"
+    ],
+    "createdBy": {
+      "name": "Placeholder Contributor",
+      "email": "placeholder.contributor@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>Which of these is a season?</p>",
+        "image": null,
+        "points": 1.0,
+        "time": 30,
+        "choices": [
+          {
+            "answer": "winter",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "Monday",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "January",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "e7570e5333e402a08c0e90ca",
+    "title": "اختبار: النهايات (لغة مخالفة للمنهج)",
+    "language": "arabic",
+    "subjects": [
+      "MATHEMATICS"
+    ],
+    "levels": [
+      "HIGH_SCHOOL_4TH_GRADE_MATHEMATICS"
+    ],
+    "createdBy": {
+      "name": "Demo Teacher",
+      "email": "demo.teacher@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MULTIPLE_CHOICE",
+        "description": "<p>احسب النهاية التالية عندما يؤول \\(x\\) إلى ما لا نهاية: \\(\\lim \\frac{3x}{x + 1}\\)</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "3",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "0",
+            "isTrue": false,
+            "media": null
+          },
+          {
+            "answer": "1",
+            "isTrue": false,
+            "media": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "0ac7b189cc7585d0870202bc",
+    "title": "Quiz: Unsupported question type",
+    "language": "english",
+    "subjects": [
+      "ENGLISH"
+    ],
+    "levels": [
+      "MIDDLE_SCHOOL_3RD_GRADE"
+    ],
+    "createdBy": {
+      "name": "Sample Author",
+      "email": "sample.author@example.com"
+    },
+    "questions": [
+      {
+        "order": 1,
+        "type": "MATCHING",
+        "description": "<p>Match each word with its definition.</p>",
+        "image": null,
+        "points": 2.0,
+        "time": 60,
+        "choices": [
+          {
+            "answer": "noun - a naming word",
+            "isTrue": true,
+            "media": null
+          },
+          {
+            "answer": "verb - an action word",
+            "isTrue": true,
+            "media": null
+          }
+        ]
+      }
+    ]
+  }
+]

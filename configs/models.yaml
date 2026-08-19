@@ -1,0 +1,129 @@
+# Embedding model + vector store configuration.
+#
+# Single-model architecture: BGE-M3 handles en + fr + ar in one collection.
+# Chosen after empirical testing in notebooks/stage3_model_exploration.ipynb.
+
+model:
+  name: BAAI/bge-m3
+  embedding_dim: 1024
+  batch_size: 16                    # BGE-M3 is slower than smaller models
+  device: auto                      # auto-detect MPS (Mac) / CUDA / CPU
+  normalize_embeddings: true
+  passage_prefix: ""                # BGE-M3 needs no prefix (unlike e5)
+  query_prefix: ""                  # must stay symmetric with passage_prefix
+
+vector_store:
+  type: chroma
+  # Current-scope index — keeps the v1 index at chroma_db/ untouched as a
+  # baseline so we can compare. Filename retains the `_phase1` suffix for
+  # backward compatibility; when math support lands, the index will either
+  # rebuild here or branch into a parallel directory.
+  persist_directory: data/vector_store/chroma_db_phase1
+  collection_name: quiz_questions
+  distance_metric: cosine
+  add_batch_size: 128               # rows per Chroma insert
+  reset_on_build: true              # wipe + rebuild each `build` invocation
+
+# Optional cross-encoder reranker. Two-stage retrieval:
+#   1. Chroma + BGE-M3 (bi-encoder) fetches a wide candidate pool.
+#   2. Reranker scores (query, candidate) pairs more accurately and reorders.
+#
+# Speed knobs (all opt-in; defaults below are the production-quality choice):
+#   - enabled: false              → skip reranking entirely. Saves ~3-5s on
+#                                   Mac CPU, ~0.5s on MPS/GPU. Costs ~6% MRR
+#                                   per the analyses in eval/results/.
+#   - candidate_pool_size: 30     → halve the reranker's work (default 60).
+#                                   Small recall loss on the long tail.
+#   - batch_size: 32              → larger batches help on MPS / CUDA,
+#                                   neutral on CPU. 32 is a safe bump.
+reranker:
+  enabled: True
+  model_name: BAAI/bge-reranker-v2-m3
+  candidate_pool_size: 60           # Chroma fetches this many before reranking
+  device: auto                      # auto-detect MPS / CUDA / CPU
+  batch_size: 16
+
+# LLM used by the QuizPipeline orchestrator.
+# Supported providers:
+#   ollama  — local Ollama server
+#   groq    — hosted (requires GROQ_API_KEY)
+#   gemini  — Google Gemini (requires GEMINI_API_KEY)
+#
+# Speed-vs-quality tradeoffs (swap `model` per the table below):
+#   model                        speed   quality     notes
+#   gemini-2.5-pro               slow    best        default; ~25-40s for 8q
+#   gemini-2.5-flash             fast    very good   ~8-15s for 8q; minor quality dip
+#   groq + llama-3.3-70b         fastest good        ~2-5s; requires GROQ_API_KEY
+#                                                    (set provider: groq)
+llm:
+  provider: gemini
+  model: gemini-2.5-flash           # testing speed/quality tradeoff vs 2.5-pro
+  host: null                        # only used by Ollama provider
+  default_temperature: 0.4
+  max_attempts: 3                   # retries on JSON / validation failure
+
+  # CEILING — never send more than this many examples to the LLM, even if
+  # more pass the distance filter below. Acts as a prompt-size guard.
+  default_few_shot_count: 12
+
+  # QUALITY FLOOR — drop retrieved chunks weaker than this distance, BEFORE
+  # the count ceiling is applied. Each query gets between 0 and
+  # default_few_shot_count examples based on actual retrieval quality.
+  # Set to null to disable distance filtering.
+  #
+  # 0.60 chosen as a per-language compromise after running the
+  # distance_threshold_analysis notebook on English and Arabic eval runs:
+  #   - English optimal:  T=0.55   (drop 98.9% noise, lose 1% of relevants)
+  #   - Arabic  optimal:  T=0.65   (drop 96.9% noise, lose 0.3% of relevants)
+  # Saved analyses: eval/results/<run>/distance_threshold_analysis.json
+  #
+  # 0.60 keeps both languages safe (Arabic loses <3% recall; English filter
+  # still fires usefully). Revisit if LLM eval shows the threshold actually
+  # matters per-language at the user-visible level — at that point consider
+  # splitting into a per-language dict and adapting QuizPipeline accordingly.
+  default_max_distance: 0.60
+
+indexing:
+  # Which column of ready.jsonl gets embedded
+  embedding_text_column: search_text
+
+  # Scalar fields copied into Chroma metadata (filterable via Chroma `where`).
+  # Note: `subject` is derived from `subjects[0]` at index time
+  # (99.97% of rows have at most one subject; 3 rows lose their secondary
+  # tag, which is acceptable). This lets Chroma pre-filter subject queries
+  # natively instead of post-filtering JSON strings.
+  metadata_scalar_fields:
+    - quiz_id
+    - quiz_title
+    - language
+    - question_type
+    - multiple_correct_answers
+    - author_name
+    - author_email
+    - points
+    - time
+    - school_phase                    # derived in normalize.py, filterable in retriever
+
+  # List fields stored as JSON strings in Chroma metadata — post-filtered
+  # in Python. Use only when pre-filter isn't needed (i.e. not critical filters).
+  metadata_list_fields_as_json: []
+
+  # List fields expanded into boolean keys per value, so Chroma can pre-filter
+  # natively. Row with levels=["X","Y"] gets {"levels_X": True, "levels_Y": True}.
+  # Missing keys mean False — no bloat from False entries.
+  # Use for ESSENTIAL filters on multi-valued fields (like `levels` for a
+  # student's grade — always filtered, always pre-filter).
+  metadata_list_fields_as_booleans:
+    - levels
+
+  # After a build, run a quick retrieval test to catch obvious problems
+  smoke_test:
+    enabled: true
+    queries:
+      - lang: en
+        text: "past tense verbs"
+      - lang: fr
+        text: "dérivée d'une fonction"
+      - lang: ar
+        text: "الدوال والمعادلات"
+    top_k: 3

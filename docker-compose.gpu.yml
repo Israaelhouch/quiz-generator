@@ -1,0 +1,30 @@
+# GPU override for docker-compose. Use this on hosts that have an NVIDIA
+# GPU + nvidia-container-toolkit installed (Linux servers, Windows with
+# WSL2 + NVIDIA drivers). NOT for Macs — Apple Silicon GPUs cannot be
+# passed through to Linux containers, so this file has no effect there.
+#
+# Usage:
+#   # CPU only (default — also the only option on Macs)
+#   docker compose up -d
+#
+#   # GPU-accelerated (NVIDIA host)
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+#
+# Prerequisites on the host:
+#   - NVIDIA GPU + recent driver
+#   - nvidia-container-toolkit installed
+#       (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/)
+#   - Verify with: `docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi`
+#
+# Inside the container, PyTorch auto-detects CUDA via `device: auto` in
+# configs/models.yaml — no code change needed.
+
+services:
+  api:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

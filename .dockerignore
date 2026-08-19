@@ -1,0 +1,64 @@
+# Files the docker build should NOT send into the image.
+# Keeps the build context small and the final image lean.
+
+# Python build artifacts
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.tox
+.coverage
+htmlcov/
+
+# Local virtual environments — never copy host venv into image
+.venv
+venv
+env
+
+# Editor / IDE / OS scratch
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.swp
+*.swo
+
+# Git metadata — not needed at runtime
+.git
+.gitignore
+.gitlab-ci.yml
+.github
+
+# Docs / README — only needed for humans, not for runtime
+README.md
+docs/
+*.md
+
+# Tests — runtime image doesn't need them
+tests/
+
+# Notebooks (often large outputs in cells)
+notebooks/
+*.ipynb
+.ipynb_checkpoints/
+
+# Project-specific debug artifacts
+last_run.json
+.env
+.env.*
+
+# Data — these come in via volume mounts, NOT inside the image.
+# Including raw/interim/processed/vector_store would balloon the image.
+data/raw/
+data/interim/
+data/processed/
+data/vector_store/
+data/embeddings/
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore
+docker/

@@ -1,0 +1,40 @@
+# Current scope — defines which rows survive the ingest filter.
+#
+# Used by:  python -m src.data.ingest --scope configs/phase1_scope.yaml
+# (Filename retains its `phase1` suffix for backward compatibility with
+# existing tooling. The conceptual scope is described in docs/cells_plan.md.)
+#
+# Filtering rules (applied in this order, after structural filters):
+#   1. Drop rows with NO subjects (subjects list is empty).
+#   2. Keep rows where ANY subject is in `subjects` (permissive match).
+#   3. Drop rows whose language isn't in `languages`.
+#   4. Drop rows whose first level doesn't start with any prefix in
+#      `level_prefixes`.
+#
+# MATHEMATICS was added after Phase 1 once audit (notebooks/math_data_audit.ipynb)
+# confirmed:
+#   - The math corpus (~1,400 rows) is mostly algebra, no calculus.
+#   - The existing normalize_latex helper handles the LaTeX patterns present.
+#   - The Tunisian curriculum mapping (primary/middle → ar, high → fr)
+#     is enforced as a drop rule by src/data/curriculum_rules.py — runs
+#     in normalize.py and surfaces in normalize stats.
+
+scope:
+  name: current
+
+  subjects:
+    - ARABIC
+    - ENGLISH
+    - FRENCH
+    - MATHEMATICS    # Tunisian curriculum: primary/middle ar, high fr.
+                     # Violations dropped by curriculum_rules.py.
+
+  level_prefixes:
+    - PRIMARY_SCHOOL  # added — biggest single Arabic-corpus lever (+802 docs)
+    - MIDDLE_SCHOOL
+    - HIGH_SCHOOL
+
+  languages:
+    - ar
+    - en
+    - fr

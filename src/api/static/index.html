@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Générateur de quiz — Quiz AI</title>
+
+<!-- MathJax renders the LaTeX that comes back in maths questions.
+     The backend never pre-renders it (see docs/frontend_integration.md);
+     \(...\) and \[...\] are MathJax 3 defaults, so no config is needed. -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] },
+    startup: { typeset: false }
+  };
+</script>
+<script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root {
+    --bg:#f6f7f9; --surface:#ffffff; --ink:#16181d; --muted:#5f6672;
+    --line:#e2e5ea; --accent:#2f6f4f; --accent-ink:#ffffff;
+    --ok:#2f6f4f; --ok-bg:#e8f2ec; --warn:#8a5a12; --warn-bg:#fcf3e2;
+    --err:#9a3232; --err-bg:#fbeceb; --radius:10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#14161a; --surface:#1c1f25; --ink:#e8eaee; --muted:#9aa2ae;
+      --line:#2c313a; --accent:#5fae83; --accent-ink:#10120f;
+      --ok:#8fd0aa; --ok-bg:#1d2a23; --warn:#e0b869; --warn-bg:#2c2517;
+      --err:#e79a95; --err-bg:#2e1d1c;
+    }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+         "Helvetica Neue", Arial, "Noto Naskh Arabic", sans-serif;
+  }
+  .wrap { max-width:860px; margin:0 auto; padding:32px 20px 72px; }
+  header h1 { margin:0 0 4px; font-size:1.5rem; letter-spacing:-0.01em; }
+  header p { margin:0 0 28px; color:var(--muted); font-size:0.95rem; }
+
+  .card {
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:20px;
+  }
+  .grid { display:grid; gap:14px; grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .grid .full { grid-column:1 / -1; }
+  @media (max-width:620px) { .grid { grid-template-columns:1fr; } }
+
+  label { display:block; font-size:0.82rem; font-weight:600; margin-bottom:5px; }
+  input, select {
+    width:100%; padding:9px 11px; font:inherit; font-size:0.95rem;
+    color:var(--ink); background:var(--bg);
+    border:1px solid var(--line); border-radius:8px;
+  }
+  input:focus, select:focus {
+    outline:2px solid var(--accent); outline-offset:1px; border-color:transparent;
+  }
+  select:disabled, input:disabled { opacity:0.55; cursor:not-allowed; }
+  .hint { font-size:0.78rem; color:var(--muted); margin-top:5px; min-height:1.1em; }
+
+  button {
+    font:inherit; font-weight:600; border-radius:8px; cursor:pointer;
+    border:1px solid transparent; padding:10px 18px;
+  }
+  .primary { background:var(--accent); color:var(--accent-ink); }
+  .primary:disabled { opacity:0.6; cursor:progress; }
+  .ghost { background:transparent; color:var(--muted); border-color:var(--line); }
+  .actions { display:flex; gap:10px; align-items:center; margin-top:18px; flex-wrap:wrap; }
+  .elapsed { color:var(--muted); font-size:0.85rem; font-variant-numeric:tabular-nums; }
+
+  .note { border-radius:8px; padding:12px 14px; font-size:0.9rem; margin-top:18px; }
+  .note.err  { background:var(--err-bg);  color:var(--err);  border:1px solid var(--err); }
+  .note.warn { background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn); }
+  .note code { font-size:0.85em; opacity:0.8; }
+
+  #results { margin-top:28px; }
+  .quizhead {
+    display:flex; justify-content:space-between; align-items:baseline;
+    gap:12px; margin-bottom:14px; flex-wrap:wrap;
+  }
+  .quizhead h2 { margin:0; font-size:1.1rem; }
+  .q {
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:18px 20px; margin-bottom:12px;
+  }
+  .q-top { display:flex; gap:10px; align-items:baseline; margin-bottom:10px; }
+  .q-num { font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .q-text { font-weight:600; }
+  .badge {
+    margin-inline-start:auto; font-size:0.72rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.04em;
+    padding:2px 8px; border-radius:999px; background:var(--bg); color:var(--muted);
+    border:1px solid var(--line);
+  }
+  ol.choices { margin:0 0 12px; padding-inline-start:26px; }
+  ol.choices li { padding:3px 0; }
+  ol.choices li.correct { color:var(--ok); font-weight:600; }
+  ol.choices li.correct::after { content:" ✓"; }
+  .answer { display:none; background:var(--ok-bg); border-radius:8px; padding:11px 13px; font-size:0.92rem; }
+  .q.revealed .answer { display:block; }
+  .answer strong { color:var(--ok); }
+  .reveal { background:transparent; border:1px solid var(--line); color:var(--muted); font-size:0.82rem; padding:5px 12px; }
+
+  /* Arabic content reads right-to-left. Set on the results container only —
+     the form chrome stays LTR. */
+  [dir="rtl"] { text-align:right; }
+  [dir="rtl"] ol.choices { padding-inline-start:26px; }
+
+  .vote { display:flex; gap:6px; align-items:center; margin-inline-start:auto; }
+  .vote button { background:transparent; border:1px solid var(--line); color:var(--muted);
+                 font-size:0.95rem; line-height:1; padding:4px 9px; border-radius:7px; }
+  .vote button:hover { border-color:var(--accent); color:var(--accent); }
+  .vote button.on { background:var(--ok-bg); color:var(--ok); border-color:var(--ok); }
+  .vote button.on.down { background:var(--err-bg); color:var(--err); border-color:var(--err); }
+  .vote .said { font-size:0.74rem; color:var(--muted); }
+
+  /* Debug panel — this build is an engineering tool, not a teacher product. */
+  .debug { margin-top:22px; }
+  .debug summary { cursor:pointer; font-size:0.85rem; font-weight:600; color:var(--muted); }
+  .stats { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  .stat { background:var(--surface); border:1px solid var(--line); border-radius:8px;
+          padding:7px 11px; font-size:0.8rem; font-variant-numeric:tabular-nums; }
+  .stat b { display:block; font-size:1.02rem; font-weight:700; }
+  .chunk { background:var(--surface); border:1px solid var(--line); border-radius:8px;
+           padding:11px 13px; margin-bottom:8px; font-size:0.86rem; }
+  .chunk-top { display:flex; gap:8px; align-items:baseline; margin-bottom:4px; }
+  .dist { font-variant-numeric:tabular-nums; font-weight:700; padding:1px 7px;
+          border-radius:999px; font-size:0.76rem; }
+  .dist.near { background:var(--ok-bg);   color:var(--ok); }
+  .dist.mid  { background:var(--warn-bg); color:var(--warn); }
+  .dist.far  { background:var(--err-bg);  color:var(--err); }
+  .chunk .title { font-weight:600; }
+  .chunk .meta { color:var(--muted); font-size:0.78rem; margin-top:4px; }
+  .checkline { display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--muted); }
+  .checkline input { width:auto; }
+
+  .skeleton { height:96px; border-radius:var(--radius); background:var(--surface);
+              border:1px solid var(--line); margin-bottom:12px; animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+  @media print {
+    body { background:#fff; }
+    form, .actions, .reveal, header p, .note { display:none !important; }
+    .q, .card { border-color:#ccc; break-inside:avoid; }
+    .answer { display:block !important; background:transparent; border:1px dashed #bbb; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Générateur de quiz</h1>
+    <p>Questions générées à partir du programme tunisien. Choisissez une matière et un thème.</p>
+  </header>
+
+  <form id="form" class="card" autocomplete="off">
+    <div class="grid">
+      <div class="full">
+        <label for="topic">Thème</label>
+        <input id="topic" name="topic" required
+               placeholder="ex. past simple vs past continuous, Fonction Logarithme, الأعداد الكسرية">
+        <div class="hint" id="topicHint">Texte libre — le sujet exact du quiz.</div>
+      </div>
+
+      <div>
+        <label for="subject">Matière</label>
+        <select id="subject" required></select>
+        <div class="hint" id="subjectHint"></div>
+      </div>
+
+      <div>
+        <label for="language">Langue</label>
+        <select id="language" required></select>
+        <div class="hint" id="languageHint"></div>
+      </div>
+
+      <div>
+        <label for="phase">Niveau scolaire</label>
+        <select id="phase"></select>
+        <div class="hint" id="phaseHint"></div>
+      </div>
+
+      <div>
+        <label for="count">Nombre de questions</label>
+        <input id="count" type="number" min="1" max="20" value="5">
+        <div class="hint">Entre 1 et 20.</div>
+      </div>
+    </div>
+
+    <div id="coverage" class="note warn" hidden></div>
+
+    <div class="actions">
+      <button type="submit" class="primary" id="go">Générer le quiz</button>
+      <button type="button" class="ghost" id="print" hidden>Imprimer</button>
+      <label class="checkline" for="debug">
+        <input type="checkbox" id="debug" checked>
+        Afficher la récupération (debug)
+      </label>
+      <span class="elapsed" id="elapsed" aria-live="polite"></span>
+    </div>
+
+    <div id="alert" class="note err" hidden></div>
+  </form>
+
+  <div id="results" aria-live="polite"></div>
+</div>
+
+<script>
+"use strict";
+
+// ---------------------------------------------------------------------------
+// Curriculum rules, mirrored from src/data/curriculum_rules.py and
+// src/data/domain_rules.py.
+//
+// These aren't cosmetic. The corpus PHYSICALLY CANNOT satisfy an invalid
+// combination: normalize.py drops rows that violate the curriculum, so e.g.
+// MATHEMATICS + English retrieves zero rows and the API returns 400. Encoding
+// the rules here means the user can't ask the impossible question.
+//
+//   ENGLISH / ARABIC / FRENCH  -> the subject fixes the language
+//   MATHEMATICS                -> Arabic at primary+middle, French at high
+// ---------------------------------------------------------------------------
+const CURRICULUM = {
+  ENGLISH:     { label: "Anglais",        langs: { en: ["PRIMARY", "MIDDLE", "HIGH"] } },
+  FRENCH:      { label: "Français",       langs: { fr: ["PRIMARY", "MIDDLE", "HIGH"] } },
+  ARABIC:      { label: "Arabe",          langs: { ar: ["PRIMARY", "MIDDLE", "HIGH"] } },
+  MATHEMATICS: { label: "Mathématiques",  langs: { ar: ["PRIMARY", "MIDDLE"], fr: ["HIGH"] } }
+};
+// Corpus coverage, counted from data/processed/ready_phase1.jsonl (5,782 rows).
+// A cell with 15 documents cannot answer an arbitrary topic: retrieval returns
+// nothing, the API returns 400, and the teacher is left guessing. Saying so up
+// front is the difference between a thin corpus and a broken product.
+const COVERAGE = {
+  ENGLISH:     { docs: 3079 },
+  ARABIC:      { docs: 1317 },
+  MATHEMATICS: { docs: 1371 },
+  FRENCH: {
+    docs: 15,
+    warn: "Couverture très limitée : 15 questions en tout, sur deux thèmes " +
+          "seulement — « l'amour » (lycée) et « Enfants de tous les pays » " +
+          "(collège). Tout autre thème ne renverra aucun résultat."
+  }
+};
+
+const LANG_LABEL  = { en: "Anglais", fr: "Français", ar: "العربية" };
+const PHASE_LABEL = { PRIMARY: "Primaire", MIDDLE: "Collège", HIGH: "Lycée" };
+
+const $ = (id) => document.getElementById(id);
+const form = $("form"), subjectSel = $("subject"), langSel = $("language"),
+      phaseSel = $("phase"), alertBox = $("alert"), results = $("results"),
+      goBtn = $("go"), printBtn = $("print"), elapsed = $("elapsed");
+
+// Session-only. Deliberately not persisted to storage — a key sitting in a
+// browser profile is a key that leaks with the browser profile.
+let apiKey = null;
+
+// ---------------------------------------------------------------------------
+// Dependent dropdowns
+// ---------------------------------------------------------------------------
+
+function fillSubjects(available) {
+  const subjects = Object.keys(CURRICULUM).filter((s) => available.includes(s));
+  subjectSel.innerHTML = subjects
+    .map((s) => `<option value="${s}">${CURRICULUM[s].label}</option>`).join("");
+  onSubjectChange();
+}
+
+function onSubjectChange() {
+  const rule = CURRICULUM[subjectSel.value];
+  const langs = Object.keys(rule.langs);
+  langSel.innerHTML = langs
+    .map((l) => `<option value="${l}">${LANG_LABEL[l]}</option>`).join("");
+  langSel.disabled = langs.length === 1;
+  $("languageHint").textContent = langs.length === 1
+    ? `Cette matière est enseignée en ${LANG_LABEL[langs[0]]}.`
+    : "La langue dépend du niveau.";
+  onLanguageChange();
+}
+
+function onLanguageChange() {
+  const phases = CURRICULUM[subjectSel.value].langs[langSel.value] || [];
+  phaseSel.innerHTML = phases
+    .map((p) => `<option value="${p}">${PHASE_LABEL[p]}</option>`).join("");
+  phaseSel.disabled = phases.length === 1;
+
+  // Why the choice narrowed, so it reads as a rule and not a bug.
+  const rule = CURRICULUM[subjectSel.value];
+  if (subjectSel.value === "MATHEMATICS") {
+    $("phaseHint").textContent = langSel.value === "ar"
+      ? "Les maths en arabe couvrent le primaire et le collège."
+      : "Les maths en français couvrent le lycée.";
+  } else {
+    $("phaseHint").textContent = "";
+  }
+  $("subjectHint").textContent =
+    Object.keys(rule.langs).length === 1 ? "" : "Langue et niveau sont liés pour cette matière.";
+
+  updateCoverage();
+}
+
+function updateCoverage() {
+  const box = $("coverage");
+  const info = COVERAGE[subjectSel.value] || {};
+  if (info.warn) {
+    box.textContent = info.warn;
+    box.hidden = false;
+    // Point the topic field at something that actually exists.
+    $("topic").placeholder = "ex. l'amour, Enfants de tous les pays";
+    $("topicHint").textContent = "Choisissez un des deux thèmes disponibles.";
+  } else {
+    box.hidden = true;
+    $("topic").placeholder =
+      "ex. past simple vs past continuous, Fonction Logarithme, الأعداد الكسرية";
+    $("topicHint").textContent = "Texte libre — le sujet exact du quiz.";
+  }
+}
+
+subjectSel.addEventListener("change", onSubjectChange);
+langSel.addEventListener("change", onLanguageChange);
+
+// ---------------------------------------------------------------------------
+// API
+// ---------------------------------------------------------------------------
+
+async function api(path, options = {}) {
+  const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+  if (apiKey) headers["X-API-Key"] = apiKey;
+
+  const res = await fetch(path, Object.assign({}, options, { headers }));
+
+  // Ask for the key once, then retry the same call.
+  if (res.status === 401 && !options._retried) {
+    const entered = window.prompt(
+      "Cette API demande une clé (X-API-Key).\nElle reste en mémoire pour cette session uniquement."
+    );
+    if (!entered) throw new ApiError("Clé API requise.", 401);
+    apiKey = entered.trim();
+    return api(path, Object.assign({}, options, { _retried: true }));
+  }
+
+  let body = null;
+  try { body = await res.json(); } catch (_) { /* empty or non-JSON */ }
+  // Carry the correlation id out with the payload: feedback rows reference it
+  // to join back to the full entry in runs.jsonl.
+  if (body && typeof body === "object") {
+    Object.defineProperty(body, "_requestId", {
+      value: res.headers.get("X-Request-Id"), enumerable: false
+    });
+  }
+  if (!res.ok) {
+    throw new ApiError((body && body.detail) || `Erreur ${res.status}`, res.status,
+                       res.headers.get("X-Request-Id"));
+  }
+  return body;
+}
+
+class ApiError extends Error {
+  constructor(message, status, requestId) {
+    super(message);
+    this.status = status;
+    this.requestId = requestId;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Rendering
+// ---------------------------------------------------------------------------
+
+const escapeHtml = (s) => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;");
+
+function renderQuiz(quiz, meta) {
+  const rtl = quiz.language === "ar";
+  const head = `
+    <div class="quizhead">
+      <h2>${escapeHtml(meta.topic)}</h2>
+      <span class="badge">${quiz.questions.length} question(s) · ${escapeHtml(PHASE_LABEL[meta.phase] || "")}</span>
+    </div>`;
+
+  const cards = quiz.questions.map((q, i) => {
+    const correct = new Set(q.correct_answers || []);
+    const choices = (q.choices || []).length
+      ? `<ol class="choices">${q.choices.map((c) =>
+          `<li class="${correct.has(c) ? "correct" : ""}">${escapeHtml(c)}</li>`).join("")}</ol>`
+      : "";
+    const answerLine = (q.choices || []).length
+      ? ""
+      : `<p><strong>Réponse(s) :</strong> ${escapeHtml((q.correct_answers || []).join(" · "))}</p>`;
+    return `
+      <article class="q" ${rtl ? 'dir="rtl"' : ""}>
+        <div class="q-top">
+          <span class="q-num">${i + 1}.</span>
+          <span class="q-text">${escapeHtml(q.question_text)}</span>
+          ${q.difficulty ? `<span class="badge">${escapeHtml(q.difficulty)}</span>` : ""}
+        </div>
+        ${choices}
+        <div class="vote" data-i="${i}">
+          <button type="button" class="up"   title="Bonne question">&#128077;</button>
+          <button type="button" class="down" title="Mauvaise question">&#128078;</button>
+          <span class="said"></span>
+        </div>
+        <button type="button" class="reveal">Afficher la réponse</button>
+        <div class="answer">
+          ${answerLine}
+          <p><strong>Correct :</strong> ${escapeHtml((q.correct_answers || []).join(" · "))}</p>
+          ${q.explanation ? `<p>${escapeHtml(q.explanation)}</p>` : ""}
+        </div>
+      </article>`;
+  }).join("");
+
+  results.innerHTML = head + cards;
+
+  // Choices are hidden-answer until revealed: strip the ✓ styling until then.
+  results.querySelectorAll(".q").forEach((card) => {
+    card.querySelectorAll("ol.choices li.correct").forEach((li) => li.dataset.correct = "1");
+    card.querySelectorAll("ol.choices li").forEach((li) => li.classList.remove("correct"));
+    card.querySelector(".reveal").addEventListener("click", (e) => {
+      const on = card.classList.toggle("revealed");
+      e.target.textContent = on ? "Masquer la réponse" : "Afficher la réponse";
+      card.querySelectorAll("ol.choices li").forEach((li) => {
+        li.classList.toggle("correct", on && li.dataset.correct === "1");
+      });
+    });
+  });
+
+  wireVoting(quiz, meta);
+
+  if (quiz.retrieval) results.insertAdjacentHTML("beforeend", renderDebug(quiz));
+
+  printBtn.hidden = false;
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise([results]).catch(() => { /* render as text */ });
+  }
+}
+
+// The chunks the LLM actually saw. This is the difference between "the quiz
+// is bad" and "the retriever fed it the wrong thing" — and the only way to
+// judge whether llm.default_max_distance (0.60) is set sensibly per language.
+function renderDebug(quiz) {
+  const t = quiz.timings || {};
+  const stats = [
+    ["récupération", t.retrieve_seconds != null ? t.retrieve_seconds.toFixed(2) + " s" : "—"],
+    ["LLM",          t.generate_seconds != null ? t.generate_seconds.toFixed(2) + " s" : "—"],
+    ["total",        t.total_seconds    != null ? t.total_seconds.toFixed(2) + " s" : "—"],
+    ["exemples",     t.n_examples_used != null ? t.n_examples_used : quiz.retrieval.length]
+  ].map(([k, v]) => `<div class="stat">${k}<b>${v}</b></div>`).join("");
+
+  const chunks = quiz.retrieval.map((c) => {
+    // Distance is cosine: lower is closer. The 0.60 floor is the config's
+    // quality gate, so anything near it is a weak example.
+    const d = Number(c.distance);
+    const cls = d <= 0.40 ? "near" : d <= 0.52 ? "mid" : "far";
+    return `
+      <div class="chunk">
+        <div class="chunk-top">
+          <span class="dist ${cls}">${d.toFixed(3)}</span>
+          <span class="title">${escapeHtml(c.quiz_title)}</span>
+        </div>
+        <div>${escapeHtml(c.question_text)}</div>
+        <div class="meta">${escapeHtml((c.subjects || []).join(", "))} ·
+          ${escapeHtml((c.levels || []).slice(0, 2).join(", "))} ·
+          <code>${escapeHtml(c.doc_id)}</code></div>
+      </div>`;
+  }).join("");
+
+  return `
+    <details class="debug" open>
+      <summary>Récupération — ${quiz.retrieval.length} extrait(s) envoyé(s) au modèle</summary>
+      <div class="stats">${stats}</div>
+      ${chunks || "<p class='meta'>Aucun extrait.</p>"}
+    </details>`;
+}
+
+// One click = one labelled example. The judgement is worth recording at the
+// moment it's formed; asking for it later gets you nothing.
+function wireVoting(quiz, meta) {
+  const requestId = quiz._requestId || null;
+
+  results.querySelectorAll(".vote").forEach((box) => {
+    const idx = Number(box.dataset.i);
+    const said = box.querySelector(".said");
+
+    box.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const verdict = btn.classList.contains("down") ? "down" : "up";
+        // A downvote without a reason is a number; with one it's a finding.
+        const note = verdict === "down"
+          ? (window.prompt("Qu'est-ce qui ne va pas ? (facultatif)") || null)
+          : null;
+
+        box.querySelectorAll("button").forEach((b) => b.classList.remove("on"));
+        btn.classList.add("on");
+        said.textContent = "…";
+
+        try {
+          await api("/feedback", {
+            method: "POST",
+            body: JSON.stringify({
+              verdict: verdict,
+              question_index: idx,
+              question_text: quiz.questions[idx].question_text,
+              request_id: requestId,
+              topic: meta.topic,
+              language: quiz.language,
+              subject: quiz.subject,
+              school_phase: meta.phase || null,
+              note: note
+            })
+          });
+          said.textContent = "enregistré";
+        } catch (err) {
+          said.textContent = "échec";
+          btn.classList.remove("on");
+        }
+      });
+    });
+  });
+}
+
+function showError(err) {
+  let msg = err.message;
+  if (err.status === 400) {
+    msg = "Aucun contenu ne correspond à cette demande. Essayez un thème plus large.";
+  } else if (err.status === 429) {
+    msg = "Trop de demandes. Patientez une minute avant de réessayer.";
+  } else if (err.status === 502 || err.status === 503) {
+    msg = "Le service est momentanément indisponible. Réessayez dans un instant.";
+  }
+  alertBox.innerHTML = escapeHtml(msg) +
+    (err.requestId ? ` <code>(${escapeHtml(err.requestId)})</code>` : "");
+  alertBox.hidden = false;
+}
+
+// ---------------------------------------------------------------------------
+// Wiring
+// ---------------------------------------------------------------------------
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  alertBox.hidden = true;
+  goBtn.disabled = true;
+  printBtn.hidden = true;
+
+  const count = Math.max(1, Math.min(20, parseInt($("count").value, 10) || 5));
+  results.innerHTML = Array.from({ length: Math.min(count, 4) },
+    () => '<div class="skeleton"></div>').join("");
+
+  // Generation is 8-15s. Silence for that long reads as "broken".
+  const started = Date.now();
+  const timer = setInterval(() => {
+    elapsed.textContent = `Génération… ${((Date.now() - started) / 1000).toFixed(0)} s`;
+  }, 250);
+
+  const meta = { topic: $("topic").value.trim(), phase: phaseSel.value };
+  try {
+    const quiz = await api("/quiz/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        topic: meta.topic,
+        language: langSel.value,
+        subject: subjectSel.value,
+        school_phase: phaseSel.value || null,
+        count: count,
+        include_retrieval: $("debug").checked
+      })
+    });
+    renderQuiz(quiz, meta);
+  } catch (err) {
+    results.innerHTML = "";
+    showError(err);
+  } finally {
+    clearInterval(timer);
+    elapsed.textContent = "";
+    goBtn.disabled = false;
+  }
+});
+
+printBtn.addEventListener("click", () => window.print());
+
+(async function init() {
+  try {
+    const tax = await api("/taxonomy");
+    fillSubjects(tax.subjects || []);
+  } catch (err) {
+    // Without the taxonomy we can still offer the curriculum defaults.
+    fillSubjects(Object.keys(CURRICULUM));
+    if (err.status !== 401) {
+      alertBox.className = "note warn";
+      alertBox.textContent = "Liste des matières indisponible — valeurs par défaut utilisées.";
+      alertBox.hidden = false;
+    }
+  }
+})();
+</script>
+</body>
+</html>

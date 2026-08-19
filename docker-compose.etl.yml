@@ -1,0 +1,28 @@
+# ETL override — mounts the WHOLE data/ directory into the container.
+#
+# The base docker-compose.yml deliberately mounts only ./data/vector_store
+# and ./data/processed, so data/raw/quizzes-raw-data.json (271 MB) and
+# data/interim/ are invisible to the container and the ETL cannot run.
+# This override adds them.
+#
+# Usage — always pass BOTH files:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.etl.yml \
+#     run --rm api python -m src.data.ingest --scope configs/phase1_scope.yaml \
+#       --output data/interim/flat_verify.jsonl \
+#       --stats  data/interim/flat_verify_stats.json
+#
+# `run --rm` starts a one-off container, overrides the image CMD with your
+# command, and removes the container when it exits. It does NOT disturb an
+# `api` container you already have running.
+#
+# SAFE: stages 1-3 (ingest / normalize / build_index_text) only ever write
+#       the --output paths you give them.
+# UNSAFE: stage 4 (src.indexing.build) wipes vector_store.persist_directory
+#       from configs/models.yaml before writing — and that directory IS
+#       mounted. See the notes in the runbook before running it.
+
+services:
+  api:
+    volumes:
+      - ./data:/app/data

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+.claude/
+
+# ---------------------------------------------------------------------------
+# Data.
+#
+# The real curriculum corpus is private and is NOT part of this repository.
+# Only data/sample/ (synthetic, generated for this repo) is tracked — it is
+# what lets anyone clone this and run the whole pipeline.
+#
+# The unanchored rule below is deliberate: it matches the private corpus
+# wherever it lands, so a stray copy in a scratch folder can never be
+# committed by an absent-minded `git add .`.
+# ---------------------------------------------------------------------------
+quizzes-raw-data.json
+**/quizzes-raw-data.json
+
+data/raw/
+data/interim/
+data/processed/
+data/vector_store/
+data/sample/interim/
+data/sample/processed/
+
+# Generated at runtime
+logs/
+last_run.json
