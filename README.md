@@ -13,6 +13,24 @@ vector store, a cross-encoder reranker, and a measured retrieval eval.
 
 ---
 
+## What it looks like
+
+![Generating a quiz](docs/screenshots/ui-generate.png)
+
+*Subject, language and school level constrain each other according to the
+curriculum rules, so combinations the corpus cannot satisfy are unselectable.*
+
+![Retrieval panel](docs/screenshots/ui-retrieval.png)
+
+*The debug panel shows the examples the model actually received, with cosine
+distances colour-coded against the quality floor — which is what separates
+"the output is bad" from "the retriever fed it the wrong thing".*
+
+> Screenshots are taken against the synthetic sample corpus shipped in this
+> repository, so everything visible is generated demo content.
+
+---
+
 ## The problem
 
 Teachers need fresh quiz questions. Asking an LLM directly doesn't work: it
@@ -27,25 +45,28 @@ you think you know, trust the examples.*
 
 ## How it works
 
-```
-topic + filters
-      │
-      ▼
-┌─────────────────┐   BGE-M3 embeds the query; Chroma pre-filters on
-│  Retrieval      │   language / subject / school phase / level metadata
-│                 │   before scoring, then a BGE cross-encoder reranks
-└────────┬────────┘   the candidate pool for precision
-         │            ↓ distance floor drops weak matches
-┌────────▼────────┐   surviving examples become few-shot context
-│  Generation     │   Gemini / Groq / Ollama behind one interface
-└────────┬────────┘
-         │
-┌────────▼────────┐   Pydantic validation + LaTeX renderability check.
-│  Validation     │   On failure the error is fed back to the model and
-│  + retry        │   it tries again, up to N attempts.
-└────────┬────────┘
-         ▼
-   typed quiz JSON
+```mermaid
+flowchart TD
+    A["topic + filters<br/>language · subject · school phase"] --> B
+
+    subgraph RET ["Retrieval — two stage"]
+      B["BGE-M3 embeds the query"]
+      B --> C["Chroma vector search<br/><i>metadata pre-filter before scoring</i>"]
+      C --> D["Cross-encoder rerank<br/>BGE-reranker-v2-m3"]
+      D --> E["distance floor<br/><i>drops weak matches</i>"]
+    end
+
+    E --> F
+
+    subgraph GEN ["Generation"]
+      F["few-shot prompt<br/>en · fr · ar"]
+      F --> G["LLM<br/>Gemini · Groq · Ollama"]
+    end
+
+    G --> H{"Pydantic schema<br/>+ LaTeX renderability"}
+    H -- invalid --> I["feed the error back"]
+    I --> G
+    H -- valid --> J["typed quiz JSON"]
 ```
 
 Two-stage retrieval is the core: a bi-encoder for recall over the whole corpus,
