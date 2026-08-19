@@ -17,17 +17,26 @@ vector store, a cross-encoder reranker, and a measured retrieval eval.
 
 ![Generating a quiz](docs/screenshots/ui-generate.png)
 
-*Subject, language and school level constrain each other according to the
-curriculum rules, so combinations the corpus cannot satisfy are unselectable.*
+Subject, language and school level constrain each other according to the
+curriculum rules, so a combination the corpus cannot satisfy — maths in
+English, say — is unselectable rather than a failed request. Each question
+carries its choices, the correct answer, an explanation, and a thumbs
+up/down that feeds the evaluation loop below.
 
 ![Retrieval panel](docs/screenshots/ui-retrieval.png)
 
-*The debug panel shows the examples the model actually received, with cosine
-distances colour-coded against the quality floor — which is what separates
-"the output is bad" from "the retriever fed it the wrong thing".*
+The same page with the debug panel open: per-stage timings (retrieval vs LLM
+vs total), how many examples survived the distance floor, and every chunk the
+model actually received with its cosine distance colour-coded against that
+floor. This is what separates *"the output is bad"* from *"the retriever fed
+it the wrong thing"* — and it's how `llm.default_max_distance` gets tuned
+against evidence instead of intuition.
 
-> Screenshots are taken against the synthetic sample corpus shipped in this
-> repository, so everything visible is generated demo content.
+> Screenshots are taken against the synthetic sample corpus in this
+> repository (137 indexed questions), so everything visible is generated demo
+> content. The amber distances are honest: at that corpus size the retriever
+> reaches for adjacent grammar topics, which is the sibling-topic behaviour
+> documented in [`eval/RESULTS.md`](eval/RESULTS.md).
 
 ---
 
