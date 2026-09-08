@@ -10,7 +10,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 # Raw source data has three types, but TEXT_MULTIPLE_CHOICE is structurally
 # identical to MULTIPLE_CHOICE (just longer-phrase choices) and only ~0.1% of
 # the corpus. We merge TMC into MCQ at ingestion time. Downstream uses the

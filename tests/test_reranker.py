@@ -16,7 +16,6 @@ if str(ROOT) not in sys.path:
 
 from src.retrieval.reranker import Reranker, RerankerConfig
 
-
 # ---------------------------------------------------------------------------
 # Mock model — predict() returns canned scores per pair
 # ---------------------------------------------------------------------------

@@ -11,7 +11,6 @@ from typing import Any
 
 import yaml
 
-
 # Defaults are set here so a partial YAML file still loads cleanly.
 DEFAULT_METADATA_SCALARS = [
     "quiz_id",
@@ -27,7 +26,7 @@ DEFAULT_METADATA_SCALARS = [
 DEFAULT_METADATA_LISTS = ["subjects", "levels"]
 
 
-def load_models_config(config_path: Path) -> "ModelsConfig":
+def load_models_config(config_path: Path) -> ModelsConfig:
     """Load + validate `configs/models.yaml`. Returns a typed config object."""
     # Lazy Pydantic import so tests on the pure helpers run without it.
     from pydantic import BaseModel, ConfigDict, Field, field_validator

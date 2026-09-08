@@ -53,6 +53,7 @@ class Reranker:
 
     def __init__(self, config: RerankerConfig) -> None:
         import logging
+
         from sentence_transformers import CrossEncoder
 
         self.config = config

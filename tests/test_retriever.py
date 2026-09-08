@@ -7,12 +7,21 @@ underscored test-injection kwargs. No real model or Chroma is loaded.
 from __future__ import annotations
 
 import sys
-import warnings
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+# ---------------------------------------------------------------------------
+# Log capture
+# ---------------------------------------------------------------------------
+# These signals moved from `warnings.warn` to `logger.warning`. The warnings
+# module dedupes by (message, category, module, lineno) per process, so in a
+# long-running server each of these fired ONCE and was then silent forever —
+# exactly backwards for an operational signal. Tests assert on log records now.
+import contextlib as _contextlib
+import logging as _logging
 
 from src.indexing.taxonomy import Taxonomy
 from src.retrieval.retriever import (
@@ -22,17 +31,6 @@ from src.retrieval.retriever import (
     _row_matches_requested_language,
 )
 from src.retrieval.schemas import RetrievedQuestion
-
-# ---------------------------------------------------------------------------
-# Log capture
-# ---------------------------------------------------------------------------
-# These signals moved from `warnings.warn` to `logger.warning`. The warnings
-# module dedupes by (message, category, module, lineno) per process, so in a
-# long-running server each of these fired ONCE and was then silent forever —
-# exactly backwards for an operational signal. Tests assert on log records now.
-
-import contextlib as _contextlib
-import logging as _logging
 
 
 @_contextlib.contextmanager
@@ -590,9 +588,7 @@ def test_diagnose_empty_shows_filter_counts_and_suggestions() -> None:
             fields = []
             for clause in where["$and"]:
                 for k, v in clause.items():
-                    if k == "language":
-                        fields.append(v)
-                    elif k == "subject":
+                    if k == "language" or k == "subject":
                         fields.append(v)
             return "+".join(fields)
         for k, v in where.items():
@@ -698,7 +694,7 @@ def test_retrieve_serialises_concurrent_callers() -> None:
     def _run() -> None:
         try:
             retriever.retrieve("q", language="en", top_k=2)
-        except BaseException as exc:                    # noqa: BLE001
+        except BaseException as exc:
             errors.append(exc)
 
     threads = [threading.Thread(target=_run) for _ in range(6)]

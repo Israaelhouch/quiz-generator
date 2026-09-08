@@ -16,7 +16,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-
 SUPPORTED_LANGUAGES = Literal["en", "fr", "ar"]
 SUPPORTED_QUESTION_TYPES = Literal[
     "MULTIPLE_CHOICE",
@@ -54,7 +53,7 @@ class GeneratedQuestion(BaseModel):
     difficulty: DIFFICULTIES | None = None
 
     @model_validator(mode="after")
-    def _check_answers_shape(self) -> "GeneratedQuestion":
+    def _check_answers_shape(self) -> GeneratedQuestion:
         if not self.question_text.strip():
             raise ValueError("question_text must be non-empty")
         if not self.correct_answers:

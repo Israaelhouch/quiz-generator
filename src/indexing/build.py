@@ -62,7 +62,7 @@ def build(
     config_path: Path,
     input_path: Path,
     summary_path: Path,
-) -> "object":
+) -> object:
     # Lazy Pydantic + shared imports.
     from src.indexing.config import load_models_config
     from src.indexing.embedding_model import EmbeddingModel, EmbeddingModelConfig

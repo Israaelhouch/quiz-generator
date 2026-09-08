@@ -29,7 +29,6 @@ from src.generation.schemas import (
 )
 from src.retrieval.schemas import RetrievedQuestion
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

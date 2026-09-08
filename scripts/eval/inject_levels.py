@@ -51,7 +51,6 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-
 EVAL_DIR = Path("eval")
 TOPICS_FILE_BY_LANG = {
     "en": EVAL_DIR / "topics_english.csv",
@@ -257,7 +256,7 @@ def main() -> int:
                 levels_match=args.levels_match,
                 dry_run=args.dry_run,
             )
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             print(f"[ERROR] {path}: {e}", file=sys.stderr)
             overall_ok = False
             continue
@@ -270,7 +269,7 @@ def main() -> int:
         print(f"  phases used (case-count)     : {stats['phases_used']}")
         print(f"  expanded grade-count dist    : {stats['expanded_size_distribution']}")
         if stats["unknown_titles"]:
-            print(f"  unknown target_quiz_titles:")
+            print("  unknown target_quiz_titles:")
             for t, c in list(stats["unknown_titles"].items())[:5]:
                 print(f"    x{c}  {t}")
         if stats["dry_run"]:

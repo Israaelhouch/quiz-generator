@@ -17,9 +17,6 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.indexing.taxonomy import SCHOOL_LEVEL_PREFIXES, Taxonomy
-from src.indexing.vector_store import build_ids, row_to_metadata
-
 # ---------------------------------------------------------------------------
 # Log capture
 # ---------------------------------------------------------------------------
@@ -27,9 +24,11 @@ from src.indexing.vector_store import build_ids, row_to_metadata
 # module dedupes by (message, category, module, lineno) per process, so in a
 # long-running server each of these fired ONCE and was then silent forever —
 # exactly backwards for an operational signal. Tests assert on log records now.
-
 import contextlib as _contextlib
 import logging as _logging
+
+from src.indexing.taxonomy import SCHOOL_LEVEL_PREFIXES, Taxonomy
+from src.indexing.vector_store import build_ids, row_to_metadata
 
 
 @_contextlib.contextmanager

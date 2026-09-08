@@ -21,7 +21,6 @@ from __future__ import annotations
 import json
 import statistics
 import sys
-from collections import Counter
 from pathlib import Path
 
 
@@ -138,7 +137,7 @@ def analyze(log_path: Path) -> None:
         print(f"\n📏 BEST MATCH per query (n={len(best_per_q)})")
         print(f"  avg of mins:  {statistics.mean(best_per_q):>7.4f}")
         print(f"  range:        [{min(best_per_q):.4f}, {max(best_per_q):.4f}]")
-        print(f"\n📏 WORST MATCH per query (top-K's tail)")
+        print("\n📏 WORST MATCH per query (top-K's tail)")
         print(f"  avg of maxs:  {statistics.mean(worst_per_q):>7.4f}")
         print(f"  range:        [{min(worst_per_q):.4f}, {max(worst_per_q):.4f}]")
 

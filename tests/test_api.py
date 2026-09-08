@@ -173,6 +173,7 @@ def _make_client(pipeline: _FakePipeline):
     is already set — that's how we avoid loading BGE-M3 in tests.
     """
     from fastapi.testclient import TestClient
+
     from src.api.server import app
 
     app.state.pipeline = pipeline
@@ -542,6 +543,7 @@ def test_unhandled_exception_body_is_opaque() -> None:
     """A 500 must not hand the caller exception text — messages carry file
     paths, config values and SDK internals."""
     from fastapi.testclient import TestClient
+
     from src.api.server import app
 
     leaky = RuntimeError("/app/configs/models.yaml exploded with key sk-live-XYZ")

@@ -31,7 +31,6 @@ from typing import Any
 from src.data.latex import normalize_latex
 from src.retrieval.schemas import RetrievedQuestion
 
-
 logger = logging.getLogger(__name__)
 
 

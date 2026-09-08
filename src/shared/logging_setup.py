@@ -36,7 +36,6 @@ import logging
 import os
 import sys
 
-
 # Set by the API middleware on every request. Defaults to "-" outside
 # of a request scope so non-API code (CLI, pipeline) still logs cleanly.
 request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(

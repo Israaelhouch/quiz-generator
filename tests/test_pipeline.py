@@ -10,11 +10,20 @@ import json
 import sys
 import warnings
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+# ---------------------------------------------------------------------------
+# Log capture
+# ---------------------------------------------------------------------------
+# These signals moved from `warnings.warn` to `logger.warning`. The warnings
+# module dedupes by (message, category, module, lineno) per process, so in a
+# long-running server each of these fired ONCE and was then silent forever —
+# exactly backwards for an operational signal. Tests assert on log records now.
+import contextlib as _contextlib
+import logging as _logging
 
 from src.generation.llm_client import MockClient
 from src.generation.schemas import GeneratedQuiz
@@ -27,17 +36,6 @@ from src.pipeline.cli import (
     save_run_to_file,
 )
 from src.retrieval.schemas import RetrievedQuestion
-
-# ---------------------------------------------------------------------------
-# Log capture
-# ---------------------------------------------------------------------------
-# These signals moved from `warnings.warn` to `logger.warning`. The warnings
-# module dedupes by (message, category, module, lineno) per process, so in a
-# long-running server each of these fired ONCE and was then silent forever —
-# exactly backwards for an operational signal. Tests assert on log records now.
-
-import contextlib as _contextlib
-import logging as _logging
 
 
 @_contextlib.contextmanager
@@ -377,7 +375,7 @@ def test_retrieval_to_dict_preserves_all_fields() -> None:
     assert row["distance"] == 0.2
 
 
-def _quiz_for_save() -> "GeneratedQuiz":
+def _quiz_for_save() -> GeneratedQuiz:
     return GeneratedQuiz.model_validate({
         "language": "en",
         "questions": [
@@ -552,7 +550,7 @@ def test_generate_detailed_is_isolated_across_threads(tmp_path: Path) -> None:
             )
             with lock:
                 seen[topic] = [c.doc_id for c in result.retrieval]
-        except BaseException as exc:       # noqa: BLE001 - surfaced below
+        except BaseException as exc:
             with lock:
                 errors.append(exc)
 

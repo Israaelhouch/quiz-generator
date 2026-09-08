@@ -14,7 +14,6 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.data.language import (
-    SUPPORTED_LANGUAGES,
     detect_language,
     normalize_language_label,
     resolve_language,
@@ -28,7 +27,6 @@ from src.data.normalize import (
     dedup_rows,
     split_choices,
 )
-
 
 # ----- language label normalization -----
 
@@ -309,8 +307,9 @@ def test_detect_language_uses_langdetect_when_available() -> None:
     This test stubs out _ld_detect_langs to verify the integration plumbing
     regardless of whether the real library is installed in this env.
     """
-    from src.data import language as lang_mod
     from unittest.mock import MagicMock
+
+    from src.data import language as lang_mod
 
     # Create a fake candidate (mimics langdetect's return shape)
     class _FakeCandidate:

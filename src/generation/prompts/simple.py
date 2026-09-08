@@ -13,7 +13,6 @@ from __future__ import annotations
 from src.generation.prompts.strings import STRINGS, SUPPORTED_LANGUAGES
 from src.retrieval.schemas import RetrievedQuestion
 
-
 # JSON schema block — same in every language (only field NAMES are universal;
 # the values inside are produced in the target language by the LLM).
 OUTPUT_SCHEMA_BLOCK = (

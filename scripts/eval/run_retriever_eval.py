@@ -48,7 +48,7 @@ import statistics
 import sys
 import time
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -60,7 +60,6 @@ from scripts.eval.validate_test_cases import (
     load_topic_index,
     parse_cases,
 )
-
 
 # ---------------------------------------------------------------------------
 # Config
@@ -203,7 +202,7 @@ def run_eval(
             # Order here is FINAL (post-rerank) order, not distance-ascending.
             retrieved_distances = [float(r.distance) for r in results]
             error = None
-        except Exception as e:  # noqa: BLE001 — capture the error per-query
+        except Exception as e:
             retrieved_doc_ids = []
             retrieved_distances = []
             error = f"{type(e).__name__}: {e}"
@@ -500,7 +499,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.output_dir is not None:
         out_dir = args.output_dir
     else:
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         languages = sorted({l for l, _s in lang_subject_pairs})
         lang_tag = "-".join(languages)
         out_dir = RESULTS_DIR / f"{lang_tag}_{timestamp}"
@@ -513,7 +512,7 @@ def main(argv: list[str] | None = None) -> int:
         "k_retrieve_max": K_RETRIEVE_MAX,
         "k_values": list(K_VALUES),
         "n_cases_run": len(cases),
-        "utc_timestamp": datetime.now(timezone.utc).isoformat(),
+        "utc_timestamp": datetime.now(UTC).isoformat(),
     }
 
     write_results(out_dir, per_query, summary, args.config, args_record)

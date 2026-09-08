@@ -30,7 +30,6 @@ import logging
 import os
 from typing import Protocol
 
-
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 90.0

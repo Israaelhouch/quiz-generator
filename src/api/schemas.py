@@ -11,7 +11,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 SUPPORTED_LANGUAGES = Literal["en", "fr", "ar"]
 SUPPORTED_QUESTION_TYPES = Literal["MULTIPLE_CHOICE", "FILL_IN_THE_BLANKS"]
 SUPPORTED_SCHOOL_PHASES = Literal["PRIMARY", "MIDDLE", "HIGH"]

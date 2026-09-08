@@ -39,7 +39,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -73,8 +72,8 @@ class QuizPipeline:
         _retriever: Any | None = None,
         _llm_client: Any | None = None,
     ) -> None:
-        from src.indexing.config import load_models_config
         from src.generation.generator import Generator
+        from src.indexing.config import load_models_config
 
         self.config_path = config_path
         self.ready_jsonl_path = ready_jsonl_path
@@ -119,6 +118,7 @@ class QuizPipeline:
         provider = llm_cfg.provider
         if provider == "ollama":
             import os
+
             from src.generation.llm_client import OllamaClient
             host = os.environ.get("OLLAMA_HOST") or llm_cfg.host
             return OllamaClient(model=llm_cfg.model, host=host)

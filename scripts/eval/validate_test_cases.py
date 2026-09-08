@@ -29,7 +29,6 @@ from typing import Literal
 import pandas as pd
 from pydantic import BaseModel, Field, ValidationError
 
-
 # ---------------------------------------------------------------------------
 # Schema
 # ---------------------------------------------------------------------------

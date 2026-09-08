@@ -24,7 +24,6 @@ from __future__ import annotations
 import threading
 from collections import defaultdict
 
-
 _lock = threading.Lock()
 
 # (method, path, status) -> count

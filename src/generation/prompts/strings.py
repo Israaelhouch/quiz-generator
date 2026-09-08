@@ -8,7 +8,6 @@ Approved by user (Tunisian-school context, MSA for Arabic, formal `vous` in Fren
 
 from __future__ import annotations
 
-
 STRINGS: dict[str, dict] = {
     # ---------------------------------------------------------------- English
     "en": {

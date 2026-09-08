@@ -33,7 +33,6 @@ from collections import defaultdict, deque
 from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader
 
-
 logger = logging.getLogger("quiz_api.security")
 
 

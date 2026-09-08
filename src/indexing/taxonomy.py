@@ -26,7 +26,6 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -76,7 +75,7 @@ class Taxonomy:
         rows: list[dict],
         *,
         level_prefixes: tuple[str, ...] | None = None,
-    ) -> "Taxonomy":
+    ) -> Taxonomy:
         """Scan a corpus and collect every distinct enum value observed.
 
         Args:
@@ -123,7 +122,7 @@ class Taxonomy:
         summary_path: Path,
         *,
         level_prefixes: tuple[str, ...] | None = None,
-    ) -> "Taxonomy":
+    ) -> Taxonomy:
         """Load from build_summary.json. Returns an empty taxonomy if file missing.
 
         `level_prefixes` is applied on load as well as at build time, so an

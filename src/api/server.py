@@ -25,12 +25,12 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
-
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
+from src.api.observability import record_event, record_request, render_prometheus
 from src.api.schemas import (
     ErrorResponse,
     FeedbackRequest,
@@ -38,7 +38,6 @@ from src.api.schemas import (
     HealthResponse,
     RetrieveRequest,
 )
-from src.api.observability import record_event, record_request, render_prometheus
 from src.api.security import (
     REQUEST_ID_HEADER,
     configured_cors_origins,
@@ -47,7 +46,6 @@ from src.api.security import (
     require_api_key,
 )
 from src.shared.logging_setup import request_id_ctx
-
 
 logger = logging.getLogger("quiz_api")
 logging.basicConfig(level=logging.INFO)
@@ -526,9 +524,9 @@ def generate_quiz(req: GenerateRequest, request: Request) -> dict:
     _validate_taxonomy_inputs(p, subject=req.subject, levels=req.levels)
 
     # Lazy import — keeps the module loadable in tests that don't have ML deps.
-    from src.generation.generator import GenerationError
-
     import time as _time
+
+    from src.generation.generator import GenerationError
     _t0 = _time.perf_counter()
 
     # `temperature`, `max_attempts`, and `few_shot_count` come from
