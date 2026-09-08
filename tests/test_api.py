@@ -7,6 +7,7 @@ is already attached, so these tests run without ML stack or Ollama.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import Any
