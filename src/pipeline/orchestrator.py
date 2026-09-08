@@ -34,6 +34,16 @@ just the quiz and mirrors the rest onto `self.last_retrieval` /
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Type-check-only: these are the Literal aliases GenerationRequest
+    # validates against. Importing them at runtime would pull generation's
+    # module graph into orchestrator import time, which the lazy import
+    # inside generate_detailed deliberately avoids. `from __future__ import
+    # annotations` makes the signature below a string, so this is enough.
+    from src.generation.schemas import SUPPORTED_LANGUAGES, SUPPORTED_QUESTION_TYPES
+
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -143,9 +153,9 @@ class QuizPipeline:
         self,
         *,
         topic: str,
-        language: str,
+        language: SUPPORTED_LANGUAGES,
         count: int = 5,
-        question_type: str = "MULTIPLE_CHOICE",
+        question_type: SUPPORTED_QUESTION_TYPES = "MULTIPLE_CHOICE",
         subject: str | None = None,
         school_phase: str | None = None,
         levels: list[str] | None = None,
