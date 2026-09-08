@@ -1,6 +1,12 @@
-"""Normalization.
+"""Normalization — and, despite the name, the stage that decides what stays.
 
-Transforms `data/interim/flat.jsonl` → `data/interim/normalized.jsonl`.
+Transforms `data/interim/flat_phase1.jsonl` →
+`data/interim/normalized_phase1.jsonl`.
+
+"Normalize" undersells this module. It cleans text, but it also applies the
+curriculum business rules and deduplicates, so it removes rows: 869 of 6,651
+on the measured build of 2026-09-08. Read it as a filter, not just a
+reshaper. Per-reason counts land in the stats JSON beside the output.
 
 Operations (in order):
   1. Clean text (HTML strip, entity decode, whitespace collapse) on
@@ -8,10 +14,22 @@ Operations (in order):
   2. Normalize language: map raw label through alias table; re-detect
      from content when raw is missing OR when content script contradicts
      the raw label with high confidence.
-  3. Apply subject aliases from configs/subject_aliases.yaml.
-  4. Drop rows with empty cleaned question_text.
-  5. Drop rows whose final language is not en/fr/ar.
-  6. Deduplicate by (language, question_type, question_text,
+  3. Apply the domain subject→language rule
+     (`src/data/domain_rules.py`): a language-locked subject overrides the
+     detector, and scientific subjects are never English. This corrected 413
+     rows on the 2026-09-08 build — mostly high-school maths labelled
+     `english` whose content is French.
+  4. Apply subject aliases from configs/subject_aliases.yaml.
+  5. Drop rows with empty cleaned question_text, or whose description was
+     only an image.
+  6. Drop rows whose final language is not en/fr/ar.
+  7. DROP rows violating the curriculum rules
+     (`src/data/curriculum_rules.py`): Tunisian maths is Arabic at
+     primary/middle and French at high school, so a row tagged otherwise is
+     a source mistag. Runs on the language from step 3, not the raw label —
+     the order matters, since checking the raw label would delete the 413
+     rows step 3 had just corrected.
+  8. Deduplicate by (language, question_type, question_text,
      sorted(choices_text)). For duplicate groups, union `subjects` and
      `levels`; keep first-seen for every other field.
 """
