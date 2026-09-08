@@ -201,8 +201,7 @@ class Retriever:
         persist_dir = self.config.vector_store.persist_directory
         if not persist_dir.exists():
             raise FileNotFoundError(
-                f"Vector store not found: {persist_dir}. "
-                "Run `python -m src.indexing.build` first."
+                f"Vector store not found: {persist_dir}. Run `python -m src.indexing.build` first."
             )
 
         ec = EmbeddingModelConfig(
@@ -221,7 +220,7 @@ class Retriever:
             collection_name=self.config.vector_store.collection_name,
             distance_metric=self.config.vector_store.distance_metric,
             add_batch_size=self.config.vector_store.add_batch_size,
-            reset_on_build=False,   # never reset at query time
+            reset_on_build=False,  # never reset at query time
         )
         store = VectorStore(sc)
         store.open()
@@ -240,6 +239,7 @@ class Retriever:
         rr_cfg = getattr(self.config, "reranker", None)
         if rr_cfg is not None and getattr(rr_cfg, "enabled", False):
             from src.retrieval.reranker import Reranker, RerankerConfig
+
             self._reranker = Reranker(
                 RerankerConfig(
                     model_name=rr_cfg.model_name,
@@ -320,7 +320,9 @@ class Retriever:
         if language:
             single_filters.append((f"language={language!r}", {"language": language}))
         if question_type:
-            single_filters.append((f"question_type={question_type!r}", {"question_type": question_type}))
+            single_filters.append(
+                (f"question_type={question_type!r}", {"question_type": question_type})
+            )
         if subject:
             subject_upper = subject.strip().upper()
             single_filters.append((f"subject={subject_upper!r}", {"subject": subject_upper}))
@@ -339,9 +341,7 @@ class Retriever:
             subject_upper = subject.strip().upper()
             lines.append(f"  Languages available for subject={subject_upper!r}:")
             for lang in ("en", "fr", "ar"):
-                n = self._count_matching(
-                    {"$and": [{"subject": subject_upper}, {"language": lang}]}
-                )
+                n = self._count_matching({"$and": [{"subject": subject_upper}, {"language": lang}]})
                 arrow = " ← requested" if language == lang else ""
                 lines.append(f"    - {lang}: {n if n is not None else '?'}{arrow}")
 
@@ -352,15 +352,11 @@ class Retriever:
             for lang in ("fr", "ar", "en"):
                 if lang == language:
                     continue
-                n = self._count_matching(
-                    {"$and": [{"subject": subject_upper}, {"language": lang}]}
-                )
+                n = self._count_matching({"$and": [{"subject": subject_upper}, {"language": lang}]})
                 if n and n > 0:
                     suggestions.append(f"language={lang!r} ({n:,} rows)")
         if suggestions:
-            lines.append(
-                f"  Try one of these instead: {', '.join(suggestions)}"
-            )
+            lines.append(f"  Try one of these instead: {', '.join(suggestions)}")
 
         return "\n".join(lines)
 
@@ -414,9 +410,7 @@ class Retriever:
         if not language or not language.strip():
             raise ValueError("language is required (one of en/fr/ar)")
         if levels_match_mode not in {"any", "all"}:
-            raise ValueError(
-                f"levels_match_mode must be 'any' or 'all', got {levels_match_mode!r}"
-            )
+            raise ValueError(f"levels_match_mode must be 'any' or 'all', got {levels_match_mode!r}")
         if school_phase is not None:
             school_phase_normalized = school_phase.strip().upper()
             if school_phase_normalized not in SCHOOL_PHASES:
@@ -450,6 +444,7 @@ class Retriever:
         # Per-stage timing inside the retriever — split embed / chroma / rerank
         # so callers can see exactly where time goes. Surfaced via diagnostics.
         import time as _time_r
+
         _t_embed_start = _time_r.perf_counter()
         q_vec = self._model.encode_query(normalized_query)
         _t_embed = _time_r.perf_counter() - _t_embed_start
@@ -463,9 +458,7 @@ class Retriever:
 
         collection_count = self._collection.count()
         if collection_count == 0:
-            logger.warning(
-                "Vector store is empty. Build it with `python -m src.indexing.build`."
-            )
+            logger.warning("Vector store is empty. Build it with `python -m src.indexing.build`.")
             return []
         n_results = min(pool_size, collection_count)
 
@@ -545,9 +538,7 @@ class Retriever:
         rerank_scores_pre_slice: list[float] = []
         _t_rerank_start = _time_r.perf_counter()
         if self._reranker is not None and len(output) > 1:
-            output = self._reranker.rerank(
-                query, output, scores_out=rerank_scores_pre_slice
-            )
+            output = self._reranker.rerank(query, output, scores_out=rerank_scores_pre_slice)
         _t_rerank = _time_r.perf_counter() - _t_rerank_start
 
         # Snapshot the FULL post-rerank pool BEFORE slicing — eval / threshold
@@ -573,7 +564,7 @@ class Retriever:
             # Per-stage timings — useful for spotting whether embed, chroma,
             # or rerank dominates retrieval latency.
             diagnostics["stage_seconds"] = {
-                "embed":  round(_t_embed,  4),
+                "embed": round(_t_embed, 4),
                 "chroma": round(_t_chroma, 4),
                 "rerank": round(_t_rerank, 4),
             }
@@ -581,7 +572,11 @@ class Retriever:
         logger.info(
             "retriever stages: embed=%.3fs chroma=%.3fs rerank=%.3fs "
             "(pool=%d, returned=%d, reranker=%s)",
-            _t_embed, _t_chroma, _t_rerank, pool_size, len(output),
+            _t_embed,
+            _t_chroma,
+            _t_rerank,
+            pool_size,
+            len(output),
             "on" if self._reranker is not None else "off",
         )
 
@@ -596,7 +591,12 @@ class Retriever:
                 "No retrieval results for query=%r with filters="
                 "{'language': %r, 'subject': %r, 'levels': %r, "
                 "'question_type': %r}\n%s",
-                query, language, subject, levels, question_type, diagnostic,
+                query,
+                language,
+                subject,
+                levels,
+                question_type,
+                diagnostic,
             )
 
         return output

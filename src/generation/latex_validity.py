@@ -92,7 +92,7 @@ def _scan_math(text: str) -> tuple[list[tuple[str, str]], int, int, int, int]:
             if nxt == ")":
                 close_i += 1
                 if current is not None and current[0] == "inline":
-                    blocks.append(("inline", text[current[1]:i]))
+                    blocks.append(("inline", text[current[1] : i]))
                     current = None
                 i += 2
                 continue
@@ -105,7 +105,7 @@ def _scan_math(text: str) -> tuple[list[tuple[str, str]], int, int, int, int]:
             if nxt == "]":
                 close_d += 1
                 if current is not None and current[0] == "display":
-                    blocks.append(("display", text[current[1]:i]))
+                    blocks.append(("display", text[current[1] : i]))
                     current = None
                 i += 2
                 continue

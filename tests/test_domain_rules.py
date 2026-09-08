@@ -108,6 +108,7 @@ def test_unknown_subject_falls_through() -> None:
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):
         if name.startswith("test_"):

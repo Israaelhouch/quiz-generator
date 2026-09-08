@@ -29,12 +29,12 @@ class GenerationRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    topic: str                                 # free-text query for retrieval
+    topic: str  # free-text query for retrieval
     language: SUPPORTED_LANGUAGES
-    count: int = Field(ge=1, le=20)            # how many new questions to generate
+    count: int = Field(ge=1, le=20)  # how many new questions to generate
     question_type: SUPPORTED_QUESTION_TYPES = "MULTIPLE_CHOICE"
-    subject: str | None = None                 # optional retrieval filter
-    level: str | None = None                   # optional retrieval filter
+    subject: str | None = None  # optional retrieval filter
+    level: str | None = None  # optional retrieval filter
     few_shot_count: int = Field(default=6, ge=1, le=20)
     temperature: float = Field(default=0.75, ge=0.0, le=2.0)
 
@@ -48,7 +48,7 @@ class GeneratedQuestion(BaseModel):
     question_text: str
     choices: list[str] = Field(default_factory=list)
     correct_answers: list[str]
-    multiple_correct_answers: bool = False              # True only when >1 correct answer
+    multiple_correct_answers: bool = False  # True only when >1 correct answer
     explanation: str = ""
     difficulty: DIFFICULTIES | None = None
 
@@ -61,14 +61,10 @@ class GeneratedQuestion(BaseModel):
 
         if self.question_type == "MULTIPLE_CHOICE":
             if not self.choices:
-                raise ValueError(
-                    f"choices required for {self.question_type}"
-                )
+                raise ValueError(f"choices required for {self.question_type}")
             for ans in self.correct_answers:
                 if ans not in self.choices:
-                    raise ValueError(
-                        f"correct_answer {ans!r} not found verbatim in choices"
-                    )
+                    raise ValueError(f"correct_answer {ans!r} not found verbatim in choices")
         elif self.question_type == "FILL_IN_THE_BLANKS":
             if self.choices:
                 # Many FITB rows in real data have empty choices; some LLMs add them

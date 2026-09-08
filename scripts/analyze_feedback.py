@@ -102,13 +102,10 @@ def analyze(feedback_path: Path, runs_path: Path) -> int:
     for f in feedback:
         cells[(f.get("language") or "?", f.get("subject") or "?")][f.get("verdict")] += 1
     print(f"  {'cell':<24} {'up':>4} {'down':>5} {'down-rate':>10}")
-    for (lang, subject), counts in sorted(
-        cells.items(), key=lambda kv: -(kv[1]["down"])
-    ):
+    for (lang, subject), counts in sorted(cells.items(), key=lambda kv: -(kv[1]["down"])):
         n = counts["up"] + counts["down"]
         pct = f"{100 * counts['down'] / n:.0f}%" if n else "—"
-        print(f"  {lang + ' × ' + subject:<24} {counts['up']:>4} "
-              f"{counts['down']:>5} {pct:>10}")
+        print(f"  {lang + ' × ' + subject:<24} {counts['up']:>4} {counts['down']:>5} {pct:>10}")
 
     # ---- the question the whole file exists to answer ---------------------
     print(f"\n{line}\nRETRIEVAL DISTANCE vs VERDICT\n{line}")
@@ -156,8 +153,10 @@ def analyze(feedback_path: Path, runs_path: Path) -> int:
                 print("    by retrieval distance — look at the prompt or the model.")
         else:
             need = 5 - min(len(up_worst), len(down_worst))
-            print(f"\n  (need ~{max(need, 1)} more judgement(s) per verdict "
-                  "before the comparison means anything)")
+            print(
+                f"\n  (need ~{max(need, 1)} more judgement(s) per verdict "
+                "before the comparison means anything)"
+            )
 
     # ---- what people actually said ---------------------------------------
     notes = [f for f in feedback if f.get("verdict") == "down" and f.get("note")]

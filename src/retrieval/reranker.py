@@ -28,6 +28,7 @@ class RerankerError(RuntimeError):
 @dataclass
 class RerankerConfig:
     """Plain dataclass — no Pydantic dependency at the model layer."""
+
     model_name: str = "BAAI/bge-reranker-v2-m3"
     device: str = "auto"
     batch_size: int = 16
@@ -64,7 +65,9 @@ class Reranker:
         self.device = _resolve_device(config.device)
         logging.getLogger(__name__).info(
             "Reranker loading model=%r on device=%s batch_size=%d",
-            config.model_name, self.device, config.batch_size,
+            config.model_name,
+            self.device,
+            config.batch_size,
         )
         self._model = CrossEncoder(config.model_name, device=self.device)
 
@@ -87,8 +90,7 @@ class Reranker:
         # and returned fewer candidates than it was given.
         if len(out) != len(candidate_texts):
             raise RerankerError(
-                f"cross-encoder returned {len(out)} scores for "
-                f"{len(candidate_texts)} candidates"
+                f"cross-encoder returned {len(out)} scores for {len(candidate_texts)} candidates"
             )
         return out
 

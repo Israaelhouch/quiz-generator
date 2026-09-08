@@ -98,16 +98,14 @@ def render_prometheus() -> str:
     lines.append("# HELP quiz_api_request_duration_seconds_sum Total time spent per path.")
     lines.append("# TYPE quiz_api_request_duration_seconds_sum counter")
     for path, total in latency:
-        lines.append(
-            f'quiz_api_request_duration_seconds_sum{{path="{_escape(path)}"}} {total:.6f}'
-        )
+        lines.append(f'quiz_api_request_duration_seconds_sum{{path="{_escape(path)}"}} {total:.6f}')
 
     lines.append("# HELP quiz_api_request_duration_seconds_count Requests observed per path.")
     lines.append("# TYPE quiz_api_request_duration_seconds_count counter")
     for path, _ in latency:
         lines.append(
             f'quiz_api_request_duration_seconds_count{{path="{_escape(path)}"}} '
-            f'{latency_counts.get(path, 0)}'
+            f"{latency_counts.get(path, 0)}"
         )
 
     lines.append("# HELP quiz_api_events_total Notable events by reason.")

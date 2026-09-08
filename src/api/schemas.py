@@ -29,8 +29,7 @@ class GenerateRequest(BaseModel):
 
     topic: str = Field(..., min_length=1, description="Free-text topic / query")
     language: SUPPORTED_LANGUAGES
-    count: int = Field(default=5, ge=1, le=20,
-                       description="How many new questions to generate")
+    count: int = Field(default=5, ge=1, le=20, description="How many new questions to generate")
     question_type: SUPPORTED_QUESTION_TYPES = "MULTIPLE_CHOICE"
     subject: str | None = Field(default=None, description="Optional retrieval filter")
     school_phase: SUPPORTED_SCHOOL_PHASES | None = Field(
@@ -50,7 +49,7 @@ class GenerateRequest(BaseModel):
     include_retrieval: bool = Field(
         default=False,
         description="If true, include the retrieved chunks in the response "
-                    "(useful for the platform to debug bad outputs).",
+        "(useful for the platform to debug bad outputs).",
     )
 
 

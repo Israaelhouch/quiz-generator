@@ -72,9 +72,9 @@ RESULTS_DIR = EVAL_DIR / "results"
 # per language (Tunisian curriculum: HS math → fr, middle/primary math → ar),
 # so the relationship isn't 1:1.
 TOPICS_FILE_BY_LANG_SUBJECT: dict[tuple[str, str], Path] = {
-    ("en", "ENGLISH"):     EVAL_DIR / "topics_english.csv",
-    ("ar", "ARABIC"):      EVAL_DIR / "topics_arabic.csv",
-    ("fr", "FRENCH"):      EVAL_DIR / "topics_french.csv",
+    ("en", "ENGLISH"): EVAL_DIR / "topics_english.csv",
+    ("ar", "ARABIC"): EVAL_DIR / "topics_arabic.csv",
+    ("fr", "FRENCH"): EVAL_DIR / "topics_french.csv",
     ("ar", "MATHEMATICS"): EVAL_DIR / "topics_math_ar.csv",
     ("fr", "MATHEMATICS"): EVAL_DIR / "topics_math_fr.csv",
 }
@@ -169,10 +169,7 @@ def run_eval(
             elapsed = time.time() - start
             rate = i / elapsed
             eta = (n - i) / rate if rate > 0 else 0
-            print(
-                f"  [{i}/{n}] {elapsed:.0f}s elapsed, "
-                f"~{eta:.0f}s remaining ({rate:.1f} q/s)"
-            )
+            print(f"  [{i}/{n}] {elapsed:.0f}s elapsed, ~{eta:.0f}s remaining ({rate:.1f} q/s)")
 
         relevant = ground_truth.get((c.language, c.target_quiz_title), set())
 
@@ -310,9 +307,7 @@ def aggregate(per_query: list[dict]) -> dict:
         "n_errors": sum(1 for q in per_query if q.get("error")),
         "overall": _summarize(per_query),
         "by_language": {k: _summarize(v) for k, v in sorted(by_lang.items())},
-        "by_query_type": {
-            k: _summarize(v) for k, v in sorted(by_query_type.items())
-        },
+        "by_query_type": {k: _summarize(v) for k, v in sorted(by_query_type.items())},
         "by_top_k": {str(k): _summarize(v) for k, v in sorted(by_top_k.items())},
     }
 
@@ -349,9 +344,7 @@ def print_headline(summary: dict) -> None:
     """Quick console summary so the user knows the result without opening files."""
     print()
     print("-" * 70)
-    print(
-        f"Overall ({summary['n_total']} queries, {summary['n_errors']} errors):"
-    )
+    print(f"Overall ({summary['n_total']} queries, {summary['n_errors']} errors):")
     o = summary["overall"]
     print(
         f"  precision@1={o['precision_at_1']['mean']}  "
@@ -418,8 +411,7 @@ def validate_or_die(test_cases_path: Path) -> list[TestCase]:
             file=sys.stderr,
         )
         print(
-            "Run `python -m scripts.eval.validate_test_cases "
-            f"{test_cases_path}` for details.",
+            f"Run `python -m scripts.eval.validate_test_cases {test_cases_path}` for details.",
             file=sys.stderr,
         )
         sys.exit(1)

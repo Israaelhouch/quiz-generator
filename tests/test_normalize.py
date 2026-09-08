@@ -30,6 +30,7 @@ from src.data.normalize import (
 
 # ----- language label normalization -----
 
+
 def test_normalize_language_label_variants() -> None:
     assert normalize_language_label("english") == "en"
     assert normalize_language_label("English") == "en"
@@ -69,6 +70,7 @@ def test_detect_language_empty_and_unknown() -> None:
 
 # ----- resolve_language -----
 
+
 def test_resolve_language_trust_raw_when_consistent() -> None:
     lang, source = resolve_language("english", "What is a pathogen?", "Quiz: Immunity")
     assert lang == "en"
@@ -104,6 +106,7 @@ def test_resolve_language_unknown_when_nothing_works() -> None:
 
 # ----- text cleaning -----
 
+
 def test_clean_quiz_title_strips_prefix_and_html() -> None:
     assert clean_quiz_title("Quiz: <b>Immunity 1</b>") == "Immunity 1"
     assert clean_quiz_title("QUIZ:   Math Basics  ") == "Math Basics"
@@ -124,17 +127,29 @@ def test_split_choices_cleans_and_selects_correct() -> None:
 
 # ----- subject aliases -----
 
+
 def test_apply_subject_aliases_maps_and_dedups() -> None:
     aliases = {"PHYSICS_1-MECHANICS": "PHYSICS", "MECHANIC": "PHYSICS"}
-    assert apply_subject_aliases(["PHYSICS_1-MECHANICS", "MECHANIC", "PHYSICS"], aliases) == ["PHYSICS"]
+    assert apply_subject_aliases(["PHYSICS_1-MECHANICS", "MECHANIC", "PHYSICS"], aliases) == [
+        "PHYSICS"
+    ]
     assert apply_subject_aliases(["MATHEMATICS"], aliases) == ["MATHEMATICS"]
     assert apply_subject_aliases([], aliases) == []
 
 
 # ----- dedup -----
 
-def _mk(doc_id: str, *, text: str, choices: list[str], subjects: list[str] | None = None,
-        levels: list[str] | None = None, lang: str = "en", qtype: str = "MULTIPLE_CHOICE") -> dict:
+
+def _mk(
+    doc_id: str,
+    *,
+    text: str,
+    choices: list[str],
+    subjects: list[str] | None = None,
+    levels: list[str] | None = None,
+    lang: str = "en",
+    qtype: str = "MULTIPLE_CHOICE",
+) -> dict:
     return {
         "doc_id": doc_id,
         "quiz_id": f"quiz-{doc_id}",
@@ -190,6 +205,7 @@ def test_union_preserving_order_drops_falsy() -> None:
 
 # ----- empty-text classification -----
 
+
 def test_split_choices_deduplicates_repeated_answers() -> None:
     """Source data has ~31 rows with duplicate choice texts (copy-paste errors).
     split_choices() should keep only the first occurrence of each unique answer.
@@ -197,8 +213,8 @@ def test_split_choices_deduplicates_repeated_answers() -> None:
     raw = [
         {"answer": "<p>Answer A</p>", "isTrue": True, "media": None},
         {"answer": "<p>Answer B</p>", "isTrue": False, "media": None},
-        {"answer": "<p>Answer B</p>", "isTrue": False, "media": None},   # duplicate
-        {"answer": "<p>Answer A</p>", "isTrue": True, "media": None},    # duplicate (already correct)
+        {"answer": "<p>Answer B</p>", "isTrue": False, "media": None},  # duplicate
+        {"answer": "<p>Answer A</p>", "isTrue": True, "media": None},  # duplicate (already correct)
     ]
     texts, correct, media = split_choices(raw)
     assert texts == ["Answer A", "Answer B"]
@@ -238,10 +254,12 @@ def test_normalize_row_drops_when_dedup_leaves_too_few_choices() -> None:
         "question_text_raw": "<p>What is 1+1?</p>",
         "choices_raw": [
             {"answer": "<p>2</p>", "isTrue": True, "media": None},
-            {"answer": "<p>2</p>", "isTrue": False, "media": None},   # duplicate of "2"
+            {"answer": "<p>2</p>", "isTrue": False, "media": None},  # duplicate of "2"
         ],
-        "points": 1, "time": 30,
-        "author_name": None, "author_email": None,
+        "points": 1,
+        "time": 30,
+        "author_name": None,
+        "author_email": None,
     }
     normalized, reason, audit = normalize_row(flat, aliases={})
     assert normalized is None
@@ -272,7 +290,7 @@ def test_mathematics_subject_mislabeled_english_gets_overridden_to_fr() -> None:
         "quiz_id": "q",
         "quiz_title_raw": "Quiz: Limites et comportement asymptotique",
         "language_raw": "english",
-        "subjects": ["MATHEMATICS"],    # ← the key signal
+        "subjects": ["MATHEMATICS"],  # ← the key signal
         "levels": [],
         "question_type": "MULTIPLE_CHOICE",
         "multiple_correct_answers": False,
@@ -285,8 +303,10 @@ def test_mathematics_subject_mislabeled_english_gets_overridden_to_fr() -> None:
             {"answer": "b", "isTrue": False, "media": None},
             {"answer": "c", "isTrue": False, "media": None},
         ],
-        "points": 1, "time": 30,
-        "author_name": None, "author_email": None,
+        "points": 1,
+        "time": 30,
+        "author_name": None,
+        "author_email": None,
     }
     normalized, reason, audit = normalize_row(flat, aliases={})
     assert reason == ""
@@ -380,8 +400,10 @@ def test_french_title_boosts_detection_when_title_has_stopword_density() -> None
             {"answer": "b", "isTrue": False, "media": None},
             {"answer": "c", "isTrue": False, "media": None},
         ],
-        "points": 1, "time": 30,
-        "author_name": None, "author_email": None,
+        "points": 1,
+        "time": 30,
+        "author_name": None,
+        "author_email": None,
     }
     normalized, reason, audit = normalize_row(flat, aliases={})
     assert reason == ""
@@ -402,14 +424,16 @@ def test_all_empty_choices_are_dropped() -> None:
         "levels": [],
         "question_type": "MULTIPLE_CHOICE",
         "multiple_correct_answers": False,
-        "question_text_raw": "<p>Question 2</p>",    # placeholder text
+        "question_text_raw": "<p>Question 2</p>",  # placeholder text
         "choices_raw": [
             {"answer": "", "isTrue": True, "media": None},
             {"answer": "", "isTrue": False, "media": None},
             {"answer": "", "isTrue": False, "media": None},
         ],
-        "points": 1, "time": 30,
-        "author_name": None, "author_email": None,
+        "points": 1,
+        "time": 30,
+        "author_name": None,
+        "author_email": None,
     }
     normalized, reason, audit = normalize_row(flat, aliases={})
     assert normalized is None
@@ -435,8 +459,10 @@ def test_rows_with_real_choices_pass() -> None:
             {"answer": "3", "isTrue": False, "media": None},
             {"answer": "5", "isTrue": False, "media": None},
         ],
-        "points": 1, "time": 30,
-        "author_name": None, "author_email": None,
+        "points": 1,
+        "time": 30,
+        "author_name": None,
+        "author_email": None,
     }
     normalized, reason, audit = normalize_row(flat, aliases={})
     assert normalized is not None
@@ -456,7 +482,7 @@ def test_latex_heavy_french_content_detects_as_french() -> None:
         "doc_id": "test-1",
         "quiz_id": "quiz-1",
         "quiz_title_raw": "Quiz: Primitives",
-        "language_raw": "english",           # mislabeled in source
+        "language_raw": "english",  # mislabeled in source
         "subjects": [],
         "levels": [],
         "question_type": "MULTIPLE_CHOICE",
@@ -471,8 +497,10 @@ def test_latex_heavy_french_content_detects_as_french() -> None:
             {"answer": "B", "isTrue": False, "media": None},
             {"answer": "C", "isTrue": False, "media": None},
         ],
-        "points": 1, "time": 30,
-        "author_name": None, "author_email": None,
+        "points": 1,
+        "time": 30,
+        "author_name": None,
+        "author_email": None,
     }
 
     normalized, reason, audit = normalize_row(flat, aliases={})
@@ -499,6 +527,7 @@ def test_classify_empty_text_reason_truly_empty() -> None:
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):
         if name.startswith("test_"):

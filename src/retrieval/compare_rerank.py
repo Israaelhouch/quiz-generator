@@ -72,10 +72,7 @@ def _truncate(text: str, n: int) -> str:
 
 
 def _format_row(idx: int, item: Any, marker: str, verbose: bool) -> str:
-    head = (
-        f"  #{idx}  {item.doc_id[:10]:<10}  d={item.distance:+.3f}  "
-        f"{marker:<7}"
-    )
+    head = f"  #{idx}  {item.doc_id[:10]:<10}  d={item.distance:+.3f}  {marker:<7}"
     title = _truncate(item.quiz_title or "(no title)", 35)
     if verbose:
         block = head + f"{title}\n"
@@ -165,10 +162,14 @@ def _render(
     print()
     print("CHANGES:")
     print(f"  Position changes  : {summary['moved']}")
-    print(f"  New in top-{top_k}     : {len(summary['new'])}"
-          + (f"  ({', '.join(d[:10] for d in summary['new'])})" if summary["new"] else ""))
-    print(f"  Dropped from top-{top_k}: {len(summary['dropped'])}"
-          + (f"  ({', '.join(d[:10] for d in summary['dropped'])})" if summary["dropped"] else ""))
+    print(
+        f"  New in top-{top_k}     : {len(summary['new'])}"
+        + (f"  ({', '.join(d[:10] for d in summary['new'])})" if summary["new"] else "")
+    )
+    print(
+        f"  Dropped from top-{top_k}: {len(summary['dropped'])}"
+        + (f"  ({', '.join(d[:10] for d in summary['dropped'])})" if summary["dropped"] else "")
+    )
     print(line)
 
 

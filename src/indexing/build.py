@@ -138,6 +138,7 @@ def build(
     # (terminal, IDE, notebook, redirected output — handles each gracefully).
     try:
         from tqdm import tqdm
+
         progress = tqdm(total=total, desc="Embedding", unit="rows", ncols=90)
     except ImportError:
         progress = None  # graceful fallback if tqdm unavailable

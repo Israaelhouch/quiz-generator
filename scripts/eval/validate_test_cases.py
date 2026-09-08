@@ -81,9 +81,9 @@ EVAL_DIR = Path("eval")
 # ground truth cleanly scoped — math topics live in topics_math_<lang>.csv
 # and language-subject topics live in topics_<lang>.csv as before.
 TOPICS_FILE_BY_LANG_SUBJECT: dict[tuple[str, str], Path] = {
-    ("en", "ENGLISH"):     EVAL_DIR / "topics_english.csv",
-    ("ar", "ARABIC"):      EVAL_DIR / "topics_arabic.csv",
-    ("fr", "FRENCH"):      EVAL_DIR / "topics_french.csv",
+    ("en", "ENGLISH"): EVAL_DIR / "topics_english.csv",
+    ("ar", "ARABIC"): EVAL_DIR / "topics_arabic.csv",
+    ("fr", "FRENCH"): EVAL_DIR / "topics_french.csv",
     ("ar", "MATHEMATICS"): EVAL_DIR / "topics_math_ar.csv",
     ("fr", "MATHEMATICS"): EVAL_DIR / "topics_math_fr.csv",
 }
@@ -104,8 +104,8 @@ def load_topic_index(
         path = TOPICS_FILE_BY_LANG_SUBJECT.get((lang, subject))
         if path is None:
             print(
-                f"  ! no topics CSV registered for (language={lang!r}, "
-                f"subject={subject!r})", file=sys.stderr,
+                f"  ! no topics CSV registered for (language={lang!r}, subject={subject!r})",
+                file=sys.stderr,
             )
             continue
         if not path.exists():
@@ -225,10 +225,7 @@ def report(
         print(f"Subject mismatches ({len(subject_mismatches)}, showing first 10):")
         for i, c in subject_mismatches[:10]:
             expected = sorted(LANG_TO_SUBJECTS.get(c.language, set())) or ["?"]
-            print(
-                f"  [#{i}] lang={c.language} subject={c.subject!r}, "
-                f"expected one of {expected!r}"
-            )
+            print(f"  [#{i}] lang={c.language} subject={c.subject!r}, expected one of {expected!r}")
         print()
 
     if missing:
@@ -241,9 +238,7 @@ def report(
             f"Missing target_quiz_title ({len(missing)} cases across "
             f"{len(by_title)} unique titles, showing first 20):"
         )
-        for (lang, title), n in sorted(
-            by_title.items(), key=lambda kv: -kv[1]
-        )[:20]:
+        for (lang, title), n in sorted(by_title.items(), key=lambda kv: -kv[1])[:20]:
             print(f"  [{lang}] {n:>4}x  {title!r}")
         print()
         print(
@@ -254,9 +249,7 @@ def report(
 
     if recall_capped:
         print(_hr())
-        print(
-            f"Recall-capped warnings ({len(recall_capped)}, showing first 10):"
-        )
+        print(f"Recall-capped warnings ({len(recall_capped)}, showing first 10):")
         for i, c, n_docs in recall_capped[:10]:
             print(
                 f"  [#{i}] lang={c.language} top_k={c.top_k} but only {n_docs}"

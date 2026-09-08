@@ -54,8 +54,6 @@ def _capture_logs(logger_name: str, level: int = _logging.WARNING):
         target.setLevel(previous_level)
 
 
-
-
 # ---------------------------------------------------------------------------
 # Mocks
 # ---------------------------------------------------------------------------
@@ -146,7 +144,8 @@ def _make_retriever(
         ready_jsonl_path=Path("unused"),
         _model=FakeModel(),
         _collection=FakeCollection(ids=ids, distances=distances),
-        _taxonomy=taxonomy or Taxonomy(
+        _taxonomy=taxonomy
+        or Taxonomy(
             languages={"en", "fr", "ar"},
             question_types={"MULTIPLE_CHOICE", "FILL_IN_THE_BLANKS"},
             subjects={"SCIENCE", "MATHEMATICS", "PHYSICS"},
@@ -205,16 +204,26 @@ def test_build_where_scalar_only() -> None:
 
 def test_build_where_single_scalar_returns_flat() -> None:
     where = _build_where(
-        language="fr", question_type=None, multiple_correct_answers=None,
-        subject=None, school_phase=None, levels=None, levels_match_mode="any",
+        language="fr",
+        question_type=None,
+        multiple_correct_answers=None,
+        subject=None,
+        school_phase=None,
+        levels=None,
+        levels_match_mode="any",
     )
     assert where == {"language": "fr"}
 
 
 def test_build_where_levels_any_mode() -> None:
     where = _build_where(
-        language="fr", question_type=None, multiple_correct_answers=None, subject=None,
-        school_phase=None, levels=["L1", "L2"], levels_match_mode="any",
+        language="fr",
+        question_type=None,
+        multiple_correct_answers=None,
+        subject=None,
+        school_phase=None,
+        levels=["L1", "L2"],
+        levels_match_mode="any",
     )
     # fr + ($or of two level booleans) combined with $and
     assert where == {
@@ -227,16 +236,26 @@ def test_build_where_levels_any_mode() -> None:
 
 def test_build_where_levels_all_mode() -> None:
     where = _build_where(
-        language=None, question_type=None, multiple_correct_answers=None, subject=None,
-        school_phase=None, levels=["L1", "L2"], levels_match_mode="all",
+        language=None,
+        question_type=None,
+        multiple_correct_answers=None,
+        subject=None,
+        school_phase=None,
+        levels=["L1", "L2"],
+        levels_match_mode="all",
     )
     assert where == {"$and": [{"levels_L1": True}, {"levels_L2": True}]}
 
 
 def test_build_where_no_filters_returns_none() -> None:
     where = _build_where(
-        language=None, question_type=None, multiple_correct_answers=None, subject=None,
-        school_phase=None, levels=None, levels_match_mode="any",
+        language=None,
+        question_type=None,
+        multiple_correct_answers=None,
+        subject=None,
+        school_phase=None,
+        levels=None,
+        levels_match_mode="any",
     )
     assert where is None
 
@@ -244,8 +263,13 @@ def test_build_where_no_filters_returns_none() -> None:
 def test_build_where_school_phase_alone_emits_scalar_clause() -> None:
     """A single school_phase filter is a flat scalar clause — no $and wrapper."""
     where = _build_where(
-        language=None, question_type=None, multiple_correct_answers=None, subject=None,
-        school_phase="HIGH", levels=None, levels_match_mode="any",
+        language=None,
+        question_type=None,
+        multiple_correct_answers=None,
+        subject=None,
+        school_phase="HIGH",
+        levels=None,
+        levels_match_mode="any",
     )
     assert where == {"school_phase": "HIGH"}
 
@@ -253,8 +277,13 @@ def test_build_where_school_phase_alone_emits_scalar_clause() -> None:
 def test_build_where_school_phase_combines_with_language() -> None:
     """school_phase ANDs with other scalar filters like language."""
     where = _build_where(
-        language="ar", question_type=None, multiple_correct_answers=None, subject=None,
-        school_phase="PRIMARY", levels=None, levels_match_mode="any",
+        language="ar",
+        question_type=None,
+        multiple_correct_answers=None,
+        subject=None,
+        school_phase="PRIMARY",
+        levels=None,
+        levels_match_mode="any",
     )
     assert where == {"$and": [{"language": "ar"}, {"school_phase": "PRIMARY"}]}
 
@@ -384,7 +413,9 @@ def test_retrieve_builds_where_clause_with_subject_and_levels() -> None:
     payload = {"id-1": _payload_row("id-1")}
     r = _make_retriever(ids=["id-1"], distances=[0.1], payload=payload)
     r.retrieve(
-        "q", language="fr", subject="MATHEMATICS",
+        "q",
+        language="fr",
+        subject="MATHEMATICS",
         levels=["HIGH_SCHOOL_4TH_GRADE_MATHEMATICS"],
     )
     call = r._collection.calls[0]
@@ -447,8 +478,7 @@ class _FakeReranker:
         scores_out: list[float] | None = None,
     ):
         self.calls.append({"query": query, "n": len(candidates)})
-        scored = [(c, self.scores_by_text.get(getattr(c, text_attr, ""), 0.0))
-                  for c in candidates]
+        scored = [(c, self.scores_by_text.get(getattr(c, text_attr, ""), 0.0)) for c in candidates]
         scored.sort(key=lambda x: -x[1])
         if scores_out is not None:
             scores_out.clear()
@@ -512,9 +542,7 @@ def test_retrieve_no_reranker_skips_rerank_call() -> None:
         "id-a": _payload_row("id-a", question_text="alpha"),
         "id-b": _payload_row("id-b", question_text="beta"),
     }
-    r = _make_retriever(
-        ids=["id-a", "id-b"], distances=[0.1, 0.2], payload=payload
-    )
+    r = _make_retriever(ids=["id-a", "id-b"], distances=[0.1, 0.2], payload=payload)
     # _reranker stays None on the retriever (default)
     assert r._reranker is None
     results = r.retrieve("q", language="en", top_k=2)
@@ -561,6 +589,7 @@ def test_diagnose_empty_shows_filter_counts_and_suggestions() -> None:
 
     class CountingCollection(FakeCollection):
         """Track what `get(where=...)` queries are made and return canned counts."""
+
         def __init__(self) -> None:
             super().__init__(ids=[], distances=[])
             self._count = 10000
@@ -574,7 +603,7 @@ def test_diagnose_empty_shows_filter_counts_and_suggestions() -> None:
                 "language=fr": 3660,
                 "subject=MATHEMATICS": 1672,
                 "question_type=MULTIPLE_CHOICE": 10000,
-                "MATHEMATICS+en": 0,      # the missing combo (subject-first in $and)
+                "MATHEMATICS+en": 0,  # the missing combo (subject-first in $and)
                 "MATHEMATICS+fr": 1148,
                 "MATHEMATICS+ar": 524,
             }
@@ -624,6 +653,7 @@ def test_diagnose_empty_gracefully_handles_exceptions() -> None:
     class BrokenCollection:
         def count(self):
             raise RuntimeError("chroma down")
+
         def get(self, **_):
             raise RuntimeError("chroma down")
 
@@ -646,10 +676,10 @@ def test_list_methods_delegate_to_taxonomy() -> None:
     assert "PRIMARY_SCHOOL_6TH_GRADE" in r.list_levels()
 
 
-
 # ---------------------------------------------------------------------------
 # Concurrency — the ML layer is shared, so it must be serialised
 # ---------------------------------------------------------------------------
+
 
 def test_retrieve_serialises_concurrent_callers() -> None:
     """One Retriever serves every HTTP request from FastAPI's thread pool,
@@ -671,7 +701,7 @@ def test_retrieve_serialises_concurrent_callers() -> None:
             with lock:
                 state["inside"] += 1
                 state["peak"] = max(state["peak"], state["inside"])
-            _time.sleep(0.03)          # hold the section open
+            _time.sleep(0.03)  # hold the section open
             with lock:
                 state["inside"] -= 1
             self.calls.append(text)
@@ -682,9 +712,7 @@ def test_retrieve_serialises_concurrent_callers() -> None:
         config_path=Path("unused"),
         ready_jsonl_path=Path("unused"),
         _model=_ObservingModel(),
-        _collection=FakeCollection(
-            ids=list(payload), distances=[0.1, 0.2, 0.3, 0.4]
-        ),
+        _collection=FakeCollection(ids=list(payload), distances=[0.1, 0.2, 0.3, 0.4]),
         _taxonomy=Taxonomy(languages={"en"}),
         _payload=payload,
     )
@@ -721,13 +749,14 @@ def test_retrieve_wrapper_forwards_args_and_kwargs() -> None:
 
     # Filters still reach _build_where through the wrapper.
     r.retrieve("q", language="en", top_k=1, subject="SCIENCE")
-    assert any(
-        call["where"] is not None for call in r._collection.calls
-    ), "filters were lost crossing the lock wrapper"
+    assert any(call["where"] is not None for call in r._collection.calls), (
+        "filters were lost crossing the lock wrapper"
+    )
 
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):
         if name.startswith("test_"):

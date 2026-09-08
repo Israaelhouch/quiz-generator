@@ -69,17 +69,20 @@ def analyze(log_path: Path) -> None:
     failures = [r for r in runs if not r.get("response", {}).get("questions")]
 
     count_matches = [
-        r for r in successes
-        if len(r["response"]["questions"]) == r["request"]["count"]
+        r for r in successes if len(r["response"]["questions"]) == r["request"]["count"]
     ]
 
     print("\n📊 SUCCESS / FAILURE")
-    print(f"  successes:        {len(successes)}/{len(runs)}  "
-          f"({len(successes)/len(runs)*100:.1f}%)")
+    print(
+        f"  successes:        {len(successes)}/{len(runs)}  "
+        f"({len(successes) / len(runs) * 100:.1f}%)"
+    )
     print(f"  failures:         {len(failures)}/{len(runs)}")
     if successes:
-        print(f"  count-match rate: {len(count_matches)}/{len(successes)}  "
-              f"({len(count_matches)/len(successes)*100:.1f}%)")
+        print(
+            f"  count-match rate: {len(count_matches)}/{len(successes)}  "
+            f"({len(count_matches) / len(successes) * 100:.1f}%)"
+        )
 
     # ----------------------------------------------------------------------
     # Latency
@@ -112,14 +115,16 @@ def analyze(log_path: Path) -> None:
         if not ds:
             continue
         all_distances.extend(ds)
-        per_query_stats.append({
-            "topic": r["request"]["topic"],
-            "min": min(ds),
-            "max": max(ds),
-            "avg": statistics.mean(ds),
-            "spread": max(ds) - min(ds),
-            "n": len(ds),
-        })
+        per_query_stats.append(
+            {
+                "topic": r["request"]["topic"],
+                "min": min(ds),
+                "max": max(ds),
+                "avg": statistics.mean(ds),
+                "spread": max(ds) - min(ds),
+                "n": len(ds),
+            }
+        )
 
     if all_distances:
         sa = sorted(all_distances)
@@ -189,7 +194,9 @@ def analyze(log_path: Path) -> None:
             topic = q["topic"][:50]
             print(f"  min={q['min']:.4f}  avg={q['avg']:.4f}  | {topic}")
         print("\n   These are the queries where even the best retrieved chunk was weak.")
-        print("   → Either the corpus has no good match, or the embedder is failing on this concept.")
+        print(
+            "   → Either the corpus has no good match, or the embedder is failing on this concept."
+        )
 
     # ----------------------------------------------------------------------
     # Per-language breakdown
@@ -208,8 +215,7 @@ def analyze(log_path: Path) -> None:
             ]
             ok = sum(1 for r in rs if r.get("response", {}).get("questions"))
             avg_lat = statistics.mean(ds) if ds else float("nan")
-            print(f"  {lang}:  {len(rs)} runs, {ok}/{len(rs)} success, "
-                  f"avg latency {avg_lat:.2f}s")
+            print(f"  {lang}:  {len(rs)} runs, {ok}/{len(rs)} success, avg latency {avg_lat:.2f}s")
 
     print()
     print(_hr())

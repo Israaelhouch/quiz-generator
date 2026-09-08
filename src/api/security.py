@@ -47,8 +47,7 @@ api_key_scheme = APIKeyHeader(
     name=API_KEY_HEADER,
     auto_error=False,
     description=(
-        "API key issued by the AI team. Alternatively send it as "
-        "`Authorization: Bearer <key>`."
+        "API key issued by the AI team. Alternatively send it as `Authorization: Bearer <key>`."
     ),
 )
 REQUEST_ID_HEADER = "X-Request-ID"
@@ -82,7 +81,8 @@ def configured_rate_limit() -> int:
     except ValueError:
         logger.warning(
             "RATE_LIMIT_PER_MINUTE=%r is not an integer; using default %d",
-            raw, DEFAULT_RATE_LIMIT_PER_MINUTE,
+            raw,
+            DEFAULT_RATE_LIMIT_PER_MINUTE,
         )
         return DEFAULT_RATE_LIMIT_PER_MINUTE
     return max(0, value)
@@ -126,8 +126,7 @@ def log_security_posture() -> None:
         logger.info("CORS enabled for origins: %s", origins)
     else:
         logger.info(
-            "CORS disabled (server-to-server callers only; browsers cannot "
-            "call this API directly)."
+            "CORS disabled (server-to-server callers only; browsers cannot call this API directly)."
         )
 
     limit = configured_rate_limit()
@@ -177,6 +176,7 @@ def caller_id(request: Request) -> str:
     presented = _presented_key(request)
     if presented:
         import hashlib
+
         return "key:" + hashlib.sha256(presented.encode()).hexdigest()[:12]
     client = request.client.host if request.client else "unknown"
     return f"ip:{client}"
@@ -206,7 +206,8 @@ async def require_api_key(
     if not _matches_any(presented, accepted):
         logger.warning(
             "Rejected request to %s from %s: invalid API key",
-            request.url.path, caller_id(request),
+            request.url.path,
+            caller_id(request),
         )
         raise HTTPException(status_code=401, detail="Invalid API key.")
 
@@ -248,12 +249,14 @@ async def enforce_rate_limit(request: Request) -> None:
             retry_after = max(1, int(window[0] + _RATE_WINDOW_SECONDS - now) + 1)
             logger.warning(
                 "Rate limit hit by %s on %s (%d/%d in window)",
-                who, request.url.path, len(window), limit,
+                who,
+                request.url.path,
+                len(window),
+                limit,
             )
             raise HTTPException(
                 status_code=429,
-                detail=f"Rate limit exceeded ({limit} requests/minute). "
-                       f"Retry in {retry_after}s.",
+                detail=f"Rate limit exceeded ({limit} requests/minute). Retry in {retry_after}s.",
                 headers={"Retry-After": str(retry_after)},
             )
         window.append(now)

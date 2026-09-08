@@ -67,6 +67,7 @@ async def lifespan(app: FastAPI):
     if getattr(app.state, "pipeline", None) is None:
         logger.info("Loading QuizPipeline (BGE-M3 + reranker + Ollama warmup)…")
         from src.pipeline import QuizPipeline
+
         app.state.pipeline = QuizPipeline()
         logger.info("Pipeline loaded.")
     else:
@@ -92,10 +93,9 @@ if _cors_origins:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins,
-        allow_credentials=False,          # we authenticate by header, not cookie
+        allow_credentials=False,  # we authenticate by header, not cookie
         allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "X-API-Key", "Authorization",
-                       REQUEST_ID_HEADER],
+        allow_headers=["Content-Type", "X-API-Key", "Authorization", REQUEST_ID_HEADER],
         expose_headers=[REQUEST_ID_HEADER],
     )
 
@@ -221,9 +221,7 @@ RUNS_LOG_PATH = Path(os.environ.get("RUNS_LOG_PATH", "/app/logs/runs.jsonl"))
 # Set RUNS_LOG_MAX_BYTES=0 to disable.
 # Human judgements about generated questions. Separate file from runs.jsonl:
 # runs are machine-generated and voluminous, feedback is scarce and precious.
-FEEDBACK_LOG_PATH = Path(
-    os.environ.get("FEEDBACK_LOG_PATH", "/app/logs/feedback.jsonl")
-)
+FEEDBACK_LOG_PATH = Path(os.environ.get("FEEDBACK_LOG_PATH", "/app/logs/feedback.jsonl"))
 
 DEFAULT_RUNS_LOG_MAX_BYTES = 50 * 1024 * 1024
 RUNS_LOG_KEEP = 3
@@ -256,7 +254,7 @@ def _rotate_runs_log_if_needed(path: Path) -> None:
                 src.replace(path.with_suffix(path.suffix + f".{i + 1}"))
         path.replace(path.with_suffix(path.suffix + ".1"))
         logger.info("Rotated run log at %d bytes", limit)
-    except Exception as exc:                                # never break the API
+    except Exception as exc:  # never break the API
         logger.warning("Run-log rotation failed: %s", exc)
 
 
@@ -281,7 +279,7 @@ def _append_run_log(*, request_dict: dict, response_dict: dict) -> None:
         }
         with RUNS_LOG_PATH.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-    except Exception as exc:                                # don't break the API on logging failure
+    except Exception as exc:  # don't break the API on logging failure
         logger.warning("Failed to append run log: %s", exc)
 
 
@@ -455,10 +453,7 @@ def _validate_taxonomy_inputs(
         if subject.strip().upper() not in known_subjects:
             raise HTTPException(
                 status_code=400,
-                detail=(
-                    f"Unknown subject {subject!r}. Valid subjects: "
-                    f"{sorted(known_subjects)}."
-                ),
+                detail=(f"Unknown subject {subject!r}. Valid subjects: {sorted(known_subjects)}."),
             )
 
     if levels:
@@ -527,6 +522,7 @@ def generate_quiz(req: GenerateRequest, request: Request) -> dict:
     import time as _time
 
     from src.generation.generator import GenerationError
+
     _t0 = _time.perf_counter()
 
     # `temperature`, `max_attempts`, and `few_shot_count` come from
@@ -560,10 +556,7 @@ def generate_quiz(req: GenerateRequest, request: Request) -> dict:
         msg = str(exc)
         rid = request_id_ctx.get()
         logger.warning("generation failed: %s", msg)
-        if (
-            "Retriever returned 0 examples" in msg
-            or "Cannot build a few-shot prompt" in msg
-        ):
+        if "Retriever returned 0 examples" in msg or "Cannot build a few-shot prompt" in msg:
             raise HTTPException(
                 status_code=400,
                 detail=(
@@ -594,9 +587,7 @@ def generate_quiz(req: GenerateRequest, request: Request) -> dict:
         # per-stage timings ride along with it rather than needing a second
         # switch. Opt-in only — the default response shape is unchanged for
         # the platform.
-        response["retrieval"] = [
-            _retrieved_to_dict(c) for c in result.retrieval
-        ]
+        response["retrieval"] = [_retrieved_to_dict(c) for c in result.retrieval]
         if result.timings:
             response["timings"] = result.timings
 
@@ -607,9 +598,7 @@ def generate_quiz(req: GenerateRequest, request: Request) -> dict:
     # review even if the caller didn't ask for retrieval in the response.
     log_response = dict(response)
     if "retrieval" not in log_response:
-        log_response["retrieval"] = [
-            _retrieved_to_dict(c) for c in result.retrieval
-        ]
+        log_response["retrieval"] = [_retrieved_to_dict(c) for c in result.retrieval]
     log_response["duration_seconds"] = duration
     log_response["request_id"] = request_id_ctx.get()
     # Per-stage timings captured by QuizPipeline.generate() (retrieve vs LLM).

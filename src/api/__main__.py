@@ -25,14 +25,18 @@ def main() -> None:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--host", default="127.0.0.1",
-                        help="Interface to bind (default: 127.0.0.1 — localhost only)")
-    parser.add_argument("--port", type=int, default=8000,
-                        help="Port to listen on (default: 8000)")
-    parser.add_argument("--reload", action="store_true",
-                        help="Auto-reload on code changes (dev only — slow)")
-    parser.add_argument("--log-level", default="info",
-                        choices=["debug", "info", "warning", "error", "critical"])
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Interface to bind (default: 127.0.0.1 — localhost only)",
+    )
+    parser.add_argument("--port", type=int, default=8000, help="Port to listen on (default: 8000)")
+    parser.add_argument(
+        "--reload", action="store_true", help="Auto-reload on code changes (dev only — slow)"
+    )
+    parser.add_argument(
+        "--log-level", default="info", choices=["debug", "info", "warning", "error", "critical"]
+    )
     args = parser.parse_args()
 
     # Initialise our app-level logging BEFORE uvicorn so our pipeline logs

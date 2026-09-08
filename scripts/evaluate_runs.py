@@ -31,6 +31,7 @@ from pathlib import Path
 # silently skipped if python-dotenv isn't installed.
 try:
     from dotenv import load_dotenv
+
     _ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
     if _ENV_PATH.exists():
         load_dotenv(_ENV_PATH)
@@ -192,14 +193,16 @@ def _judge_one(run: dict, model: str) -> dict | None:
             model=model,
             contents=prompt,
             config=types.GenerateContentConfig(
-                temperature=0.1,                              # judging — be consistent
+                temperature=0.1,  # judging — be consistent
                 response_mime_type="application/json",
             ),
         )
         return json.loads(response.text)
     except Exception as exc:
-        print(f"⚠ Judge call failed for topic '{run['request']['topic'][:40]}...': {exc}",
-              file=sys.stderr)
+        print(
+            f"⚠ Judge call failed for topic '{run['request']['topic'][:40]}...': {exc}",
+            file=sys.stderr,
+        )
         return None
 
 
@@ -217,7 +220,7 @@ def evaluate(log_path: Path, csv_path: Path, model: str = "gemini-2.5-flash") ->
         sys.exit(1)
 
     print(f"⏳ Judging {len(runs)} runs with {model}...")
-    print(f"   (~5-10s per run; total ~{len(runs)*8//60} min)")
+    print(f"   (~5-10s per run; total ~{len(runs) * 8 // 60} min)")
 
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = (
@@ -255,7 +258,7 @@ def evaluate(log_path: Path, csv_path: Path, model: str = "gemini-2.5-flash") ->
                     total += v
             row["total"] = total
             row["summary"] = scores.get("summary", "")
-            print(f" — total {total}/{5*len(DIMENSIONS)}")
+            print(f" — total {total}/{5 * len(DIMENSIONS)}")
         rows.append(row)
 
     # Write CSV
@@ -276,7 +279,7 @@ def evaluate(log_path: Path, csv_path: Path, model: str = "gemini-2.5-flash") ->
         totals = [r["total"] for r in valid_rows]
         max_total = 5 * len(DIMENSIONS)
         print(f"\nOverall: {len(valid_rows)} judged successfully")
-        print(f"  avg total:  {sum(totals)/len(totals):.1f} / {max_total}")
+        print(f"  avg total:  {sum(totals) / len(totals):.1f} / {max_total}")
         print(f"  min total:  {min(totals)} / {max_total}")
         print(f"  max total:  {max(totals)} / {max_total}")
 

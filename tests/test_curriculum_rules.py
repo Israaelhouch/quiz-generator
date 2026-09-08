@@ -34,8 +34,8 @@ def test_rule_table_covers_all_in_scope_math_phases() -> None:
 def test_math_curriculum_expected_languages() -> None:
     """Tunisian math: primary/middle in Arabic, high in French."""
     assert EXPECTED_LANGUAGES[("MATHEMATICS", "PRIMARY")] == frozenset({"ar"})
-    assert EXPECTED_LANGUAGES[("MATHEMATICS", "MIDDLE")]  == frozenset({"ar"})
-    assert EXPECTED_LANGUAGES[("MATHEMATICS", "HIGH")]    == frozenset({"fr"})
+    assert EXPECTED_LANGUAGES[("MATHEMATICS", "MIDDLE")] == frozenset({"ar"})
+    assert EXPECTED_LANGUAGES[("MATHEMATICS", "HIGH")] == frozenset({"fr"})
 
 
 # ---------------------------------------------------------------------------
@@ -53,7 +53,9 @@ def test_no_subjects_means_no_rule_can_apply() -> None:
 
 def test_no_school_phase_means_no_rule_can_apply() -> None:
     ok, reason = check_compliance(
-        subjects=["MATHEMATICS"], school_phase=None, language="fr",
+        subjects=["MATHEMATICS"],
+        school_phase=None,
+        language="fr",
     )
     assert ok and reason == ""
 
@@ -62,28 +64,36 @@ def test_subject_without_a_rule_passes_through() -> None:
     """ENGLISH/ARABIC/FRENCH have no entry in EXPECTED_LANGUAGES — they're
     handled by domain_rules.py — so check_compliance should be a no-op."""
     ok, reason = check_compliance(
-        subjects=["ENGLISH"], school_phase="HIGH", language="en",
+        subjects=["ENGLISH"],
+        school_phase="HIGH",
+        language="en",
     )
     assert ok and reason == ""
 
 
 def test_math_primary_arabic_is_compliant() -> None:
     ok, reason = check_compliance(
-        subjects=["MATHEMATICS"], school_phase="PRIMARY", language="ar",
+        subjects=["MATHEMATICS"],
+        school_phase="PRIMARY",
+        language="ar",
     )
     assert ok and reason == ""
 
 
 def test_math_middle_arabic_is_compliant() -> None:
     ok, reason = check_compliance(
-        subjects=["MATHEMATICS"], school_phase="MIDDLE", language="ar",
+        subjects=["MATHEMATICS"],
+        school_phase="MIDDLE",
+        language="ar",
     )
     assert ok and reason == ""
 
 
 def test_math_high_french_is_compliant() -> None:
     ok, reason = check_compliance(
-        subjects=["MATHEMATICS"], school_phase="HIGH", language="fr",
+        subjects=["MATHEMATICS"],
+        school_phase="HIGH",
+        language="fr",
     )
     assert ok and reason == ""
 
@@ -97,7 +107,9 @@ def test_math_primary_french_is_a_violation() -> None:
     """The canonical violation we saw in the audit: high-school polynomial
     content mistagged as PRIMARY_SCHOOL_2ND_GRADE in the source."""
     ok, reason = check_compliance(
-        subjects=["MATHEMATICS"], school_phase="PRIMARY", language="fr",
+        subjects=["MATHEMATICS"],
+        school_phase="PRIMARY",
+        language="fr",
     )
     assert not ok
     assert reason == "curriculum_MATHEMATICS_PRIMARY_violation"
@@ -105,7 +117,9 @@ def test_math_primary_french_is_a_violation() -> None:
 
 def test_math_middle_french_is_a_violation() -> None:
     ok, reason = check_compliance(
-        subjects=["MATHEMATICS"], school_phase="MIDDLE", language="fr",
+        subjects=["MATHEMATICS"],
+        school_phase="MIDDLE",
+        language="fr",
     )
     assert not ok
     assert reason == "curriculum_MATHEMATICS_MIDDLE_violation"
@@ -113,7 +127,9 @@ def test_math_middle_french_is_a_violation() -> None:
 
 def test_math_high_arabic_is_a_violation() -> None:
     ok, reason = check_compliance(
-        subjects=["MATHEMATICS"], school_phase="HIGH", language="ar",
+        subjects=["MATHEMATICS"],
+        school_phase="HIGH",
+        language="ar",
     )
     assert not ok
     assert reason == "curriculum_MATHEMATICS_HIGH_violation"
@@ -128,12 +144,16 @@ def test_subject_case_is_normalized_to_upper() -> None:
     """Source data sometimes stores subjects in non-canonical case
     ('Mathematics', 'mathematics'). The check should handle them."""
     ok, _ = check_compliance(
-        subjects=["mathematics"], school_phase="HIGH", language="fr",
+        subjects=["mathematics"],
+        school_phase="HIGH",
+        language="fr",
     )
     assert ok
 
     ok, _ = check_compliance(
-        subjects=["Mathematics"], school_phase="HIGH", language="ar",
+        subjects=["Mathematics"],
+        school_phase="HIGH",
+        language="ar",
     )
     assert not ok
 
@@ -141,7 +161,9 @@ def test_subject_case_is_normalized_to_upper() -> None:
 def test_none_in_subjects_list_is_tolerated() -> None:
     """Defensive: garbage source data can have null subjects in the list."""
     ok, _ = check_compliance(
-        subjects=[None, "MATHEMATICS"], school_phase="HIGH", language="fr",
+        subjects=[None, "MATHEMATICS"],
+        school_phase="HIGH",
+        language="fr",
     )
     assert ok
 
@@ -151,7 +173,9 @@ def test_multiple_subjects_any_violation_drops_the_row() -> None:
     Note: this also catches cross-subject contamination cases where the
     'real' subject is the math co-tag and the primary subject is unrelated."""
     ok, reason = check_compliance(
-        subjects=["SCIENCE", "MATHEMATICS"], school_phase="PRIMARY", language="fr",
+        subjects=["SCIENCE", "MATHEMATICS"],
+        school_phase="PRIMARY",
+        language="fr",
     )
     assert not ok
     assert "MATHEMATICS" in reason
@@ -159,7 +183,9 @@ def test_multiple_subjects_any_violation_drops_the_row() -> None:
 
 def test_multiple_subjects_no_rules_apply_means_compliant() -> None:
     ok, _ = check_compliance(
-        subjects=["ENGLISH", "ARABIC"], school_phase="HIGH", language="en",
+        subjects=["ENGLISH", "ARABIC"],
+        school_phase="HIGH",
+        language="en",
     )
     assert ok
 
@@ -207,8 +233,6 @@ def test_check_compliance_skips_null_subjects_and_still_sees_the_real_one() -> N
 
 
 def test_check_compliance_all_null_subjects_is_compliant() -> None:
-    compliant, reason = check_compliance(
-        subjects=[None], school_phase="PRIMARY", language="en"
-    )
+    compliant, reason = check_compliance(subjects=[None], school_phase="PRIMARY", language="en")
     assert compliant is True
     assert reason == ""

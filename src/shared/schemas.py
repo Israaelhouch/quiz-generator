@@ -49,7 +49,7 @@ class RawQuestion(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     order: int
-    type: RAW_QUESTION_TYPES   # raw source allows all 3; TMC is merged into MCQ at ingestion
+    type: RAW_QUESTION_TYPES  # raw source allows all 3; TMC is merged into MCQ at ingestion
     description: str | None = None
     image: str | None = None
     points: float | None = None
@@ -132,7 +132,7 @@ class NormalizedQuestion(BaseModel):
     language: SUPPORTED_LANGUAGES
     subjects: list[str]
     levels: list[str]
-    school_phase: str | None = None    # derived from levels[0] (PRIMARY/MIDDLE/HIGH)
+    school_phase: str | None = None  # derived from levels[0] (PRIMARY/MIDDLE/HIGH)
     question_type: SUPPORTED_QUESTION_TYPES
     multiple_correct_answers: bool
     question_text: str
@@ -176,7 +176,7 @@ class IndexedQuestion(BaseModel):
     language: SUPPORTED_LANGUAGES
     subjects: list[str]
     levels: list[str]
-    school_phase: str | None = None    # derived from levels[0] (PRIMARY/MIDDLE/HIGH)
+    school_phase: str | None = None  # derived from levels[0] (PRIMARY/MIDDLE/HIGH)
     question_type: SUPPORTED_QUESTION_TYPES
     multiple_correct_answers: bool
     question_text: str

@@ -42,7 +42,7 @@ class Generator:
 
     def __init__(
         self,
-        retriever: Any,             # src.retrieval.retriever.Retriever or any .retrieve()-capable object
+        retriever: Any,  # src.retrieval.retriever.Retriever or any .retrieve()-capable object
         llm_client: LLMClient,
     ) -> None:
         self.retriever = retriever
@@ -68,9 +68,7 @@ class Generator:
             subject=request.subject,
             levels=[request.level] if request.level else None,
         )
-        return self.generate_with_examples(
-            request, examples, max_attempts=max_attempts
-        )
+        return self.generate_with_examples(request, examples, max_attempts=max_attempts)
 
     def generate_with_examples(
         self,
@@ -141,8 +139,8 @@ class Generator:
             # 4. Parse + validate
             quiz_or_error = self._parse_and_validate(raw, request)
             if isinstance(quiz_or_error, GeneratedQuiz):
-                return quiz_or_error                       # success
-            last_error = quiz_or_error                     # error string; retry
+                return quiz_or_error  # success
+            last_error = quiz_or_error  # error string; retry
 
         # All attempts exhausted
         raise GenerationError(
@@ -175,17 +173,14 @@ class Generator:
         if not isinstance(questions_raw, list) or not questions_raw:
             return (
                 f"Response missing or empty 'questions' list. "
-                f"Expected: {{\"questions\": [...]}}, got top-level type "
+                f'Expected: {{"questions": [...]}}, got top-level type '
                 f"{type(data).__name__}."
             )
 
         validated: list[GeneratedQuestion] = []
         for idx, q in enumerate(questions_raw):
             if not isinstance(q, dict):
-                return (
-                    f"Question {idx} is not a JSON object — "
-                    f"got {type(q).__name__} instead."
-                )
+                return f"Question {idx} is not a JSON object — got {type(q).__name__} instead."
             q_with_type = {**q, "question_type": request.question_type}
             try:
                 validated.append(GeneratedQuestion.model_validate(q_with_type))
@@ -199,7 +194,7 @@ class Generator:
         for idx, q_obj in enumerate(validated):
             checkable = [
                 ("question_text", q_obj.question_text or ""),
-                ("explanation",   q_obj.explanation or ""),
+                ("explanation", q_obj.explanation or ""),
             ]
             for j, ch in enumerate(q_obj.choices or []):
                 checkable.append((f"choices[{j}]", ch or ""))

@@ -70,9 +70,9 @@ def test_rerank_orders_by_score_descending() -> None:
             self.search_text = search_text
 
     candidates = [
-        _Cand("a", "doc A"),     # score 0.4
-        _Cand("b", "doc B"),     # score 0.9 ← should win
-        _Cand("c", "doc C"),     # score 0.7
+        _Cand("a", "doc A"),  # score 0.4
+        _Cand("b", "doc B"),  # score 0.9 ← should win
+        _Cand("c", "doc C"),  # score 0.7
     ]
     r = _make_reranker_with_fake_model({"doc A": 0.4, "doc B": 0.9, "doc C": 0.7})
 
@@ -133,6 +133,7 @@ def test_rerank_does_not_mutate_input() -> None:
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):
         if name.startswith("test_"):
@@ -218,4 +219,3 @@ def test_rerank_still_returns_every_candidate_when_scores_line_up() -> None:
 
     out = r.rerank("q", [_C("a"), _C("b"), _C("c")])
     assert [c.search_text for c in out] == ["b", "c", "a"]
-

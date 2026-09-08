@@ -15,6 +15,7 @@ from dataclasses import dataclass
 @dataclass
 class EmbeddingModelConfig:
     """Plain dataclass so we don't force Pydantic on the embedding layer."""
+
     name: str
     embedding_dim: int
     batch_size: int = 16
@@ -57,7 +58,9 @@ class EmbeddingModel:
         self.device = _resolve_device(config.device)
         logging.getLogger(__name__).info(
             "EmbeddingModel loading model=%r on device=%s (requested %r)",
-            config.name, self.device, config.device,
+            config.name,
+            self.device,
+            config.device,
         )
         self._model = SentenceTransformer(config.name, device=self.device)
 

@@ -101,8 +101,7 @@ def load_levels_map(language: str) -> dict[str, list[str]]:
     path = TOPICS_FILE_BY_LANG[language]
     if not path.exists():
         raise FileNotFoundError(
-            f"Topics CSV not found for language={language!r}: {path}. "
-            "Build the topics CSVs first."
+            f"Topics CSV not found for language={language!r}: {path}. Build the topics CSVs first."
         )
     csv.field_size_limit(10_000_000)  # English doc_ids column is huge
     out: dict[str, list[str]] = {}
@@ -173,11 +172,9 @@ def inject(
             n_skipped_unknown_phase += 1
             continue
 
-        expanded: list[str] = sorted({
-            grade
-            for ph in phases
-            for grade in phase_to_grades.get(ph, [])
-        })
+        expanded: list[str] = sorted(
+            {grade for ph in phases for grade in phase_to_grades.get(ph, [])}
+        )
         c["levels"] = expanded
         c["levels_match"] = levels_match
         n_injected += 1
@@ -219,14 +216,14 @@ def main() -> int:
         type=Path,
         default=DEFAULT_CORPUS_PATH,
         help=f"Path to the post-build payload JSONL (default: {DEFAULT_CORPUS_PATH}). "
-             "Used to discover which specific grades exist per phase.",
+        "Used to discover which specific grades exist per phase.",
     )
     parser.add_argument(
         "--levels-match",
         choices=["any", "all"],
         default="any",
         help="How the retriever should combine multiple levels. Default 'any' "
-             "matches production behaviour for cross-tagged quizzes.",
+        "matches production behaviour for cross-tagged quizzes.",
     )
     parser.add_argument(
         "--dry-run",

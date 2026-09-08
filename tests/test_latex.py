@@ -118,6 +118,7 @@ def test_contains_latex_detector() -> None:
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):
         if name.startswith("test_"):
