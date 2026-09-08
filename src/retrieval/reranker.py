@@ -21,6 +21,10 @@ from dataclasses import dataclass
 from typing import Any
 
 
+class RerankerError(RuntimeError):
+    """Raised when the cross-encoder violates its contract with this module."""
+
+
 @dataclass
 class RerankerConfig:
     """Plain dataclass — no Pydantic dependency at the model layer."""
@@ -75,7 +79,18 @@ class Reranker:
             show_progress_bar=False,
         )
         # CrossEncoder returns numpy array; coerce to plain list of floats.
-        return [float(s) for s in scores]
+        out = [float(s) for s in scores]
+        # The docstring above promises one score per candidate, and rerank()
+        # relies on it to pair the two lists up. Nothing in the model's API
+        # guarantees it, so check rather than trust: a short result here used
+        # to be absorbed by zip(), which silently dropped the unscored tail
+        # and returned fewer candidates than it was given.
+        if len(out) != len(candidate_texts):
+            raise RerankerError(
+                f"cross-encoder returned {len(out)} scores for "
+                f"{len(candidate_texts)} candidates"
+            )
+        return out
 
     def rerank(
         self,
@@ -103,7 +118,7 @@ class Reranker:
             return []
         texts = [getattr(c, text_attr, "") for c in candidates]
         scores = self.score(query, texts)
-        ranked = sorted(zip(candidates, scores), key=lambda x: -x[1])
+        ranked = sorted(zip(candidates, scores, strict=True), key=lambda x: -x[1])
         if scores_out is not None:
             scores_out.clear()
             scores_out.extend(float(s) for _, s in ranked)

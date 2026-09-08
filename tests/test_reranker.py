@@ -14,7 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.retrieval.reranker import Reranker, RerankerConfig
+import pytest
+
+from src.retrieval.reranker import Reranker, RerankerConfig, RerankerError
 
 # ---------------------------------------------------------------------------
 # Mock model — predict() returns canned scores per pair
@@ -136,3 +138,84 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn()
     print("All reranker tests passed.")
+
+
+# ---------------------------------------------------------------------------
+# The cross-encoder's score-count contract
+# ---------------------------------------------------------------------------
+# Regression: score() promises one score per candidate and rerank() zips the
+# two lists together to pair them up. A plain zip() stops at the shorter
+# input, so a model returning a short result silently dropped the unscored
+# tail — five candidates in, two out, no error and no log line. These pin the
+# contract at the boundary where it can still be attributed to the model.
+
+
+class _ShortScoringModel:
+    """A cross-encoder that returns fewer scores than the pairs it is given."""
+
+    def __init__(self, n_scores: int) -> None:
+        self.n_scores = n_scores
+
+    def predict(self, pairs, batch_size=16, show_progress_bar=False):
+        return [0.9] * self.n_scores
+
+
+def _reranker_with_model(model) -> Reranker:
+    r = Reranker.__new__(Reranker)
+    r.config = RerankerConfig()
+    r.device = "cpu"
+    r._model = model
+    return r
+
+
+def test_score_raises_when_the_model_returns_too_few_scores() -> None:
+    r = _reranker_with_model(_ShortScoringModel(n_scores=2))
+    with pytest.raises(RerankerError) as excinfo:
+        r.score(query="q", candidate_texts=["a", "b", "c", "d", "e"])
+    # The message must name both counts — that is what makes it debuggable.
+    assert "2 scores" in str(excinfo.value)
+    assert "5 candidates" in str(excinfo.value)
+
+
+def test_score_raises_when_the_model_returns_too_many_scores() -> None:
+    r = _reranker_with_model(_ShortScoringModel(n_scores=7))
+    with pytest.raises(RerankerError):
+        r.score(query="q", candidate_texts=["a", "b"])
+
+
+def test_rerank_never_silently_drops_candidates() -> None:
+    """Deliberately phrased without naming an exception type.
+
+    The property that matters is not "it raises RerankerError" — it is that
+    rerank() never quietly returns fewer candidates than it was handed. Stated
+    this way the test is meaningful against the code as it was before the fix,
+    where it failed by returning 2 of 5 candidates and raising nothing.
+    """
+
+    class _C:
+        def __init__(self, t: str) -> None:
+            self.search_text = t
+
+    r = _reranker_with_model(_ShortScoringModel(n_scores=2))
+    candidates = [_C("a"), _C("b"), _C("c"), _C("d"), _C("e")]
+    try:
+        out = r.rerank("q", candidates)
+    except Exception:
+        return  # failing loudly is the whole point
+    assert len(out) == len(candidates), (
+        f"rerank() returned {len(out)} of {len(candidates)} candidates and "
+        f"raised nothing — the unscored tail was dropped silently"
+    )
+
+
+def test_rerank_still_returns_every_candidate_when_scores_line_up() -> None:
+    """The guard must not fire on the normal path."""
+    r = _make_reranker_with_fake_model({"a": 0.1, "b": 0.9, "c": 0.5})
+
+    class _C:
+        def __init__(self, t: str) -> None:
+            self.search_text = t
+
+    out = r.rerank("q", [_C("a"), _C("b"), _C("c")])
+    assert [c.search_text for c in out] == ["b", "c", "a"]
+

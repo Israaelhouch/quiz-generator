@@ -124,7 +124,7 @@ def query_store(
     documents = (results.get("documents") or [[]])[0]
 
     output: list[dict] = []
-    for _id, dist, meta, doc in zip(ids, distances, metadatas, documents):
+    for _id, dist, meta, doc in zip(ids, distances, metadatas, documents, strict=True):
         output.append(
             {
                 "id": _id,

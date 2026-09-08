@@ -53,7 +53,7 @@ def _run_smoke_test(
         dists = (results.get("distances") or [[]])[0]
         docs = (results.get("documents") or [[]])[0]
         print(f"\n  [{lang}] query: {text!r}")
-        for i, (_id, dist, doc) in enumerate(zip(ids, dists, docs), start=1):
+        for i, (_id, dist, doc) in enumerate(zip(ids, dists, docs, strict=True), start=1):
             print(f"    {i}. id={_id[:28]:28s} dist={dist:+.3f} | {doc[:100]}")
 
 

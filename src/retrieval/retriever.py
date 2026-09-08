@@ -497,7 +497,10 @@ class Retriever:
         # for a small performance win.
         target_size = pool_size if self._reranker is not None else top_k
 
-        for doc_id, distance in zip(ids, distances):
+        # strict=: Chroma returns these as parallel arrays of one response,
+        # so a length mismatch means the driver broke its contract. Better a
+        # loud failure than a pool quietly truncated to the shorter list.
+        for doc_id, distance in zip(ids, distances, strict=True):
             # Distance cutoff — Chroma returns sorted ascending, so break early.
             if max_distance is not None and distance > max_distance:
                 break
