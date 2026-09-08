@@ -24,7 +24,8 @@ HOST ?= 127.0.0.1
 PORT ?= 8000
 
 .PHONY: help setup test test-cov lint fmt fmt-check typecheck audit eval run \
-        serve build ci clean
+        serve serve-all ci clean ingest normalize build-text build-index \
+        build build-verify rebuild
 
 help:  ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -97,8 +98,51 @@ ci: lint test audit  ## Everything CI runs, locally
 # ---------------------------------------------------------------------------
 # Application
 # ---------------------------------------------------------------------------
-build:  ## Build the corpus + vector index from a cold checkout (idempotent)
+# ---------------------------------------------------------------------------
+# Data pipeline — four stages, each independently runnable
+# ---------------------------------------------------------------------------
+# Ported from the private repo's Makefile, which had the better shape: one
+# target per stage plus one that runs the lot. Re-running a single stage
+# matters in practice — normalize alone is ~23s against ~2.7 min for a full
+# rebuild, and each stage writes its own *_stats.json, which is how a dropped
+# row can be attributed to the filter that dropped it.
+#
+# Paths are variables so a different corpus can be built without editing
+# recipes:  make build RAW=data/other.json
+
+RAW        ?= data/raw/quizzes-raw-data.json
+SCOPE      ?= configs/phase1_scope.yaml
+FLAT       ?= data/interim/flat_phase1.jsonl
+FLAT_STATS ?= data/interim/flat_phase1_stats.json
+NORM       ?= data/interim/normalized_phase1.jsonl
+NORM_STATS ?= data/interim/normalized_phase1_stats.json
+READY      ?= data/processed/ready_phase1.jsonl
+BUILD_SUM  ?= data/vector_store/build_summary.json
+
+ingest:  ## Stage 1: raw -> flat (scope filter + structural drops)
+	$(PY) -m src.data.ingest --input $(RAW) --output $(FLAT) 	  --stats $(FLAT_STATS) --scope $(SCOPE)
+
+normalize:  ## Stage 2: flat -> normalized (HTML, language, curriculum, dedup)
+	$(PY) -m src.data.normalize --input $(FLAT) --output $(NORM) 	  --stats $(NORM_STATS)
+
+build-text:  ## Stage 3: normalized -> ready (compose search_text)
+	$(PY) -m src.data.build_index_text --input $(NORM) --output $(READY)
+
+build-index:  ## Stage 4: ready -> Chroma (BGE-M3 embed)
+	$(PY) -m src.indexing.build --input $(READY)
+
+build: ingest normalize build-text build-index build-verify  ## All four stages (~3 min)
+	@echo ""
+	@echo "Build complete."
+
+build-verify:  ## Check the index row count matches the file it was built from
+	@n_ready=$$(wc -l < $(READY) | tr -d ' '); 	n_indexed=$$($(PY) -c "import json;print(json.load(open('$(BUILD_SUM)'))['rows_indexed'])"); 	src_sha=$$($(PY) -c "import json;print(json.load(open('$(BUILD_SUM)')).get('source_sha256','')[:16] or 'NOT RECORDED')"); 	file_sha=$$(shasum -a 256 $(READY) | cut -c1-16); 	if [ "$$n_ready" != "$$n_indexed" ]; then 	  echo "MISMATCH: $(READY) has $$n_ready rows, the index has $$n_indexed."; 	  echo "Re-run: make build-index"; exit 1; fi; 	if [ "$$src_sha" != "$$file_sha" ]; then 	  echo "STALE: the index was built from a DIFFERENT $(READY)."; 	  echo "  index recorded $$src_sha, the file on disk is $$file_sha"; 	  echo "Re-run: make build-index"; exit 1; fi; 	echo "OK: $$n_ready rows, index source sha $$src_sha matches $(READY)"
+
+serve-all:  ## Build anything missing, then serve (wraps run_local.sh)
 	./run_local.sh --no-serve
+
+rebuild:  ## Force the whole pipeline from data/raw/, ignoring existing artefacts
+	./run_local.sh --rebuild --no-serve
 
 run: ## Serve the API on $(HOST):$(PORT), building anything missing first
 	./run_local.sh
