@@ -217,6 +217,12 @@ src/api/         FastAPI surface, security, metrics, single-page UI
 scripts/         retrieval eval harness, run analysis, feedback analysis
 ```
 
+## Licence
+
+[MIT](LICENSE). The synthetic sample corpus in `data/sample/` is covered by the
+same licence; the real curriculum corpus it stands in for is not mine to
+publish and is not part of this repository.
+
 ## Stack
 
 Python 3.11 · FastAPI · BGE-M3 · BGE-reranker-v2-m3 · ChromaDB · Pydantic v2 ·

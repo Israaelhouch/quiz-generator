@@ -74,6 +74,8 @@ commit below — see Fixed).
   pip-audit on every push and pull request, in seconds.
 - `.pre-commit-config.yaml` with gitleaks, private-key detection and a 512 KB
   large-file guard (CLAUDE.md §8).
+- `LICENSE` — MIT. A public repository without one is "all rights reserved"
+  by default, which is not what a portfolio project wants.
 - `docs/DECISIONS.md` with two records: how the lint/type baseline works and
   which real findings it hides, and the conditional acceptance of four
   chromadb advisories.
