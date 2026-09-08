@@ -46,7 +46,7 @@ ignore = [
 "src/api/__main__.py" = ["T20"]
 "src/data/*.py" = ["T20"]
 # Ad-hoc query tools with `__main__` blocks; stdout is their output contract.
-"src/indexing/query.py" = ["T20", "E741", "B905"]
+"src/indexing/query.py" = ["T20", "E741"]
 "src/retrieval/query.py" = ["T20", "E741"]
 "scripts/**" = ["T20"]
 # Tests reach into private helpers on purpose and assert on magic values.
@@ -75,12 +75,8 @@ ignore = [
                                                  #     exception handler (request,
                                                  #     exc); the signature is the
                                                  #     framework's, not ours.
-"src/retrieval/retriever.py" = ["B905", "SIM103"]  # 2 — B905: adding strict= makes
-"src/retrieval/reranker.py" = ["B905"]             # 1     a length mismatch raise
-"src/indexing/build.py" = ["T20", "B905"]                 # 1     where it currently
-                                                   #       truncates silently. That
-                                                   #       is a real fix and needs a
-                                                   #       real test. Tracked.
+"src/retrieval/retriever.py" = ["SIM103"]           # 1
+"src/indexing/build.py" = ["T20"]
 "src/retrieval/compare_rerank.py" = ["T20", "E741", "C408"]  # 2
 "src/pipeline/cli.py" = ["T20", "E741"]               # 1 (T20 above is the CLI rule)
 
@@ -195,14 +191,17 @@ exclude_lines = [
 #    3 no-untyped-call / 3 arg-type / 2 unreachable / 1 each return-value,
 #      name-defined, import-untyped
 #
-# Three entries are findings, not just debt — see docs/DECISIONS.md ADR-0001:
-#   * src.data.curriculum_rules / src.data.domain_rules `unreachable`: both
-#     guard `if subj is None: continue` inside a loop over a parameter typed
-#     `list[str]`. Either the guard is dead or the annotation is wrong; which
-#     one depends on whether the ingest corpus really contains null subjects.
-#   * src.pipeline.orchestrator `arg-type`: a plain `str` is passed where a
-#     Literal['en','fr','ar'] is declared. Pydantic catches it at runtime, so
-#     it raises rather than corrupts — but it raises deep, not at the edge.
+# Three of those entries were findings rather than debt, and have since been
+# fixed and removed from this block — see docs/DECISIONS.md ADR-0001:
+#   * `unreachable` in data.curriculum_rules / data.domain_rules: annotations
+#     widened to Sequence[str | None], because normalize_row hands these
+#     functions an unvalidated json.loads result.
+#   * `arg-type` in pipeline.orchestrator: generate_detailed now declares the
+#     same Literal aliases GenerationRequest validates against.
+#   * B905 (ruff) in retriever / reranker / indexing: the reranker case was a
+#     real silent-truncation bug; the rest are now explicit assertions.
+#
+# What remains here is ordinary debt: missing annotations and bare generics.
 [[tool.mypy.overrides]]
 module = "src.api.observability"
 disable_error_code = ["type-arg"]  # 1 error(s)
@@ -214,14 +213,6 @@ disable_error_code = ["no-untyped-def", "type-arg"]  # 12 error(s)
 [[tool.mypy.overrides]]
 module = "src.data.build_index_text"
 disable_error_code = ["no-untyped-def", "type-arg"]  # 2 error(s)
-
-[[tool.mypy.overrides]]
-module = "src.data.curriculum_rules"
-disable_error_code = ["unreachable"]  # 1 error(s)
-
-[[tool.mypy.overrides]]
-module = "src.data.domain_rules"
-disable_error_code = ["unreachable"]  # 1 error(s)
 
 [[tool.mypy.overrides]]
 module = "src.data.filters"
@@ -282,9 +273,6 @@ disable_error_code = ["no-any-return", "type-arg"]  # 3 error(s)
 module = "src.pipeline.cli"
 disable_error_code = ["type-arg"]  # 7 error(s)
 
-[[tool.mypy.overrides]]
-module = "src.pipeline.orchestrator"
-disable_error_code = ["arg-type"]  # 2 error(s)
 
 [[tool.mypy.overrides]]
 module = "src.retrieval.compare_rerank"
