@@ -47,10 +47,7 @@ jobs:
         run: ruff check --output-format=github .
       - name: mypy --strict (ratchet in pyproject.toml)
         run: mypy
-      # Not a gate yet: the repo predates ruff format and the one-shot sweep is
-      # its own commit. Reported so the number stays visible.
-      - name: ruff format (advisory)
-        continue-on-error: true
+      - name: ruff format
         run: ruff format --check .
 
   test:

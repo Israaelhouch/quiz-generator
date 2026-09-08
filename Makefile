@@ -62,13 +62,8 @@ fmt:  ## Rewrite files with the ruff formatter
 	$(RUFF) format .
 	$(RUFF) check . --fix
 
-fmt-check:  ## Fail if anything is unformatted (advisory until the format sweep lands)
-	@$(RUFF) format --check . 2>&1 | tail -1 || true
-	@$(RUFF) format --check . >/dev/null 2>&1 || { \
-	  echo ""; \
-	  echo "NOTE: the repo predates ruff format; a one-shot sweep is tracked"; \
-	  echo "      is tracked as its own commit. Not a gate yet."; \
-	  echo ""; }
+fmt-check:  ## Fail if anything is unformatted
+	$(RUFF) format --check .
 
 typecheck:  ## mypy --strict on src/, with the ratchet in pyproject.toml
 	$(MYPY)

@@ -109,8 +109,8 @@ commit below — see Fixed).
   modules, dead-or-wrong `None` guards in `curriculum_rules` and
   `domain_rules`, and a `str` passed where a `Literal` is declared in the
   orchestrator.
-- `ruff format` would rewrite 42 of 67 files. Advisory for now; the sweep is
-  its own commit.
+- ~~`ruff format` would rewrite 42 of 67 files.~~ Done — all 68 files are
+  formatted and the check is a real gate in CI, `make lint` and pre-commit.
 
 ---
 
