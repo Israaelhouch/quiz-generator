@@ -1,0 +1,96 @@
+# CI — the gate described in CLAUDE.md §9 (Definition of Done).
+#
+# Deliberately installs requirements-dev.txt, not requirements.lock.txt. The
+# unit suite mocks every heavy adapter, so the whole gate runs in seconds
+# instead of pulling a multi-GB CUDA stack for tests that never touch a GPU.
+# See requirements-dev.txt for the reasoning.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  lint:
+    name: ruff + mypy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install --upgrade pip setuptools
+      - run: pip install -r requirements-dev.txt
+      - name: ruff check
+        run: ruff check --output-format=github .
+      - name: mypy --strict (ratchet in pyproject.toml)
+        run: mypy
+      # Not a gate yet: the repo predates ruff format and the one-shot sweep is
+      # its own commit. Reported so the number stays visible.
+      - name: ruff format (advisory)
+        continue-on-error: true
+        run: ruff format --check .
+
+  test:
+    name: pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install --upgrade pip setuptools
+      - run: pip install -r requirements-dev.txt
+      - name: pytest with coverage
+        run: pytest --cov --cov-report=term-missing --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage.xml
+
+  security:
+    name: secrets + dependency CVEs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks scans history, not just the tip
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install --upgrade pip setuptools
+      - run: pip install -r requirements-dev.txt
+      # Ignored advisories are justified in the Makefile's audit target and in
+      # docs/DECISIONS.md ADR-0002. Review date: 2026-12-01.
+      # These MUST be removed if Chroma ever moves off PersistentClient.
+      - name: pip-audit
+        run: |
+          pip-audit --skip-editable \
+            --ignore-vuln PYSEC-2026-311 \
+            --ignore-vuln CVE-2026-45830 \
+            --ignore-vuln CVE-2026-45831 \
+            --ignore-vuln CVE-2026-45833
