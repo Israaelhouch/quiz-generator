@@ -5,6 +5,73 @@ the per-commit detail; this file has the per-release story.
 
 ---
 
+## Unreleased — Tooling safety net
+
+Repository infrastructure only. No runtime behaviour changed: the suite is
+267 passed before and after (it was 265 passed / 2 errored before the first
+commit below — see Fixed).
+
+### Fixed
+
+- `tests/test_api.py` called `json.loads` without importing `json`, so the two
+  feedback-log tests raised `NameError` instead of running. They pass now, and
+  the `/feedback` endpoint behaviour they assert is confirmed correct — the
+  bug was in the test file, not the endpoint.
+
+### Added
+
+- `Makefile` with the entry points CLAUDE.md §0 names — `setup`, `test`,
+  `lint`, `run` — plus `fmt`, `typecheck`, `audit`, `eval`, `ci`, `clean`.
+- `pyproject.toml`: ruff (format + lint), `mypy --strict` on `src/`, pytest
+  and coverage configuration in one place.
+- `.env.example` documenting all 14 environment variables the code reads,
+  with the defaults it actually applies. `.gitignore` gained `!.env.example`
+  so the template escapes the `.env.*` rule while `.env` stays ignored.
+- `requirements-dev.txt` — the minimal set the gate needs. Verified: all 267
+  tests, ruff and mypy pass in a clean virtualenv with only these pins and no
+  torch, CUDA, chromadb or sentence-transformers.
+- GitHub Actions `ci.yml` — ruff, mypy, pytest + coverage, gitleaks and
+  pip-audit on every push and pull request, in seconds.
+- `.pre-commit-config.yaml` with gitleaks, private-key detection and a 512 KB
+  large-file guard (CLAUDE.md §8).
+- `docs/DECISIONS.md` with two records: how the lint/type baseline works and
+  which real findings it hides, and the conditional acceptance of four
+  chromadb advisories.
+
+### Changed
+
+- Applied ruff's 62 safe autofixes (import ordering, dead imports,
+  `datetime.UTC`) across `src/`, `scripts/` and `tests/`. Mechanical only;
+  the suite stayed at 267 passed.
+- README: the quickstart now leads with the three make commands, the manual
+  stage-by-stage sequence is preserved in a `<details>` block, and the test
+  instructions use pytest instead of executing each test file as a script.
+
+### Security
+
+- `pip-audit` found 7 advisories in `pip` (fixed by the upgrade `make setup`
+  now performs) and 4 in `chromadb==1.5.9`, which has no fixed release. The
+  chromadb four are accepted with evidence and a 2026-12-01 review date: all
+  target the Chroma *server*, and this project only ever constructs
+  `PersistentClient` against a local directory. See ADR-0002 — which also
+  states the condition under which these ignores must be removed.
+- Verified the `GEMINI_API_KEY` in the working `.env` appears in no commit in
+  the repository's history, and no secret-shaped strings exist in tracked
+  files.
+
+### Known debt, recorded not hidden
+
+- ruff and mypy carry an explicit, annotated allow-list of 34 lint and 93 type
+  findings that predate the gates (ADR-0001). It only shrinks. Three entries
+  are real findings needing their own PRs: `zip()` without `strict=` in four
+  modules, dead-or-wrong `None` guards in `curriculum_rules` and
+  `domain_rules`, and a `str` passed where a `Literal` is declared in the
+  orchestrator.
+- `ruff format` would rewrite 42 of 67 files. Advisory for now; the sweep is
+  its own commit.
+
+---
+
 ## Unreleased — Engineering UI + generation feedback
 
 **On branch:** `feature/ui` (branched off `dev`)

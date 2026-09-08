@@ -1,5 +1,7 @@
 # Quiz Generator — multilingual RAG over a school curriculum
 
+[![CI](https://github.com/Israaelhouch/quiz-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/Israaelhouch/quiz-generator/actions/workflows/ci.yml)
+
 A retrieval-augmented generation service that writes new exam questions in
 **English, French and Arabic** across four subjects, grounded in a corpus of
 real curriculum questions. Built as a production service: FastAPI, a Chroma
@@ -142,6 +144,25 @@ change with evidence behind it.
 
 ## Run it
 
+Three commands from a clean clone:
+
+```bash
+make setup        # virtualenv + pinned dependencies + dev tools
+make test         # 267 tests, no models, no keys, no network — ~1s
+make run          # builds anything missing, then serves on :8000/ui
+```
+
+`make run` wraps `run_local.sh`, which is idempotent: every stage is skipped
+if its output already exists. `make help` lists the rest (`lint`, `fmt`,
+`audit`, `eval`, `clean`).
+
+Generation needs a provider key — copy `.env.example` to `.env` and fill in
+`GEMINI_API_KEY` (or `GROQ_API_KEY`, or point `OLLAMA_HOST` at a local
+Ollama). Retrieval alone needs no key.
+
+<details>
+<summary>The same thing stage by stage, if you want to watch it happen</summary>
+
 ```bash
 git clone <this-repo> && cd quiz-generator
 python -m venv .venv && source .venv/bin/activate
@@ -169,15 +190,19 @@ set -a; source .env; set +a
 python -m src.api          # then open http://localhost:8000/ui
 ```
 
+</details>
+
 The sample corpus deliberately contains messy rows — duplicates, a question
 with no correct answer, an image-only question, colliding `order` values, a
 curriculum violation — so the cleaning stages have real work to do and the
 stats files are worth reading.
 
-Tests run without models, keys or network:
+Tests run without models, keys or network — every heavy adapter is mocked,
+so the whole suite needs neither torch nor a GPU:
 
 ```bash
-for t in tests/test_*.py; do python "$t" || break; done
+make test          # or: pytest
+make lint          # ruff + mypy --strict, the same gates CI runs
 ```
 
 ## Layout
