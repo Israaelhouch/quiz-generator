@@ -219,6 +219,16 @@ class TaxonomyRecord(BaseModel):
 class BuildVectorStoreStats(BaseModel):
     """Audit record for indexing build — written to build_summary.json."""
 
+    # Provenance — which corpus produced this index. Without it a
+    # build_summary.json from the 137-row synthetic sample is indistinguishable
+    # from one built on the real corpus: same model, same collection, same
+    # persist directory, only the counts differ, and counts alone do not say
+    # which file they came from. `source_sha256` is over the input file, so it
+    # also catches "same path, different contents".
+    source_path: str = ""
+    source_sha256: str = ""
+    built_at_utc: str = ""
+
     rows_indexed: int
     model_name: str
     embedding_dim: int

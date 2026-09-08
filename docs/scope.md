@@ -1,7 +1,8 @@
 # Stage 1 — Data Understanding & Scoping
 
-Status: LOCKED (2026-04-21)
-Next stage: 2a — Ingestion design
+Status: LOCKED (2026-04-21). Re-verified 2026-09-08 — every count in
+section 2 still reproduces exactly against the current export.
+All later stages have since shipped; this remains the data reference.
 
 ---
 
@@ -10,7 +11,9 @@ Next stage: 2a — Ingestion design
 - **Input:** `data/raw/quizzes-raw-data.json`
   - 1,372 quizzes
   - 12,480 questions total
-- Old intermediate files (`questions_flat.csv`, `questions_clean_strict_rag_with_metadata.csv`) are **archived** to `legacy/`. They are not used.
+- Old intermediate files (`questions_flat.csv`,
+  `questions_clean_strict_rag_with_metadata.csv`) predate this pipeline and
+  are not used. They are not in this repository.
 
 ## 2. Raw-data observations (for context)
 
@@ -90,9 +93,9 @@ All other filters (subject, level, publish, generatedByAI) are **not applied**.
 ```
 1. Data Understanding & Scoping        — this document
 2. Data Cleaning & Preparation         — src/data/
-   2a. ingest.py           raw JSON         → interim/flat.jsonl
-   2b. normalize.py        flat             → interim/normalized.jsonl
-   2c. build_index_text.py normalized       → processed/ready_phase1.jsonl
+   2a. ingest.py           raw JSON    → interim/flat_phase1.jsonl
+   2b. normalize.py        flat        → interim/normalized_phase1.jsonl
+   2c. build_index_text.py normalized  → processed/ready_phase1.jsonl
 3. Embedding & Vector Store            — src/indexing/
 4. Retrieval Logic                     — src/retrieval/ (kept)
 5. Generation Prompt Design            — src/generation/prompts/
@@ -100,13 +103,29 @@ All other filters (subject, level, publish, generatedByAI) are **not applied**.
 7. Evaluation & Quality Check          — src/eval/
 ```
 
+Stages 2a and 2b are named for what they transform, but they are also where
+rows are **removed** — 54% of the corpus, on the measured build of
+2026-09-08:
+
+| Stage | In | Out | Removed | Why |
+|------:|---:|----:|--------:|-----|
+| `ingest` | 12,480 | 6,651 | 5,829 | scope filters (no subject, subject/level out of scope) and structural filters (empty choices, no correct answer, image only) |
+| `normalize` | 6,651 | 5,782 | 869 | image-only descriptions, duplicates, empty choices, curriculum violations |
+| `build_index_text` | 5,782 | 5,782 | 0 | composes `search_text`; never drops |
+
+Neither name says "filter", which is worth knowing before reading either
+module: `normalize` in particular applies the curriculum business rules and
+the deduplication, so it decides what stays, not just what things look like.
+
+Exact per-reason counts are written to `*_stats.json` beside each output.
+
 ## 8. New repo layout
 
 ```
 quiz-generator/
 ├── data/
 │   ├── raw/            quizzes-raw-data.json
-│   ├── interim/        flat.jsonl, normalized.jsonl
+│   ├── interim/        flat_phase1.jsonl, normalized_phase1.jsonl
 │   ├── processed/      ready_phase1.jsonl
 │   └── vector_store/   (gitignored)
 ├── src/
@@ -121,7 +140,6 @@ quiz-generator/
 ├── tests/
 ├── scripts/            CLI entrypoints
 ├── docs/               scope.md, cells_plan.md
-└── legacy/             archived old code + CSVs
 ```
 
 ## 9. Deferred decisions

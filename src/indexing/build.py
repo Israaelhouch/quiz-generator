@@ -10,11 +10,23 @@ and writes the Chroma store to `data/vector_store/chroma_db/`.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import time
 from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+
+def _sha256_of(path: Path) -> str:
+    """Hash the file that produced this index, streamed so a 271 MB corpus
+    does not have to be held in memory a second time."""
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def load_ready_rows(path: Path) -> list[dict]:
@@ -189,6 +201,9 @@ def build(
     rows_per_sec = round(rows_indexed / wall, 2) if wall > 0 else 0.0
 
     stats = BuildVectorStoreStats(
+        source_path=str(input_path),
+        source_sha256=_sha256_of(input_path),
+        built_at_utc=datetime.now(UTC).isoformat(timespec="seconds"),
         rows_indexed=rows_indexed,
         model_name=config.model.name,
         embedding_dim=model.dimension,

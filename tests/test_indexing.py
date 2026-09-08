@@ -393,3 +393,56 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn()
     print("All Stage 3 tests passed.")
+
+
+# ---------------------------------------------------------------------------
+# Build provenance
+# ---------------------------------------------------------------------------
+# build_summary.json records the model, the counts and the taxonomy, but until
+# these fields existed it did not record WHICH corpus produced the index. A
+# summary from the 137-row synthetic sample was indistinguishable from one
+# built on the real corpus — same model, same collection, same persist
+# directory. Counts alone do not say which file they came from.
+
+
+def test_sha256_of_matches_hashlib_for_the_same_bytes(tmp_path) -> None:
+    import hashlib
+
+    from src.indexing.build import _sha256_of
+
+    f = tmp_path / "ready.jsonl"
+    f.write_bytes(b'{"doc_id": "a"}\n{"doc_id": "b"}\n')
+    assert _sha256_of(f) == hashlib.sha256(f.read_bytes()).hexdigest()
+
+
+def test_sha256_of_differs_when_contents_differ_at_the_same_path(tmp_path) -> None:
+    """The point of hashing contents rather than trusting the path: rebuilding
+    from a different corpus written to the same filename must be detectable."""
+    from src.indexing.build import _sha256_of
+
+    f = tmp_path / "ready.jsonl"
+    f.write_bytes(b"sample corpus\n")
+    first = _sha256_of(f)
+    f.write_bytes(b"real corpus\n")
+    assert _sha256_of(f) != first
+
+
+def test_build_stats_provenance_fields_default_to_empty() -> None:
+    """Older summaries on disk predate these fields; loading one must not fail."""
+    from src.shared.schemas import BuildVectorStoreStats
+
+    stats = BuildVectorStoreStats(
+        rows_indexed=1,
+        model_name="m",
+        embedding_dim=8,
+        collection_name="c",
+        persist_directory="/tmp/x",
+        distance_metric="cosine",
+        wall_clock_seconds=0.1,
+        rows_per_second=10.0,
+        by_language={"en": 1},
+        by_question_type={"MULTIPLE_CHOICE": 1},
+    )
+    assert stats.source_path == ""
+    assert stats.source_sha256 == ""
+    assert stats.built_at_utc == ""

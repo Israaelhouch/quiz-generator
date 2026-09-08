@@ -217,6 +217,29 @@ src/api/         FastAPI surface, security, metrics, single-page UI
 scripts/         retrieval eval harness, run analysis, feedback analysis
 ```
 
+## Where things are
+
+The `src/` tree above is only half the repository. These are the documents,
+and most of them answer a question this README deliberately leaves short.
+
+| | |
+|---|---|
+| [`docs/scope.md`](docs/scope.md) | **Read this first for anything about the data.** The full audit of the raw corpus: 1,372 quizzes / 12,480 questions, the language-label variants, and the integrity findings — 7.2% of questions have no correct answer, the `multipleChoice` flag is unreliable, 99% of descriptions carry HTML, `hintText` is junk. Also the scope filters and per-stage row counts. |
+| [`docs/cells_plan.md`](docs/cells_plan.md) | Which (language × subject) cells are shipped, beta, or out of scope, and why. Also the note explaining the `phase1` suffix on several filenames. |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | ADRs. Includes the four accepted chromadb advisories and, importantly, the condition under which they stop being safe. |
+| [`docs/frontend_integration.md`](docs/frontend_integration.md) | The API contract the single-page UI is written against. |
+| [`eval/RESULTS.md`](eval/RESULTS.md) | Measured retrieval metrics per cell, with the failure analysis. |
+| [`data/sample/README.md`](data/sample/README.md) | What the synthetic corpus is, what is deliberately broken in it, and why no real content appears. |
+| [`docker/README.md`](docker/README.md) | Running the service in containers. |
+| [`CHANGELOG.md`](CHANGELOG.md) | What shipped, per release. |
+| [`CLAUDE.md`](CLAUDE.md) | The engineering standards this repository is held to. |
+
+This index exists because it was missing. Six of those files were reachable
+from nothing, and the cost was real: work was repeated that `docs/scope.md`
+had already recorded in April, and a wrong filename in that document was
+copied into `run_local.sh`, where it silently disabled the script's
+skip-if-already-built logic for two of four stages.
+
 ## Licence
 
 [MIT](LICENSE). The synthetic sample corpus in `data/sample/` is covered by the
