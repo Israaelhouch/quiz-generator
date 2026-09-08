@@ -1,9 +1,17 @@
 # Python
 __pycache__/
 *.py[cod]
-.pytest_cache/
 .venv/
 venv/
+
+# Tool caches and reports (ruff, mypy, pytest, coverage)
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 
 # Secrets
 .env
