@@ -1,7 +1,8 @@
 # Stage 1 — Data Understanding & Scoping
 
-Status: LOCKED (2026-04-21)
-Next stage: 2a — Ingestion design
+Status: LOCKED (2026-04-21). Re-verified 2026-09-08 — every count in
+section 2 still reproduces exactly against the current export.
+All later stages have since shipped; this remains the data reference.
 
 ---
 
@@ -10,7 +11,9 @@ Next stage: 2a — Ingestion design
 - **Input:** `data/raw/quizzes-raw-data.json`
   - 1,372 quizzes
   - 12,480 questions total
-- Old intermediate files (`questions_flat.csv`, `questions_clean_strict_rag_with_metadata.csv`) are **archived** to `legacy/`. They are not used.
+- Old intermediate files (`questions_flat.csv`,
+  `questions_clean_strict_rag_with_metadata.csv`) predate this pipeline and
+  are not used. They are not in this repository.
 
 ## 2. Raw-data observations (for context)
 
@@ -137,7 +140,6 @@ quiz-generator/
 ├── tests/
 ├── scripts/            CLI entrypoints
 ├── docs/               scope.md, cells_plan.md
-└── legacy/             archived old code + CSVs
 ```
 
 ## 9. Deferred decisions
