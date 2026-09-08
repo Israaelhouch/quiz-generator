@@ -13,7 +13,6 @@ from __future__ import annotations
 from src.generation.prompts.strings import STRINGS, SUPPORTED_LANGUAGES
 from src.retrieval.schemas import RetrievedQuestion
 
-
 # JSON schema block — same in every language (only field NAMES are universal;
 # the values inside are produced in the target language by the LLM).
 OUTPUT_SCHEMA_BLOCK = (
@@ -69,19 +68,11 @@ def build_prompt(
     schema_hint = s[f"schema_hint_{question_type}"]
 
     # Build the user message piece by piece.
-    task_line = s["task_template"].format(
-        count=count, type_display=type_display, topic=topic
-    )
-    subject_line = (
-        "\n" + s["subject_line_template"].format(subject=subject) if subject else ""
-    )
-    level_line = (
-        "\n" + s["level_line_template"].format(level=level) if level else ""
-    )
+    task_line = s["task_template"].format(count=count, type_display=type_display, topic=topic)
+    subject_line = "\n" + s["subject_line_template"].format(subject=subject) if subject else ""
+    level_line = "\n" + s["level_line_template"].format(level=level) if level else ""
     examples_header = s["examples_header_template"].format(n=len(examples))
-    examples_text = "\n\n".join(
-        _render_example(i + 1, ex) for i, ex in enumerate(examples)
-    )
+    examples_text = "\n\n".join(_render_example(i + 1, ex) for i, ex in enumerate(examples))
     context_filter = s["context_filter_template"].format(topic=topic)
     concept_anchor = s["concept_anchor_template"].format(topic=topic)
     final_instruction = s["final_instruction_template"].format(count=count)
@@ -106,6 +97,7 @@ def build_prompt(
 # ---------------------------------------------------------------------------
 # Backward-compatible aliases — kept so older callers/tests still work.
 # ---------------------------------------------------------------------------
+
 
 def build_prompt_english(
     *,

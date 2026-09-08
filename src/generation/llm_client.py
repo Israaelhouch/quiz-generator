@@ -30,7 +30,6 @@ import logging
 import os
 from typing import Protocol
 
-
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 90.0
@@ -48,7 +47,8 @@ def resolve_timeout(explicit: float | None = None) -> float:
     except ValueError:
         logger.warning(
             "LLM_TIMEOUT_SECONDS=%r is not a number; using %.0fs",
-            raw, DEFAULT_TIMEOUT_SECONDS,
+            raw,
+            DEFAULT_TIMEOUT_SECONDS,
         )
         return DEFAULT_TIMEOUT_SECONDS
 
@@ -62,8 +62,7 @@ class LLMClient(Protocol):
         system: str,
         user: str,
         temperature: float = 0.75,
-    ) -> str:
-        ...
+    ) -> str: ...
 
 
 class OllamaClient:
@@ -88,13 +87,12 @@ class OllamaClient:
                 self._client = ollama
             else:
                 try:
-                    self._client = ollama.Client(
-                        host=self.host, timeout=self.timeout_seconds
-                    )
+                    self._client = ollama.Client(host=self.host, timeout=self.timeout_seconds)
                 except TypeError:
                     logger.warning(
                         "Installed ollama SDK rejects a timeout argument; "
-                        "requests to %s will not time out.", self.host,
+                        "requests to %s will not time out.",
+                        self.host,
                     )
                     self._client = ollama.Client(host=self.host)
         return self._client
@@ -150,13 +148,10 @@ class GroqClient:
             from groq import Groq
 
             try:
-                self._client = Groq(
-                    api_key=self.api_key, timeout=self.timeout_seconds
-                )
+                self._client = Groq(api_key=self.api_key, timeout=self.timeout_seconds)
             except TypeError:
                 logger.warning(
-                    "Installed groq SDK rejects a timeout argument; "
-                    "requests will not time out."
+                    "Installed groq SDK rejects a timeout argument; requests will not time out."
                 )
                 self._client = Groq(api_key=self.api_key)
         return self._client
@@ -225,15 +220,14 @@ class GeminiClient:
 
                     self._client = genai.Client(
                         api_key=self.api_key,
-                        http_options=types.HttpOptions(
-                            timeout=int(self.timeout_seconds * 1000)
-                        ),
+                        http_options=types.HttpOptions(timeout=int(self.timeout_seconds * 1000)),
                     )
                     return self._client
                 except (TypeError, AttributeError, ValueError) as exc:
                     logger.warning(
                         "Installed google-genai does not accept an HttpOptions "
-                        "timeout (%s); requests will not time out.", exc,
+                        "timeout (%s); requests will not time out.",
+                        exc,
                     )
             self._client = genai.Client(api_key=self.api_key)
         return self._client
@@ -273,7 +267,5 @@ class MockClient:
         user: str,
         temperature: float = 0.75,
     ) -> str:
-        self.calls.append(
-            {"system": system, "user": user, "temperature": temperature}
-        )
+        self.calls.append({"system": system, "user": user, "temperature": temperature})
         return self.canned_response

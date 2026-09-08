@@ -5,6 +5,115 @@ the per-commit detail; this file has the per-release story.
 
 ---
 
+## Unreleased — Tooling safety net
+
+### Fixed — a silent data-loss bug in the reranker
+
+`Reranker.rerank()` paired candidates with model scores using
+`zip(candidates, scores)`. `zip` stops at the shorter input, so a
+cross-encoder returning fewer scores than pairs caused the unscored tail to be
+**discarded with no error and no log line** — five candidates in, two out.
+Reproduced with a stub model before fixing.
+
+`score()` now enforces its own documented contract and raises `RerankerError`
+naming both counts; the `zip` uses `strict=True` as a backstop. The regression
+test is phrased as "never returns fewer candidates than it was handed" rather
+than "raises RerankerError", so it is meaningful against the old code — where
+it fails with `2 of 5 candidates and raised nothing`.
+
+### Fixed — two annotations that contradicted their own defensive code
+
+`curriculum_rules.check_compliance` and
+`domain_rules.apply_subject_language_rule` guarded against null subjects while
+declaring `subjects: list[str]`, so a type checker called the guard dead. The
+guards are right and the annotations were wrong: both are reached from
+`normalize_row`, which is handed an unvalidated `json.loads` result. Widened
+to `Sequence[str | None] | None`.
+
+Not symmetrical, and the code now says so: removing the guard in
+`domain_rules` genuinely changes behaviour (a null becomes the primary subject
+and masks the real one), while in `curriculum_rules` it is redundant.
+
+### Changed — the orchestrator no longer discards type information
+
+`generate_detailed` accepted `language: str` / `question_type: str` and passed
+them into a Pydantic model declaring `Literal` types. Both shipped entry
+points already constrain these (the API via the same Literal, the CLI via
+`argparse choices`), so nothing reachable could pass a bad value — the
+annotation was just weaker than reality. It now declares the same aliases,
+imported under `TYPE_CHECKING` to preserve the deliberate lazy runtime import.
+
+Baseline shrank from 93 type errors in 23 files to 89 in 20, and B905 left the
+ruff allow-list entirely. Suite: 267 -> 275 passed (8 regression tests).
+
+
+Repository infrastructure only. No runtime behaviour changed: the suite is
+267 passed before and after (it was 265 passed / 2 errored before the first
+commit below — see Fixed).
+
+### Fixed
+
+- `tests/test_api.py` called `json.loads` without importing `json`, so the two
+  feedback-log tests raised `NameError` instead of running. They pass now, and
+  the `/feedback` endpoint behaviour they assert is confirmed correct — the
+  bug was in the test file, not the endpoint.
+
+### Added
+
+- `Makefile` with the entry points CLAUDE.md §0 names — `setup`, `test`,
+  `lint`, `run` — plus `fmt`, `typecheck`, `audit`, `eval`, `ci`, `clean`.
+- `pyproject.toml`: ruff (format + lint), `mypy --strict` on `src/`, pytest
+  and coverage configuration in one place.
+- `.env.example` documenting all 14 environment variables the code reads,
+  with the defaults it actually applies. `.gitignore` gained `!.env.example`
+  so the template escapes the `.env.*` rule while `.env` stays ignored.
+- `requirements-dev.txt` — the minimal set the gate needs. Verified: all 267
+  tests, ruff and mypy pass in a clean virtualenv with only these pins and no
+  torch, CUDA, chromadb or sentence-transformers.
+- GitHub Actions `ci.yml` — ruff, mypy, pytest + coverage, gitleaks and
+  pip-audit on every push and pull request, in seconds.
+- `.pre-commit-config.yaml` with gitleaks, private-key detection and a 512 KB
+  large-file guard (CLAUDE.md §8).
+- `LICENSE` — MIT. A public repository without one is "all rights reserved"
+  by default, which is not what a portfolio project wants.
+- `docs/DECISIONS.md` with two records: how the lint/type baseline works and
+  which real findings it hides, and the conditional acceptance of four
+  chromadb advisories.
+
+### Changed
+
+- Applied ruff's 62 safe autofixes (import ordering, dead imports,
+  `datetime.UTC`) across `src/`, `scripts/` and `tests/`. Mechanical only;
+  the suite stayed at 267 passed.
+- README: the quickstart now leads with the three make commands, the manual
+  stage-by-stage sequence is preserved in a `<details>` block, and the test
+  instructions use pytest instead of executing each test file as a script.
+
+### Security
+
+- `pip-audit` found 7 advisories in `pip` (fixed by the upgrade `make setup`
+  now performs) and 4 in `chromadb==1.5.9`, which has no fixed release. The
+  chromadb four are accepted with evidence and a 2026-12-01 review date: all
+  target the Chroma *server*, and this project only ever constructs
+  `PersistentClient` against a local directory. See ADR-0002 — which also
+  states the condition under which these ignores must be removed.
+- Verified the `GEMINI_API_KEY` in the working `.env` appears in no commit in
+  the repository's history, and no secret-shaped strings exist in tracked
+  files.
+
+### Known debt, recorded not hidden
+
+- ruff and mypy carry an explicit, annotated allow-list of 34 lint and 93 type
+  findings that predate the gates (ADR-0001). It only shrinks. Three entries
+  are real findings needing their own PRs: `zip()` without `strict=` in four
+  modules, dead-or-wrong `None` guards in `curriculum_rules` and
+  `domain_rules`, and a `str` passed where a `Literal` is declared in the
+  orchestrator.
+- ~~`ruff format` would rewrite 42 of 67 files.~~ Done — all 68 files are
+  formatted and the check is a real gate in CI, `make lint` and pre-commit.
+
+---
+
 ## Unreleased — Engineering UI + generation feedback
 
 **On branch:** `feature/ui` (branched off `dev`)

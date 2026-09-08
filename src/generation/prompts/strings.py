@@ -8,7 +8,6 @@ Approved by user (Tunisian-school context, MSA for Arabic, formal `vous` in Fren
 
 from __future__ import annotations
 
-
 STRINGS: dict[str, dict] = {
     # ---------------------------------------------------------------- English
     "en": {
@@ -26,34 +25,33 @@ STRINGS: dict[str, dict] = {
         "subject_line_template": "Subject: {subject}",
         "level_line_template": "Level: {level}",
         "examples_header_template": (
-            "HERE ARE {n} EXAMPLES FROM OUR CURRICULUM "
-            "(for style reference only, do NOT copy):"
+            "HERE ARE {n} EXAMPLES FROM OUR CURRICULUM (for style reference only, do NOT copy):"
         ),
         "context_filter_template": (
             "CONTEXT FILTERING — about the examples above:\n"
-            "Not every retrieved example is guaranteed to be on-topic for \"{topic}\". "
+            'Not every retrieved example is guaranteed to be on-topic for "{topic}". '
             "Some may be loosely related or off-topic.\n"
-            "- Use ONLY the examples that are clearly relevant to \"{topic}\" "
+            '- Use ONLY the examples that are clearly relevant to "{topic}" '
             "as your content/style reference.\n"
             "- IGNORE examples that don't match the topic when choosing what to "
             "write about — they may still be useful for general formatting style.\n"
-            "- Every NEW question you generate MUST be directly about \"{topic}\". "
+            '- Every NEW question you generate MUST be directly about "{topic}". '
             "Do not drift to adjacent topics."
         ),
         "concept_anchor_template": (
             "CONCEPT ANCHORING (critical for accuracy):\n"
-            "The examples above ARE your source of truth for what \"{topic}\" "
+            'The examples above ARE your source of truth for what "{topic}" '
             "means in this curriculum. Do NOT rely solely on your general training "
             "knowledge — it may be imprecise or wrong for this specific concept.\n"
             "\n"
             "Before writing each question:\n"
             "  1. Examine the relevant examples carefully.\n"
-            "  2. Identify what EXACTLY makes each one a \"{topic}\" "
+            '  2. Identify what EXACTLY makes each one a "{topic}" '
             "(the specific structural / grammatical / conceptual features).\n"
             "  3. Write your question to test THAT specific feature — not a "
             "vague or generic version of it.\n"
             "\n"
-            "If the examples conflict with what you think you know about \"{topic}\", "
+            'If the examples conflict with what you think you know about "{topic}", '
             "TRUST THE EXAMPLES."
         ),
         "rules_MULTIPLE_CHOICE": (
@@ -78,9 +76,7 @@ STRINGS: dict[str, dict] = {
             "DO NOT mimic this pattern. Your generated `choices` MUST be the actual answer "
             "text — not letter labels. Each choice should be a complete, meaningful answer."
         ),
-        "output_format_header": (
-            "OUTPUT FORMAT — respond with JSON matching this exact shape:"
-        ),
+        "output_format_header": ("OUTPUT FORMAT — respond with JSON matching this exact shape:"),
         "schema_hint_MULTIPLE_CHOICE": (
             "choices: 3-4 strings. correct_answers: subset of choices."
         ),
@@ -95,7 +91,6 @@ STRINGS: dict[str, dict] = {
             "FILL_IN_THE_BLANKS": "fill-in-the-blank",
         },
     },
-
     # ---------------------------------------------------------------- French
     "fr": {
         "system_message": (
@@ -192,7 +187,6 @@ STRINGS: dict[str, dict] = {
             "FILL_IN_THE_BLANKS": "à compléter",
         },
     },
-
     # ---------------------------------------------------------------- Arabic (MSA)
     "ar": {
         "system_message": (
@@ -261,18 +255,14 @@ STRINGS: dict[str, dict] = {
             "لا تقلد هذا النمط. يجب أن تكون `choices` المُنشأة هي النص الفعلي "
             "للإجابات — وليس رموزًا. كل خيار يجب أن يكون إجابة كاملة وذات معنى."
         ),
-        "output_format_header": (
-            "تنسيق الإخراج — أجب بـ JSON مطابقًا لهذه البنية بالضبط:"
-        ),
+        "output_format_header": ("تنسيق الإخراج — أجب بـ JSON مطابقًا لهذه البنية بالضبط:"),
         "schema_hint_MULTIPLE_CHOICE": (
             "choices: من 3 إلى 4 سلاسل نصية. correct_answers: جزء من choices."
         ),
         "schema_hint_FILL_IN_THE_BLANKS": (
             "choices: قائمة فارغة دائمًا []. correct_answers: قائمة بالسلاسل النصية المقبولة."
         ),
-        "final_instruction_template": (
-            "أنشئ {count} أسئلة جديدة الآن. JSON فقط، لا نص آخر."
-        ),
+        "final_instruction_template": ("أنشئ {count} أسئلة جديدة الآن. JSON فقط، لا نص آخر."),
         "type_display": {
             "MULTIPLE_CHOICE": "اختيار من متعدد",
             "FILL_IN_THE_BLANKS": "ملء الفراغات",

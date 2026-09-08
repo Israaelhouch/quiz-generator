@@ -36,15 +36,12 @@ import logging
 import os
 import sys
 
-
 # Set by the API middleware on every request. Defaults to "-" outside
 # of a request scope so non-API code (CLI, pipeline) still logs cleanly.
-request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
-    "request_id", default="-"
-)
+request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
 
 
-_FORMAT  = "%(asctime)s.%(msecs)03d %(levelname)-5s [%(name)s] [%(request_id)s] %(message)s"
+_FORMAT = "%(asctime)s.%(msecs)03d %(levelname)-5s [%(name)s] [%(request_id)s] %(message)s"
 _DATEFMT = "%Y-%m-%d %H:%M:%S"
 
 

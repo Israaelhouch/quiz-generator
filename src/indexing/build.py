@@ -53,7 +53,7 @@ def _run_smoke_test(
         dists = (results.get("distances") or [[]])[0]
         docs = (results.get("documents") or [[]])[0]
         print(f"\n  [{lang}] query: {text!r}")
-        for i, (_id, dist, doc) in enumerate(zip(ids, dists, docs), start=1):
+        for i, (_id, dist, doc) in enumerate(zip(ids, dists, docs, strict=True), start=1):
             print(f"    {i}. id={_id[:28]:28s} dist={dist:+.3f} | {doc[:100]}")
 
 
@@ -62,7 +62,7 @@ def build(
     config_path: Path,
     input_path: Path,
     summary_path: Path,
-) -> "object":
+) -> object:
     # Lazy Pydantic + shared imports.
     from src.indexing.config import load_models_config
     from src.indexing.embedding_model import EmbeddingModel, EmbeddingModelConfig
@@ -138,6 +138,7 @@ def build(
     # (terminal, IDE, notebook, redirected output — handles each gracefully).
     try:
         from tqdm import tqdm
+
         progress = tqdm(total=total, desc="Embedding", unit="rows", ncols=90)
     except ImportError:
         progress = None  # graceful fallback if tqdm unavailable

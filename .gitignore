@@ -8,6 +8,8 @@ venv/
 # Secrets
 .env
 .env.*
+# ...except the template, which documents every variable and holds no values.
+!.env.example
 
 # OS / editors
 .DS_Store

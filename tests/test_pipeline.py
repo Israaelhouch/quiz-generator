@@ -10,11 +10,20 @@ import json
 import sys
 import warnings
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+# ---------------------------------------------------------------------------
+# Log capture
+# ---------------------------------------------------------------------------
+# These signals moved from `warnings.warn` to `logger.warning`. The warnings
+# module dedupes by (message, category, module, lineno) per process, so in a
+# long-running server each of these fired ONCE and was then silent forever —
+# exactly backwards for an operational signal. Tests assert on log records now.
+import contextlib as _contextlib
+import logging as _logging
 
 from src.generation.llm_client import MockClient
 from src.generation.schemas import GeneratedQuiz
@@ -27,17 +36,6 @@ from src.pipeline.cli import (
     save_run_to_file,
 )
 from src.retrieval.schemas import RetrievedQuestion
-
-# ---------------------------------------------------------------------------
-# Log capture
-# ---------------------------------------------------------------------------
-# These signals moved from `warnings.warn` to `logger.warning`. The warnings
-# module dedupes by (message, category, module, lineno) per process, so in a
-# long-running server each of these fired ONCE and was then silent forever —
-# exactly backwards for an operational signal. Tests assert on log records now.
-
-import contextlib as _contextlib
-import logging as _logging
 
 
 @_contextlib.contextmanager
@@ -59,8 +57,6 @@ def _capture_logs(logger_name: str, level: int = _logging.WARNING):
     finally:
         target.removeHandler(handler)
         target.setLevel(previous_level)
-
-
 
 
 # ---------------------------------------------------------------------------
@@ -128,17 +124,19 @@ def _write_minimal_config(tmp_dir: Path) -> Path:
 
 
 # Canned valid LLM JSON for one MCQ
-_VALID_LLM_RESPONSE = json.dumps({
-    "questions": [
-        {
-            "question_text": "What is 2+2?",
-            "choices": ["3", "4", "5", "6"],
-            "correct_answers": ["4"],
-            "explanation": "Basic arithmetic.",
-            "difficulty": "easy",
-        }
-    ]
-})
+_VALID_LLM_RESPONSE = json.dumps(
+    {
+        "questions": [
+            {
+                "question_text": "What is 2+2?",
+                "choices": ["3", "4", "5", "6"],
+                "correct_answers": ["4"],
+                "explanation": "Basic arithmetic.",
+                "difficulty": "easy",
+            }
+        ]
+    }
+)
 
 
 # ---------------------------------------------------------------------------
@@ -250,18 +248,20 @@ def test_pipeline_multi_levels_warns_about_first_only(tmp_path: Path) -> None:
 
 
 def test_render_human_includes_question_and_choices() -> None:
-    quiz = GeneratedQuiz.model_validate({
-        "language": "en",
-        "questions": [
-            {
-                "question_type": "MULTIPLE_CHOICE",
-                "question_text": "What is 2+2?",
-                "choices": ["3", "4"],
-                "correct_answers": ["4"],
-                "explanation": "Trivial.",
-            }
-        ],
-    })
+    quiz = GeneratedQuiz.model_validate(
+        {
+            "language": "en",
+            "questions": [
+                {
+                    "question_type": "MULTIPLE_CHOICE",
+                    "question_text": "What is 2+2?",
+                    "choices": ["3", "4"],
+                    "correct_answers": ["4"],
+                    "explanation": "Trivial.",
+                }
+            ],
+        }
+    )
     out = render_human(quiz, topic="arith")
     assert "What is 2+2?" in out
     assert "4" in out  # the choice
@@ -270,18 +270,20 @@ def test_render_human_includes_question_and_choices() -> None:
 
 
 def test_render_json_is_valid_json_with_questions_list() -> None:
-    quiz = GeneratedQuiz.model_validate({
-        "language": "fr",
-        "subject": "MATHEMATICS",
-        "questions": [
-            {
-                "question_type": "MULTIPLE_CHOICE",
-                "question_text": "2+2?",
-                "choices": ["3", "4"],
-                "correct_answers": ["4"],
-            }
-        ],
-    })
+    quiz = GeneratedQuiz.model_validate(
+        {
+            "language": "fr",
+            "subject": "MATHEMATICS",
+            "questions": [
+                {
+                    "question_type": "MULTIPLE_CHOICE",
+                    "question_text": "2+2?",
+                    "choices": ["3", "4"],
+                    "correct_answers": ["4"],
+                }
+            ],
+        }
+    )
     out = render_json(quiz, topic="arith")
     parsed = json.loads(out)
     assert parsed["topic"] == "arith"
@@ -353,11 +355,11 @@ def test_render_retrieval_human_shows_full_text() -> None:
         distance=0.123,
     )
     out = render_retrieval_human([chunk], topic="integrals")
-    assert long_q in out                  # full question, no truncation
-    assert long_choice in out             # full choice text
-    assert "* " + long_choice in out      # marked as correct
-    assert "Calculus integrals" in out    # title
-    assert "MATHEMATICS" in out           # subject visible
+    assert long_q in out  # full question, no truncation
+    assert long_choice in out  # full choice text
+    assert "* " + long_choice in out  # marked as correct
+    assert "Calculus integrals" in out  # title
+    assert "MATHEMATICS" in out  # subject visible
 
 
 def test_render_retrieval_human_handles_empty() -> None:
@@ -377,18 +379,20 @@ def test_retrieval_to_dict_preserves_all_fields() -> None:
     assert row["distance"] == 0.2
 
 
-def _quiz_for_save() -> "GeneratedQuiz":
-    return GeneratedQuiz.model_validate({
-        "language": "en",
-        "questions": [
-            {
-                "question_type": "MULTIPLE_CHOICE",
-                "question_text": "2+2?",
-                "choices": ["3", "4"],
-                "correct_answers": ["4"],
-            }
-        ],
-    })
+def _quiz_for_save() -> GeneratedQuiz:
+    return GeneratedQuiz.model_validate(
+        {
+            "language": "en",
+            "questions": [
+                {
+                    "question_type": "MULTIPLE_CHOICE",
+                    "question_text": "2+2?",
+                    "choices": ["3", "4"],
+                    "correct_answers": ["4"],
+                }
+            ],
+        }
+    )
 
 
 def test_save_run_to_file_writes_quiz_and_retrieval(tmp_path: Path) -> None:
@@ -437,17 +441,19 @@ def test_save_run_to_file_overwrites_previous_run(tmp_path: Path) -> None:
 
 
 def test_render_json_includes_retrieval_when_passed() -> None:
-    quiz = GeneratedQuiz.model_validate({
-        "language": "en",
-        "questions": [
-            {
-                "question_type": "MULTIPLE_CHOICE",
-                "question_text": "2+2?",
-                "choices": ["3", "4"],
-                "correct_answers": ["4"],
-            }
-        ],
-    })
+    quiz = GeneratedQuiz.model_validate(
+        {
+            "language": "en",
+            "questions": [
+                {
+                    "question_type": "MULTIPLE_CHOICE",
+                    "question_text": "2+2?",
+                    "choices": ["3", "4"],
+                    "correct_answers": ["4"],
+                }
+            ],
+        }
+    )
     chunk = _retrieved("ex-1")
     out = render_json(quiz, topic="arith", retrieval=[chunk])
     parsed = json.loads(out)
@@ -456,17 +462,19 @@ def test_render_json_includes_retrieval_when_passed() -> None:
 
 
 def test_render_json_omits_retrieval_when_not_passed() -> None:
-    quiz = GeneratedQuiz.model_validate({
-        "language": "en",
-        "questions": [
-            {
-                "question_type": "MULTIPLE_CHOICE",
-                "question_text": "x?",
-                "choices": ["A", "B"],
-                "correct_answers": ["A"],
-            }
-        ],
-    })
+    quiz = GeneratedQuiz.model_validate(
+        {
+            "language": "en",
+            "questions": [
+                {
+                    "question_type": "MULTIPLE_CHOICE",
+                    "question_text": "x?",
+                    "choices": ["A", "B"],
+                    "correct_answers": ["A"],
+                }
+            ],
+        }
+    )
     out = render_json(quiz, topic="x")
     parsed = json.loads(out)
     assert "retrieval" not in parsed
@@ -474,17 +482,19 @@ def test_render_json_omits_retrieval_when_not_passed() -> None:
 
 def test_render_json_preserves_unicode() -> None:
     """Arabic and French characters must round-trip cleanly (no \\uXXXX escapes)."""
-    quiz = GeneratedQuiz.model_validate({
-        "language": "ar",
-        "questions": [
-            {
-                "question_type": "MULTIPLE_CHOICE",
-                "question_text": "ما هو ٢+٢؟",
-                "choices": ["٣", "٤"],
-                "correct_answers": ["٤"],
-            }
-        ],
-    })
+    quiz = GeneratedQuiz.model_validate(
+        {
+            "language": "ar",
+            "questions": [
+                {
+                    "question_type": "MULTIPLE_CHOICE",
+                    "question_text": "ما هو ٢+٢؟",
+                    "choices": ["٣", "٤"],
+                    "correct_answers": ["٤"],
+                }
+            ],
+        }
+    )
     out = render_json(quiz, topic="حساب")
     assert "ما هو" in out  # raw Arabic, not \u-escaped
 
@@ -502,6 +512,7 @@ def test_render_json_preserves_unicode() -> None:
 # There is deliberately no test asserting the OLD broken behaviour: a race is
 # probabilistic and such a test would be flaky. Instead we assert the new
 # contract holds under real thread pressure.
+
 
 def test_generate_detailed_is_isolated_across_threads(tmp_path: Path) -> None:
     """Each concurrent caller gets back exactly its own retrieval."""
@@ -527,8 +538,7 @@ def test_generate_detailed_is_isolated_across_threads(tmp_path: Path) -> None:
         def __init__(self, canned: str) -> None:
             self.canned = canned
 
-        def complete_json(self, *, system: str, user: str,
-                          temperature: float = 0.75) -> str:
+        def complete_json(self, *, system: str, user: str, temperature: float = 0.75) -> str:
             _time.sleep(0.02)
             return self.canned
 
@@ -548,11 +558,14 @@ def test_generate_detailed_is_isolated_across_threads(tmp_path: Path) -> None:
             # few_shot_count=1 with exactly 1 example => no low-pool warning,
             # so we don't need catch_warnings (which is not thread-safe).
             result = pipeline.generate_detailed(
-                topic=topic, language="en", count=1, few_shot_count=1,
+                topic=topic,
+                language="en",
+                count=1,
+                few_shot_count=1,
             )
             with lock:
                 seen[topic] = [c.doc_id for c in result.retrieval]
-        except BaseException as exc:       # noqa: BLE001 - surfaced below
+        except BaseException as exc:
             with lock:
                 errors.append(exc)
 
@@ -600,26 +613,33 @@ def test_generate_detailed_returns_all_three_parts(tmp_path: Path) -> None:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         result = pipeline.generate_detailed(
-            topic="x", language="en", count=1, few_shot_count=2,
+            topic="x",
+            language="en",
+            count=1,
+            few_shot_count=2,
         )
 
     assert isinstance(result.quiz, GeneratedQuiz)
     assert [c.doc_id for c in result.retrieval] == ["ex-A", "ex-B"]
     assert set(result.timings) == {
-        "retrieve_seconds", "generate_seconds", "total_seconds", "n_examples_used",
+        "retrieve_seconds",
+        "generate_seconds",
+        "total_seconds",
+        "n_examples_used",
     }
     assert result.timings["n_examples_used"] == 2
 
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
-    fns = [(n, f) for n, f in inspect.getmembers(mod, inspect.isfunction)
-           if n.startswith("test_")]
+    fns = [(n, f) for n, f in inspect.getmembers(mod, inspect.isfunction) if n.startswith("test_")]
     for name, fn in fns:
         sig = inspect.signature(fn)
         if "tmp_path" in sig.parameters:
             import tempfile
+
             with tempfile.TemporaryDirectory() as td:
                 fn(Path(td))
         else:

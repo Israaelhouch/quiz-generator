@@ -7,6 +7,7 @@ is already attached, so these tests run without ML stack or Ollama.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -66,10 +67,17 @@ class _FakeRetriever:
         self.calls: list[dict] = []
 
     # API methods used by the endpoints
-    def list_languages(self) -> list[str]: return self.languages
-    def list_question_types(self) -> list[str]: return self.question_types
-    def list_subjects(self) -> list[str]: return self.subjects
-    def list_levels(self) -> list[str]: return self.levels
+    def list_languages(self) -> list[str]:
+        return self.languages
+
+    def list_question_types(self) -> list[str]:
+        return self.question_types
+
+    def list_subjects(self) -> list[str]:
+        return self.subjects
+
+    def list_levels(self) -> list[str]:
+        return self.levels
 
     def retrieve(self, **kwargs) -> list[Any]:
         self.calls.append(kwargs)
@@ -117,8 +125,13 @@ class _FakeQuestion:
 class _FakeQuiz:
     """Mimics GeneratedQuiz."""
 
-    def __init__(self, language: str = "en", subject: str | None = None,
-                 level: str | None = None, n_questions: int = 1) -> None:
+    def __init__(
+        self,
+        language: str = "en",
+        subject: str | None = None,
+        level: str | None = None,
+        n_questions: int = 1,
+    ) -> None:
         self.language = language
         self.subject = subject
         self.level = level
@@ -151,12 +164,17 @@ class _FakePipeline:
         """What the API actually calls. Returns quiz+retrieval+timings
         together, so nothing is read back off shared instance state."""
         from src.pipeline.orchestrator import GenerationResult
+
         quiz = self.generate(**kwargs)
         return GenerationResult(
             quiz=quiz,
             retrieval=self.last_retrieval,
-            timings={"retrieve_seconds": 0.1, "generate_seconds": 0.2,
-                     "total_seconds": 0.3, "n_examples_used": len(self.last_retrieval)},
+            timings={
+                "retrieve_seconds": 0.1,
+                "generate_seconds": 0.2,
+                "total_seconds": 0.3,
+                "n_examples_used": len(self.last_retrieval),
+            },
         )
 
 
@@ -172,6 +190,7 @@ def _make_client(pipeline: _FakePipeline):
     is already set — that's how we avoid loading BGE-M3 in tests.
     """
     from fastapi.testclient import TestClient
+
     from src.api.server import app
 
     app.state.pipeline = pipeline
@@ -213,9 +232,7 @@ def test_taxonomy_returns_lists() -> None:
 
 def test_retrieve_returns_chunks() -> None:
     pipeline = _FakePipeline(
-        retriever=_FakeRetriever(
-            retrieve_results=[_FakeRetrieved("a"), _FakeRetrieved("b")]
-        )
+        retriever=_FakeRetriever(retrieve_results=[_FakeRetrieved("a"), _FakeRetrieved("b")])
     )
     client = _make_client(pipeline)
     r = client.post(
@@ -320,7 +337,7 @@ _CORPUS_LEAK = (
 
 
 def _assert_no_corpus_internals(detail: str) -> None:
-    assert "request_id=" in detail          # the thread back to the full log line
+    assert "request_id=" in detail  # the thread back to the full log line
     assert "5,782" not in detail
     assert "Diagnostic" not in detail
     assert "MATHEMATICS" not in detail
@@ -333,9 +350,7 @@ def test_generate_returns_400_when_nothing_was_retrieved() -> None:
     from src.generation.generator import GenerationError
 
     with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="0"):
-        client = _make_client(
-            _FakePipeline(raise_on_generate=GenerationError(_CORPUS_LEAK))
-        )
+        client = _make_client(_FakePipeline(raise_on_generate=GenerationError(_CORPUS_LEAK)))
         r = client.post(
             "/quiz/generate",
             json={"topic": "x", "language": "en", "count": 1},
@@ -343,7 +358,7 @@ def test_generate_returns_400_when_nothing_was_retrieved() -> None:
 
     assert r.status_code == 400
     detail = r.json()["detail"]
-    assert "No matching content" in detail    # actionable
+    assert "No matching content" in detail  # actionable
     _assert_no_corpus_internals(detail)
 
 
@@ -357,9 +372,7 @@ def test_generate_returns_502_when_the_llm_gives_up() -> None:
         "validation: correct_answer 'x' not found verbatim in choices"
     )
     with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="0"):
-        client = _make_client(
-            _FakePipeline(raise_on_generate=GenerationError(exhausted))
-        )
+        client = _make_client(_FakePipeline(raise_on_generate=GenerationError(exhausted)))
         r = client.post(
             "/quiz/generate",
             json={"topic": "x", "language": "en", "count": 1},
@@ -416,7 +429,6 @@ def test_generate_rejects_tuning_knobs_in_request() -> None:
         assert r.status_code == 422, (
             f"Expected 422 for forbidden field {forbidden!r}, got {r.status_code}"
         )
-
 
 
 # ---------------------------------------------------------------------------
@@ -541,6 +553,7 @@ def test_unhandled_exception_body_is_opaque() -> None:
     """A 500 must not hand the caller exception text — messages carry file
     paths, config values and SDK internals."""
     from fastapi.testclient import TestClient
+
     from src.api.server import app
 
     leaky = RuntimeError("/app/configs/models.yaml exploded with key sk-live-XYZ")
@@ -557,10 +570,10 @@ def test_unhandled_exception_body_is_opaque() -> None:
         assert "request_id=" in detail
 
 
-
 # ---------------------------------------------------------------------------
 # Phase 2 hardening — PII exposure and run-log rotation
 # ---------------------------------------------------------------------------
+
 
 def test_author_pii_absent_from_retrieval_by_default() -> None:
     """author_name / author_email identify real teachers who wrote the source
@@ -570,8 +583,7 @@ def test_author_pii_absent_from_retrieval_by_default() -> None:
         client = _make_client(pipeline)
         r = client.post(
             "/quiz/generate",
-            json={"topic": "x", "language": "en", "count": 1,
-                  "include_retrieval": True},
+            json={"topic": "x", "language": "en", "count": 1, "include_retrieval": True},
         )
         assert r.status_code == 200
         chunk = r.json()["retrieval"][0]
@@ -587,8 +599,7 @@ def test_author_pii_restorable_via_env() -> None:
         client = _make_client(pipeline)
         r = client.post(
             "/quiz/generate",
-            json={"topic": "x", "language": "en", "count": 1,
-                  "include_retrieval": True},
+            json={"topic": "x", "language": "en", "count": 1, "include_retrieval": True},
         )
         chunk = r.json()["retrieval"][0]
         assert "author_name" in chunk
@@ -607,8 +618,9 @@ def test_run_log_rotates_past_the_size_cap() -> None:
         log = _Path(td) / "runs.jsonl"
         _server.RUNS_LOG_PATH = log
         try:
-            with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="0",
-                      LOG_RUNS="1", RUNS_LOG_MAX_BYTES="10"):
+            with _env(
+                API_KEYS=None, RATE_LIMIT_PER_MINUTE="0", LOG_RUNS="1", RUNS_LOG_MAX_BYTES="10"
+            ):
                 client = _make_client(_FakePipeline())
                 body = {"topic": "x", "language": "en", "count": 1}
 
@@ -634,8 +646,9 @@ def test_run_log_rotation_disabled_at_zero() -> None:
         log = _Path(td) / "runs.jsonl"
         _server.RUNS_LOG_PATH = log
         try:
-            with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="0",
-                      LOG_RUNS="1", RUNS_LOG_MAX_BYTES="0"):
+            with _env(
+                API_KEYS=None, RATE_LIMIT_PER_MINUTE="0", LOG_RUNS="1", RUNS_LOG_MAX_BYTES="0"
+            ):
                 client = _make_client(_FakePipeline())
                 body = {"topic": "x", "language": "en", "count": 1}
                 for _ in range(3):
@@ -646,10 +659,10 @@ def test_run_log_rotation_disabled_at_zero() -> None:
             _server.RUNS_LOG_PATH = original
 
 
-
 # ---------------------------------------------------------------------------
 # Phase 3 hardening — readiness, metrics, CORS configuration
 # ---------------------------------------------------------------------------
+
 
 class _FakeCollection:
     def __init__(self, n: int = 5) -> None:
@@ -699,6 +712,7 @@ def test_ready_reports_503_when_payload_missing() -> None:
 
 def test_ready_survives_a_throwing_collection() -> None:
     """A probe that raises must degrade, not 500."""
+
     class _Exploding:
         def count(self):
             raise RuntimeError("chroma is gone")
@@ -736,13 +750,13 @@ def test_metrics_counts_requests_and_excludes_noise() -> None:
         with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="0"):
             client = _make_client(_ready_pipeline())
             client.post("/retrieve", json={"query": "x", "language": "en"})
-            client.get("/health")            # excluded — healthcheck noise
+            client.get("/health")  # excluded — healthcheck noise
             body = client.get("/metrics").text
 
         assert 'path="/retrieve",status="200"' in body
         assert 'quiz_api_request_duration_seconds_count{path="/retrieve"} 1' in body
-        assert '"/health"' not in body       # healthcheck must not dominate
-        assert '"/metrics"' not in body      # a scrape must not count itself
+        assert '"/health"' not in body  # healthcheck must not dominate
+        assert '"/metrics"' not in body  # a scrape must not count itself
     finally:
         reset_metrics()
 
@@ -771,18 +785,17 @@ def test_cors_origins_parsing() -> None:
     from src.api.security import configured_cors_origins
 
     with _env(CORS_ALLOW_ORIGINS=None):
-        assert configured_cors_origins() == []          # server-to-server default
+        assert configured_cors_origins() == []  # server-to-server default
     with _env(CORS_ALLOW_ORIGINS="https://school.tn, https://admin.school.tn"):
-        assert configured_cors_origins() == ["https://school.tn",
-                                             "https://admin.school.tn"]
+        assert configured_cors_origins() == ["https://school.tn", "https://admin.school.tn"]
     with _env(CORS_ALLOW_ORIGINS="  "):
         assert configured_cors_origins() == []
-
 
 
 # ---------------------------------------------------------------------------
 # Teacher-facing UI
 # ---------------------------------------------------------------------------
+
 
 def test_ui_is_served_without_a_key() -> None:
     """A browser navigating to /ui cannot send X-API-Key. If this ever needs
@@ -825,7 +838,6 @@ def test_ui_is_absent_from_the_openapi_schema() -> None:
         assert "/quiz/generate" in paths
 
 
-
 # ---------------------------------------------------------------------------
 # Feedback — the labelled generation set
 # ---------------------------------------------------------------------------
@@ -854,17 +866,20 @@ def _feedback_log():
 def test_feedback_appends_one_row_per_judgement() -> None:
     with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="0"), _feedback_log() as log:
         client = _make_client(_FakePipeline())
-        r = client.post("/feedback", json={
-            "verdict": "down",
-            "question_text": "Which sentence is passive?",
-            "question_index": 2,
-            "request_id": "req-abc123",
-            "topic": "passive voice",
-            "language": "en",
-            "subject": "ENGLISH",
-            "school_phase": "HIGH",
-            "note": "all three choices are active",
-        })
+        r = client.post(
+            "/feedback",
+            json={
+                "verdict": "down",
+                "question_text": "Which sentence is passive?",
+                "question_index": 2,
+                "request_id": "req-abc123",
+                "topic": "passive voice",
+                "language": "en",
+                "subject": "ENGLISH",
+                "school_phase": "HIGH",
+                "note": "all three choices are active",
+            },
+        )
         assert r.status_code == 200
         assert r.json()["ok"] is True
 
@@ -909,8 +924,7 @@ def test_feedback_is_not_rate_limited() -> None:
         with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="1"), _feedback_log() as log:
             client = _make_client(_FakePipeline())
             for i in range(4):
-                r = client.post("/feedback",
-                                json={"verdict": "up", "question_text": f"Q{i}"})
+                r = client.post("/feedback", json={"verdict": "up", "question_text": f"Q{i}"})
                 assert r.status_code == 200
             assert len(log.read_text(encoding="utf-8").strip().splitlines()) == 4
     finally:
@@ -919,9 +933,9 @@ def test_feedback_is_not_rate_limited() -> None:
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
-    fns = [(n, f) for n, f in inspect.getmembers(mod, inspect.isfunction)
-           if n.startswith("test_")]
+    fns = [(n, f) for n, f in inspect.getmembers(mod, inspect.isfunction) if n.startswith("test_")]
     for name, fn in fns:
         fn()
     print(f"All {len(fns)} API tests passed.")

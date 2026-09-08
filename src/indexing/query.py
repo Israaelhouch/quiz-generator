@@ -21,7 +21,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 from typing import Any
 
@@ -35,7 +34,7 @@ def query_store(
     question_type: str | None = None,
     subject: str | None = None,
     levels: list[str] | None = None,
-    levels_match_mode: str = "any",      # "any" (OR) or "all" (AND)
+    levels_match_mode: str = "any",  # "any" (OR) or "all" (AND)
     multiple_correct_answers: bool | None = None,
 ) -> list[dict]:
     """Run one query against the vector store. Return list of matches."""
@@ -50,9 +49,7 @@ def query_store(
     # Skipped silently if build_summary.json is absent — the store may
     # have been built by an older version of this code.
     summary_path = config.vector_store.persist_directory.parent / "build_summary.json"
-    taxonomy = Taxonomy.from_build_summary(
-        summary_path, level_prefixes=SCHOOL_LEVEL_PREFIXES
-    )
+    taxonomy = Taxonomy.from_build_summary(summary_path, level_prefixes=SCHOOL_LEVEL_PREFIXES)
     taxonomy.validate_language(language)
     taxonomy.validate_question_type(question_type)
     if subject:
@@ -125,7 +122,7 @@ def query_store(
     documents = (results.get("documents") or [[]])[0]
 
     output: list[dict] = []
-    for _id, dist, meta, doc in zip(ids, distances, metadatas, documents):
+    for _id, dist, meta, doc in zip(ids, distances, metadatas, documents, strict=True):
         output.append(
             {
                 "id": _id,
@@ -168,14 +165,20 @@ def _print_results(
         row_levels = sorted(k.removeprefix("levels_") for k in meta if k.startswith("levels_"))
         print(f"\n[{i}]  id={r['id'][:36]}")
         print(f"     distance = {r['distance']:+.4f}")
-        print(f"     lang={meta.get('language'):2s}  type={meta.get('question_type')}  mcq={meta.get('multiple_correct_answers')}")
-        print(f"     subject={meta.get('subject') or '(none)':<20s}  levels={row_levels[:2]}{'...' if len(row_levels) > 2 else ''}")
+        print(
+            f"     lang={meta.get('language'):2s}  type={meta.get('question_type')}  mcq={meta.get('multiple_correct_answers')}"
+        )
+        print(
+            f"     subject={meta.get('subject') or '(none)':<20s}  levels={row_levels[:2]}{'...' if len(row_levels) > 2 else ''}"
+        )
         print(f"     quiz_title: {meta.get('quiz_title', '')[:80]}")
         print(f"     document  : {r['document'][:220]}")
 
 
 def _parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument(
         "query",
         nargs="?",
@@ -219,9 +222,7 @@ def _print_taxonomy(config_path: Path) -> None:
 
     config = load_models_config(config_path)
     summary_path = config.vector_store.persist_directory.parent / "build_summary.json"
-    taxonomy = Taxonomy.from_build_summary(
-        summary_path, level_prefixes=SCHOOL_LEVEL_PREFIXES
-    )
+    taxonomy = Taxonomy.from_build_summary(summary_path, level_prefixes=SCHOOL_LEVEL_PREFIXES)
     if taxonomy.is_empty():
         print(f"No taxonomy found at {summary_path}. Did you run `python -m src.indexing.build`?")
         return

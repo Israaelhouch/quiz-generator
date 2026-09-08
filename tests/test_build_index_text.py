@@ -40,7 +40,10 @@ def test_default_recipe_includes_subjects_title_question_choices() -> None:
         separators=dict(DEFAULT_SEPARATORS),
         normalize_latex_flag=False,
     )
-    assert text == "SCIENCE. Immunity 1. What is a pathogen?. any molecule | used to combat infections | none"
+    assert (
+        text
+        == "SCIENCE. Immunity 1. What is a pathogen?. any molecule | used to combat infections | none"
+    )
 
 
 def test_latex_normalization_when_enabled() -> None:
@@ -142,6 +145,7 @@ def test_summarize_lengths_empty() -> None:
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):
         if name.startswith("test_"):

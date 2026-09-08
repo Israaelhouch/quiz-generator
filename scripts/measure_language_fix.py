@@ -40,7 +40,9 @@ def main() -> None:
 
             # Current behaviour: detect on LaTeX-laden text
             before_lang, before_src = resolve_language(
-                flat.get("language_raw"), question_text, quiz_title,
+                flat.get("language_raw"),
+                question_text,
+                quiz_title,
             )
             # Fixed behaviour: detect on LaTeX-stripped text
             after_lang, after_src = resolve_language(
@@ -53,15 +55,17 @@ def main() -> None:
             after_label[str(after_lang)] += 1
 
             if before_lang != after_lang:
-                changed.append({
-                    "doc_id": flat.get("doc_id", ""),
-                    "raw": flat.get("language_raw"),
-                    "before": before_lang,
-                    "after": after_lang,
-                    "before_source": before_src,
-                    "after_source": after_src,
-                    "text_sample": question_text[:120],
-                })
+                changed.append(
+                    {
+                        "doc_id": flat.get("doc_id", ""),
+                        "raw": flat.get("language_raw"),
+                        "before": before_lang,
+                        "after": after_lang,
+                        "before_source": before_src,
+                        "after_source": after_src,
+                        "text_sample": question_text[:120],
+                    }
+                )
 
     print(f"Rows processed: {sum(before_label.values())}")
     print("\nLanguage label distribution:")
@@ -81,7 +85,9 @@ def main() -> None:
         print("\nFirst 5 changed rows:")
         for c in changed[:5]:
             print(f"  doc_id={c['doc_id']}")
-            print(f"    raw={c['raw']!r}  {c['before']} -> {c['after']}  ({c['before_source']} -> {c['after_source']})")
+            print(
+                f"    raw={c['raw']!r}  {c['before']} -> {c['after']}  ({c['before_source']} -> {c['after_source']})"
+            )
             print(f"    text: {c['text_sample']}")
 
 

@@ -18,11 +18,11 @@ from src.data.filters import (
     count_correct,
     decide_drop,
     derive_multiple_correct_answers,
+    doc_id_suffix,
     has_correct_answer,
     is_image_only,
     strip_html_to_plain,
 )
-from src.data.filters import doc_id_suffix
 
 
 def test_strip_html_decodes_entities_and_removes_tags() -> None:

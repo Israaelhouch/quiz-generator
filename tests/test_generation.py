@@ -29,7 +29,6 @@ from src.generation.schemas import (
 )
 from src.retrieval.schemas import RetrievedQuestion
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -96,7 +95,7 @@ def test_generated_question_rejects_answer_not_in_choices() -> None:
             question_type="MULTIPLE_CHOICE",
             question_text="X?",
             choices=["A", "B"],
-            correct_answers=["C"],   # not in choices
+            correct_answers=["C"],  # not in choices
         )
         raise AssertionError("expected ValidationError")
     except Exception as exc:
@@ -151,7 +150,7 @@ def test_generated_question_multiple_correct_answers_derived_from_answer_count()
         question_text="X?",
         choices=["A", "B", "C"],
         correct_answers=["A"],
-        multiple_correct_answers=True,   # overclaimed; we fix it
+        multiple_correct_answers=True,  # overclaimed; we fix it
     )
     assert q2.multiple_correct_answers is False
 
@@ -164,7 +163,9 @@ def test_generated_question_multiple_correct_answers_derived_from_answer_count()
 def test_build_prompt_contains_topic_and_count() -> None:
     examples = [_retrieved(f"ex-{i}") for i in range(3)]
     system, user = build_mcq_prompt_english(
-        topic="photosynthesis", count=2, examples=examples,
+        topic="photosynthesis",
+        count=2,
+        examples=examples,
     )
     assert "photosynthesis" in user
     assert "2 new multiple-choice" in user
@@ -185,8 +186,11 @@ def test_build_prompt_renders_all_examples() -> None:
 def test_build_prompt_includes_subject_and_level_when_provided() -> None:
     examples = [_retrieved("ex-1")]
     _, user = build_mcq_prompt_english(
-        topic="x", count=1, examples=examples,
-        subject="MATHEMATICS", level="HIGH_SCHOOL_4TH_GRADE_MATHEMATICS",
+        topic="x",
+        count=1,
+        examples=examples,
+        subject="MATHEMATICS",
+        level="HIGH_SCHOOL_4TH_GRADE_MATHEMATICS",
     )
     assert "MATHEMATICS" in user
     assert "HIGH_SCHOOL_4TH_GRADE_MATHEMATICS" in user
@@ -204,24 +208,26 @@ def test_system_message_states_english_only() -> None:
 # ---------------------------------------------------------------------------
 
 
-CANNED_GOOD_RESPONSE = json.dumps({
-    "questions": [
-        {
-            "question_text": "What is the main source of energy for Earth?",
-            "choices": ["The Sun", "The Moon", "Wind", "Geothermal"],
-            "correct_answers": ["The Sun"],
-            "explanation": "Solar radiation is the primary energy input to Earth.",
-            "difficulty": "easy",
-        },
-        {
-            "question_text": "Where does photosynthesis happen in a plant cell?",
-            "choices": ["Chloroplast", "Mitochondria", "Nucleus", "Vacuole"],
-            "correct_answers": ["Chloroplast"],
-            "explanation": "Chloroplasts contain chlorophyll.",
-            "difficulty": "medium",
-        },
-    ]
-})
+CANNED_GOOD_RESPONSE = json.dumps(
+    {
+        "questions": [
+            {
+                "question_text": "What is the main source of energy for Earth?",
+                "choices": ["The Sun", "The Moon", "Wind", "Geothermal"],
+                "correct_answers": ["The Sun"],
+                "explanation": "Solar radiation is the primary energy input to Earth.",
+                "difficulty": "easy",
+            },
+            {
+                "question_text": "Where does photosynthesis happen in a plant cell?",
+                "choices": ["Chloroplast", "Mitochondria", "Nucleus", "Vacuole"],
+                "correct_answers": ["Chloroplast"],
+                "explanation": "Chloroplasts contain chlorophyll.",
+                "difficulty": "medium",
+            },
+        ]
+    }
+)
 
 
 def test_generator_happy_path() -> None:
@@ -230,9 +236,7 @@ def test_generator_happy_path() -> None:
     llm = MockClient(canned_response=CANNED_GOOD_RESPONSE)
     gen = Generator(retriever=retriever, llm_client=llm)
 
-    result = gen.generate(
-        GenerationRequest(topic="photosynthesis", language="en", count=2)
-    )
+    result = gen.generate(GenerationRequest(topic="photosynthesis", language="en", count=2))
     assert isinstance(result, GeneratedQuiz)
     assert len(result.questions) == 2
     assert result.questions[0].question_text.startswith("What is")
@@ -249,11 +253,16 @@ def test_generator_passes_filters_to_retriever() -> None:
     # the new count-validation in _parse_and_validate would otherwise reject
     # a mismatch. This test is about *filter propagation*, so the count
     # value is incidental.
-    gen.generate(GenerationRequest(
-        topic="x", language="en", count=2,
-        subject="SCIENCE", level="PRIMARY_SCHOOL_6TH_GRADE",
-        few_shot_count=3,
-    ))
+    gen.generate(
+        GenerationRequest(
+            topic="x",
+            language="en",
+            count=2,
+            subject="SCIENCE",
+            level="PRIMARY_SCHOOL_6TH_GRADE",
+            few_shot_count=3,
+        )
+    )
 
     call = retriever.calls[0]
     assert call["query"] == "x"
@@ -265,7 +274,7 @@ def test_generator_passes_filters_to_retriever() -> None:
 
 
 def test_generator_raises_when_no_examples_retrieved() -> None:
-    retriever = FakeRetriever([])   # empty
+    retriever = FakeRetriever([])  # empty
     llm = MockClient(canned_response=CANNED_GOOD_RESPONSE)
     gen = Generator(retriever=retriever, llm_client=llm)
 
@@ -301,11 +310,17 @@ def test_generator_raises_when_llm_output_missing_questions_key() -> None:
 
 
 def test_generator_raises_when_llm_output_has_answer_not_in_choices() -> None:
-    bad = json.dumps({"questions": [{
-        "question_text": "X?",
-        "choices": ["A", "B"],
-        "correct_answers": ["C"],     # oops
-    }]})
+    bad = json.dumps(
+        {
+            "questions": [
+                {
+                    "question_text": "X?",
+                    "choices": ["A", "B"],
+                    "correct_answers": ["C"],  # oops
+                }
+            ]
+        }
+    )
     retriever = FakeRetriever([_retrieved("ex-1")])
     llm = MockClient(canned_response=bad)
     gen = Generator(retriever=retriever, llm_client=llm)
@@ -325,18 +340,26 @@ def test_generator_now_accepts_french_and_arabic() -> None:
     gen = Generator(retriever=retriever, llm_client=llm)
 
     # French request — should succeed (mock LLM returns the canned response)
-    quiz_fr = gen.generate(GenerationRequest(
-        topic="primitives", language="fr", count=2,
-        question_type="MULTIPLE_CHOICE",
-    ))
+    quiz_fr = gen.generate(
+        GenerationRequest(
+            topic="primitives",
+            language="fr",
+            count=2,
+            question_type="MULTIPLE_CHOICE",
+        )
+    )
     assert quiz_fr.language == "fr"
     assert len(quiz_fr.questions) == 2
 
     # Arabic request — should also succeed
-    quiz_ar = gen.generate(GenerationRequest(
-        topic="الرياضيات", language="ar", count=2,
-        question_type="MULTIPLE_CHOICE",
-    ))
+    quiz_ar = gen.generate(
+        GenerationRequest(
+            topic="الرياضيات",
+            language="ar",
+            count=2,
+            question_type="MULTIPLE_CHOICE",
+        )
+    )
     assert quiz_ar.language == "ar"
 
 
@@ -345,13 +368,15 @@ def test_build_prompt_french_uses_french_strings() -> None:
     system, user = build_prompt(
         language="fr",
         question_type="MULTIPLE_CHOICE",
-        topic="primitives", count=2, examples=examples,
+        topic="primitives",
+        count=2,
+        examples=examples,
     )
     # French-specific phrases
     assert "Vous êtes un expert" in system
     assert "TÂCHE" in user
     assert "RÈGLES POUR MULTIPLE_CHOICE" in user
-    assert "à choix multiples" in user   # type display
+    assert "à choix multiples" in user  # type display
     # Must NOT contain English equivalents
     assert "TASK:" not in user
     assert "RULES FOR" not in user
@@ -362,12 +387,14 @@ def test_build_prompt_arabic_uses_arabic_strings() -> None:
     system, user = build_prompt(
         language="ar",
         question_type="FILL_IN_THE_BLANKS",
-        topic="القواعد", count=1, examples=examples,
+        topic="القواعد",
+        count=1,
+        examples=examples,
     )
     # Arabic-specific phrases (key tokens)
     assert "أنت خبير" in system
     assert "المهمة" in user
-    assert "ملء الفراغات" in user           # type display for FITB
+    assert "ملء الفراغات" in user  # type display for FITB
     assert "قواعد FILL_IN_THE_BLANKS" in user
     # JSON keys stay English (machine-readable contract)
     assert "question_text" in user
@@ -378,9 +405,11 @@ def test_build_prompt_rejects_unsupported_language() -> None:
     examples = [_retrieved("ex-1")]
     try:
         build_prompt(
-            language="es",   # Spanish — not supported
+            language="es",  # Spanish — not supported
             question_type="MULTIPLE_CHOICE",
-            topic="x", count=1, examples=examples,
+            topic="x",
+            count=1,
+            examples=examples,
         )
         raise AssertionError("expected ValueError")
     except ValueError as exc:
@@ -392,8 +421,11 @@ def test_inline_choice_warning_present_in_all_languages() -> None:
     examples = [_retrieved("ex-1")]
     for lang in ("en", "fr", "ar"):
         _, user = build_prompt(
-            language=lang, question_type="MULTIPLE_CHOICE",
-            topic="x", count=1, examples=examples,
+            language=lang,
+            question_type="MULTIPLE_CHOICE",
+            topic="x",
+            count=1,
+            examples=examples,
         )
         # Each language's warning has its own keyword we can grep for
         if lang == "en":
@@ -409,11 +441,13 @@ def test_build_prompt_english_fitb_has_fitb_rules() -> None:
     examples = [_retrieved("ex-1")]
     system, user = build_prompt_english(
         question_type="FILL_IN_THE_BLANKS",
-        topic="past tense", count=2, examples=examples,
+        topic="past tense",
+        count=2,
+        examples=examples,
     )
     assert "FILL_IN_THE_BLANKS" in user
-    assert "___" in user   # the blank marker rule
-    assert "empty list" in user   # the choices-must-be-empty rule
+    assert "___" in user  # the blank marker rule
+    assert "empty list" in user  # the choices-must-be-empty rule
 
 
 def test_build_prompt_english_rejects_unknown_type() -> None:
@@ -421,7 +455,9 @@ def test_build_prompt_english_rejects_unknown_type() -> None:
     try:
         build_prompt_english(
             question_type="UNSUPPORTED_TYPE",
-            topic="x", count=1, examples=examples,
+            topic="x",
+            count=1,
+            examples=examples,
         )
         raise AssertionError("expected ValueError")
     except ValueError as exc:
@@ -433,45 +469,51 @@ def test_build_prompt_english_rejects_unknown_type() -> None:
 # ---------------------------------------------------------------------------
 
 
-CANNED_FITB_RESPONSE = json.dumps({
-    "questions": [
-        {
-            "question_text": "The sun rises in the ___.",
-            "choices": [],
-            "correct_answers": ["east", "East", "EAST"],
-            "explanation": "The sun rises in the east due to Earth's west-to-east rotation.",
-            "difficulty": "easy",
-        },
-        {
-            "question_text": "Water boils at ___ degrees Celsius at sea level.",
-            "choices": [],
-            "correct_answers": ["100"],
-            "explanation": "At standard atmospheric pressure, water boils at 100°C.",
-            "difficulty": "easy",
-        },
-    ]
-})
+CANNED_FITB_RESPONSE = json.dumps(
+    {
+        "questions": [
+            {
+                "question_text": "The sun rises in the ___.",
+                "choices": [],
+                "correct_answers": ["east", "East", "EAST"],
+                "explanation": "The sun rises in the east due to Earth's west-to-east rotation.",
+                "difficulty": "easy",
+            },
+            {
+                "question_text": "Water boils at ___ degrees Celsius at sea level.",
+                "choices": [],
+                "correct_answers": ["100"],
+                "explanation": "At standard atmospheric pressure, water boils at 100°C.",
+                "difficulty": "easy",
+            },
+        ]
+    }
+)
 
 
-CANNED_TMC_RESPONSE = json.dumps({
-    "questions": [
-        {
-            "question_text": "Which sentence uses the past perfect tense correctly?",
-            "choices": [
-                "I had already eaten when she arrived.",
-                "I have already eaten when she arrived.",
-                "I eaten already when she arrived.",
-                "I already eat when she arrived.",
-            ],
-            "correct_answers": ["I had already eaten when she arrived."],
-            "explanation": "Past perfect uses 'had' + past participle to describe an action completed before another past action.",
-            "difficulty": "medium",
-        },
-    ]
-})
+CANNED_TMC_RESPONSE = json.dumps(
+    {
+        "questions": [
+            {
+                "question_text": "Which sentence uses the past perfect tense correctly?",
+                "choices": [
+                    "I had already eaten when she arrived.",
+                    "I have already eaten when she arrived.",
+                    "I eaten already when she arrived.",
+                    "I already eat when she arrived.",
+                ],
+                "correct_answers": ["I had already eaten when she arrived."],
+                "explanation": "Past perfect uses 'had' + past participle to describe an action completed before another past action.",
+                "difficulty": "medium",
+            },
+        ]
+    }
+)
 
 
-def _retrieved_fitb(doc_id: str, question_text: str = "He ___ to school.", correct: list[str] | None = None) -> RetrievedQuestion:
+def _retrieved_fitb(
+    doc_id: str, question_text: str = "He ___ to school.", correct: list[str] | None = None
+) -> RetrievedQuestion:
     return RetrievedQuestion(
         doc_id=doc_id,
         quiz_id="quiz-1",
@@ -499,10 +541,14 @@ def test_generator_accepts_fitb_and_returns_valid_questions() -> None:
     llm = MockClient(canned_response=CANNED_FITB_RESPONSE)
     gen = Generator(retriever=retriever, llm_client=llm)
 
-    quiz = gen.generate(GenerationRequest(
-        topic="past tense", language="en", count=2,
-        question_type="FILL_IN_THE_BLANKS",
-    ))
+    quiz = gen.generate(
+        GenerationRequest(
+            topic="past tense",
+            language="en",
+            count=2,
+            question_type="FILL_IN_THE_BLANKS",
+        )
+    )
     assert len(quiz.questions) == 2
     # Validation accepts empty choices for FITB
     for q in quiz.questions:
@@ -536,21 +582,33 @@ def test_generator_retries_after_validation_failure_and_succeeds() -> None:
     retriever = FakeRetriever(examples)
 
     # First response: correct_answer not in choices → validation fails
-    bad_response = json.dumps({"questions": [{
-        "question_text": "What is 2+2?",
-        "choices": ["a) 4", "b) 5", "c) 6"],
-        "correct_answers": ["a)"],     # ← bug: just the label, not in choices
-        "explanation": "Basic math.",
-        "difficulty": "easy",
-    }]})
+    bad_response = json.dumps(
+        {
+            "questions": [
+                {
+                    "question_text": "What is 2+2?",
+                    "choices": ["a) 4", "b) 5", "c) 6"],
+                    "correct_answers": ["a)"],  # ← bug: just the label, not in choices
+                    "explanation": "Basic math.",
+                    "difficulty": "easy",
+                }
+            ]
+        }
+    )
     # Second response: correct, full choice in correct_answers
-    good_response = json.dumps({"questions": [{
-        "question_text": "What is 2+2?",
-        "choices": ["a) 4", "b) 5", "c) 6"],
-        "correct_answers": ["a) 4"],
-        "explanation": "Basic math.",
-        "difficulty": "easy",
-    }]})
+    good_response = json.dumps(
+        {
+            "questions": [
+                {
+                    "question_text": "What is 2+2?",
+                    "choices": ["a) 4", "b) 5", "c) 6"],
+                    "correct_answers": ["a) 4"],
+                    "explanation": "Basic math.",
+                    "difficulty": "easy",
+                }
+            ]
+        }
+    )
 
     llm = _SequencedMockClient([bad_response, good_response])
     gen = Generator(retriever=retriever, llm_client=llm)
@@ -572,12 +630,18 @@ def test_generator_exhausts_retries_and_raises() -> None:
     retriever = FakeRetriever(examples)
 
     # All 3 responses bad — same broken format
-    bad = json.dumps({"questions": [{
-        "question_text": "X?",
-        "choices": ["a", "b", "c"],
-        "correct_answers": ["NotInChoices"],
-        "explanation": "...",
-    }]})
+    bad = json.dumps(
+        {
+            "questions": [
+                {
+                    "question_text": "X?",
+                    "choices": ["a", "b", "c"],
+                    "correct_answers": ["NotInChoices"],
+                    "explanation": "...",
+                }
+            ]
+        }
+    )
     llm = _SequencedMockClient([bad, bad, bad])
     gen = Generator(retriever=retriever, llm_client=llm)
 
@@ -623,19 +687,47 @@ def test_generator_retries_when_qwen_returns_wrong_count() -> None:
     retriever = FakeRetriever(examples)
 
     # First response: Qwen produced only 1 question even though we asked for 3
-    short_response = json.dumps({"questions": [{
-        "question_text": "Q1?",
-        "choices": ["A", "B", "C"],
-        "correct_answers": ["A"],
-        "explanation": "...",
-        "difficulty": "easy",
-    }]})
+    short_response = json.dumps(
+        {
+            "questions": [
+                {
+                    "question_text": "Q1?",
+                    "choices": ["A", "B", "C"],
+                    "correct_answers": ["A"],
+                    "explanation": "...",
+                    "difficulty": "easy",
+                }
+            ]
+        }
+    )
     # Second response: 3 questions
-    correct_response = json.dumps({"questions": [
-        {"question_text": "Q1?", "choices": ["A", "B", "C"], "correct_answers": ["A"], "explanation": "x", "difficulty": "easy"},
-        {"question_text": "Q2?", "choices": ["A", "B", "C"], "correct_answers": ["B"], "explanation": "x", "difficulty": "easy"},
-        {"question_text": "Q3?", "choices": ["A", "B", "C"], "correct_answers": ["C"], "explanation": "x", "difficulty": "easy"},
-    ]})
+    correct_response = json.dumps(
+        {
+            "questions": [
+                {
+                    "question_text": "Q1?",
+                    "choices": ["A", "B", "C"],
+                    "correct_answers": ["A"],
+                    "explanation": "x",
+                    "difficulty": "easy",
+                },
+                {
+                    "question_text": "Q2?",
+                    "choices": ["A", "B", "C"],
+                    "correct_answers": ["B"],
+                    "explanation": "x",
+                    "difficulty": "easy",
+                },
+                {
+                    "question_text": "Q3?",
+                    "choices": ["A", "B", "C"],
+                    "correct_answers": ["C"],
+                    "explanation": "x",
+                    "difficulty": "easy",
+                },
+            ]
+        }
+    )
 
     llm = _SequencedMockClient([short_response, correct_response])
     gen = Generator(retriever=retriever, llm_client=llm)
@@ -672,15 +764,20 @@ def test_generator_handles_long_phrase_choices_in_mcq() -> None:
     retriever = FakeRetriever(examples)
     # The canned response uses full-sentence choices (former TMC style)
     long_phrase_mcq = CANNED_TMC_RESPONSE.replace(
-        '"correct_answers"', '"correct_answers"'  # no-op, just reuses the canned data
+        '"correct_answers"',
+        '"correct_answers"',  # no-op, just reuses the canned data
     )
     llm = MockClient(canned_response=long_phrase_mcq)
     gen = Generator(retriever=retriever, llm_client=llm)
 
-    quiz = gen.generate(GenerationRequest(
-        topic="past perfect tense", language="en", count=1,
-        question_type="MULTIPLE_CHOICE",
-    ))
+    quiz = gen.generate(
+        GenerationRequest(
+            topic="past perfect tense",
+            language="en",
+            count=1,
+            question_type="MULTIPLE_CHOICE",
+        )
+    )
     assert len(quiz.questions) == 1
     q = quiz.questions[0]
     assert q.question_type == "MULTIPLE_CHOICE"
@@ -693,10 +790,10 @@ def test_generator_handles_long_phrase_choices_in_mcq() -> None:
 # ---------------------------------------------------------------------------
 
 
-
 # ---------------------------------------------------------------------------
 # LLM client timeouts
 # ---------------------------------------------------------------------------
+
 
 def test_resolve_timeout_defaults_and_env_override() -> None:
     """Without a timeout a hung provider pins a worker thread — and the retry
@@ -708,18 +805,18 @@ def test_resolve_timeout_defaults_and_env_override() -> None:
     previous = _os.environ.pop("LLM_TIMEOUT_SECONDS", None)
     try:
         assert resolve_timeout() == DEFAULT_TIMEOUT_SECONDS
-        assert resolve_timeout(5.0) == 5.0            # explicit wins
+        assert resolve_timeout(5.0) == 5.0  # explicit wins
 
         _os.environ["LLM_TIMEOUT_SECONDS"] = "12.5"
         assert resolve_timeout() == 12.5
 
-        _os.environ["LLM_TIMEOUT_SECONDS"] = "0"      # 0 disables
+        _os.environ["LLM_TIMEOUT_SECONDS"] = "0"  # 0 disables
         assert resolve_timeout() == 0.0
 
         _os.environ["LLM_TIMEOUT_SECONDS"] = "not-a-number"
-        assert resolve_timeout() == DEFAULT_TIMEOUT_SECONDS   # falls back, no crash
+        assert resolve_timeout() == DEFAULT_TIMEOUT_SECONDS  # falls back, no crash
 
-        _os.environ["LLM_TIMEOUT_SECONDS"] = "-30"    # clamped, never negative
+        _os.environ["LLM_TIMEOUT_SECONDS"] = "-30"  # clamped, never negative
         assert resolve_timeout() == 0.0
     finally:
         _os.environ.pop("LLM_TIMEOUT_SECONDS", None)
@@ -732,14 +829,15 @@ def test_llm_clients_reuse_their_sdk_client() -> None:
     from src.generation.llm_client import GeminiClient
 
     client = GeminiClient(model="gemini-2.5-flash", api_key="fake-key")
-    assert client._client is None                 # nothing built until first use
+    assert client._client is None  # nothing built until first use
     sentinel = object()
     client._client = sentinel
-    assert client._get_client() is sentinel       # reused, not rebuilt
+    assert client._get_client() is sentinel  # reused, not rebuilt
 
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     passed = 0
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):

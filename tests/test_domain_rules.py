@@ -108,8 +108,40 @@ def test_unknown_subject_falls_through() -> None:
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):
         if name.startswith("test_"):
             fn()
     print("All domain_rules tests passed.")
+
+
+# ---------------------------------------------------------------------------
+# Null subjects at the trust boundary
+# ---------------------------------------------------------------------------
+# normalize_row hands these functions the output of a bare json.loads on a
+# line of the interim JSONL, with no FlatQuestion re-validation in between,
+# so element types are not guaranteed here. The None guard is live defence.
+# It was previously annotated `list[str]`, which made mypy call the guard
+# unreachable and would have justified deleting it.
+
+
+def test_apply_subject_language_rule_skips_null_subjects() -> None:
+    """A null must be stepped over, not turned into the primary subject.
+
+    Deleting the guard would make str(None) -> "NONE" the primary subject,
+    which matches no rule, so the real ENGLISH subject behind it would never
+    be consulted.
+    """
+    lang, rule = apply_subject_language_rule(
+        subjects=[None, "ENGLISH"],
+        detected_language="fr",
+    )
+    assert lang == "en"
+    assert rule != "none"
+
+
+def test_apply_subject_language_rule_all_null_subjects_is_a_no_op() -> None:
+    lang, rule = apply_subject_language_rule(subjects=[None, None], detected_language="fr")
+    assert lang == "fr"
+    assert rule == "none"

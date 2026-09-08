@@ -59,7 +59,9 @@ def main() -> None:
         # Minimal retriever init just to access taxonomy
         retriever = Retriever(config_path=args.config, ready_jsonl_path=args.ready)
         print(f"Languages ({len(retriever.list_languages())}): {retriever.list_languages()}")
-        print(f"Question types ({len(retriever.list_question_types())}): {retriever.list_question_types()}")
+        print(
+            f"Question types ({len(retriever.list_question_types())}): {retriever.list_question_types()}"
+        )
         print(f"Subjects ({len(retriever.list_subjects())}):")
         for s in retriever.list_subjects():
             print(f"  {s}")
@@ -123,7 +125,9 @@ def main() -> None:
         print(f"\n[{i}]  doc_id={r.doc_id[:40]}")
         print(f"     distance   = {r.distance:+.4f}")
         print(f"     quiz_title : {r.quiz_title}")
-        print(f"     subjects   : {r.subjects}   levels[:2]: {r.levels[:2]}{'...' if len(r.levels) > 2 else ''}")
+        print(
+            f"     subjects   : {r.subjects}   levels[:2]: {r.levels[:2]}{'...' if len(r.levels) > 2 else ''}"
+        )
         print(f"     author     : {r.author_name}")
         print(r.to_prompt_block(include_answers=include_answers))
 

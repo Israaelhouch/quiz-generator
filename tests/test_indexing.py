@@ -17,9 +17,6 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.indexing.taxonomy import SCHOOL_LEVEL_PREFIXES, Taxonomy
-from src.indexing.vector_store import build_ids, row_to_metadata
-
 # ---------------------------------------------------------------------------
 # Log capture
 # ---------------------------------------------------------------------------
@@ -27,9 +24,11 @@ from src.indexing.vector_store import build_ids, row_to_metadata
 # module dedupes by (message, category, module, lineno) per process, so in a
 # long-running server each of these fired ONCE and was then silent forever —
 # exactly backwards for an operational signal. Tests assert on log records now.
-
 import contextlib as _contextlib
 import logging as _logging
+
+from src.indexing.taxonomy import SCHOOL_LEVEL_PREFIXES, Taxonomy
+from src.indexing.vector_store import build_ids, row_to_metadata
 
 
 @_contextlib.contextmanager
@@ -51,8 +50,6 @@ def _capture_logs(logger_name: str, level: int = _logging.WARNING):
     finally:
         target.removeHandler(handler)
         target.setLevel(previous_level)
-
-
 
 
 SCALAR_FIELDS = [
@@ -168,12 +165,12 @@ def test_row_to_metadata_boolean_expansion_skips_empty_values() -> None:
 def test_row_to_metadata_drops_none_and_empty_strings() -> None:
     row = {
         "quiz_id": "q1",
-        "quiz_title": "",          # empty string -> dropped
+        "quiz_title": "",  # empty string -> dropped
         "language": "fr",
-        "question_type": None,      # None -> dropped
-        "points": None,             # None -> dropped
-        "time": 0,                  # 0 is a valid scalar, kept
-        "author_name": "   ",       # whitespace -> dropped
+        "question_type": None,  # None -> dropped
+        "points": None,  # None -> dropped
+        "time": 0,  # 0 is a valid scalar, kept
+        "author_name": "   ",  # whitespace -> dropped
         "subjects": [],
         "levels": [],
     }
@@ -215,6 +212,7 @@ def test_build_ids_fallback_for_missing_doc_id() -> None:
 # Taxonomy
 # ---------------------------------------------------------------------------
 
+
 def test_taxonomy_from_rows_collects_all_distinct_values() -> None:
     rows = [
         {"language": "en", "question_type": "MCQ", "subjects": ["SCIENCE"], "levels": ["L1"]},
@@ -255,8 +253,8 @@ def test_taxonomy_to_dict_returns_sorted_lists() -> None:
 def test_taxonomy_validate_level_warns_on_unknown() -> None:
     tax = Taxonomy(levels={"HIGH_SCHOOL_4TH_GRADE_MATH"})
     with _capture_logs("src.indexing.taxonomy") as records:
-        assert tax.validate_level("HIGH_SCHOOL_4TH_GRAD_MATH") is False   # typo
-        assert tax.validate_level("HIGH_SCHOOL_4TH_GRADE_MATH") is True   # exact
+        assert tax.validate_level("HIGH_SCHOOL_4TH_GRAD_MATH") is False  # typo
+        assert tax.validate_level("HIGH_SCHOOL_4TH_GRADE_MATH") is True  # exact
     # Only the typo call produced a signal.
     messages = [rec.getMessage() for rec in records]
     assert len(messages) == 1, messages
@@ -300,19 +298,22 @@ def test_taxonomy_list_methods() -> None:
 # values — /taxonomy feeds the platform's dropdowns, and picking a phantom
 # level yields an empty retrieval and an HTTP 502.
 
+
 def test_taxonomy_from_rows_filters_out_of_scope_secondary_levels() -> None:
-    rows = [{
-        "language": "ar",
-        "question_type": "MULTIPLE_CHOICE",
-        "subjects": ["ARABIC"],
-        # levels[0] is in scope, so scope.decide_in_scope kept this row
-        "levels": [
-            "HIGH_SCHOOL_1ST_GRADE",
-            "LICENCE_1ST_GRADE",       # out of scope
-            "PREPARATORY_1ST_MP",      # out of scope
-            "MIDDLE_SCHOOL_2ND_GRADE", # in scope
-        ],
-    }]
+    rows = [
+        {
+            "language": "ar",
+            "question_type": "MULTIPLE_CHOICE",
+            "subjects": ["ARABIC"],
+            # levels[0] is in scope, so scope.decide_in_scope kept this row
+            "levels": [
+                "HIGH_SCHOOL_1ST_GRADE",
+                "LICENCE_1ST_GRADE",  # out of scope
+                "PREPARATORY_1ST_MP",  # out of scope
+                "MIDDLE_SCHOOL_2ND_GRADE",  # in scope
+            ],
+        }
+    ]
     tax = Taxonomy.from_rows(rows, level_prefixes=SCHOOL_LEVEL_PREFIXES)
     assert tax.levels == {"HIGH_SCHOOL_1ST_GRADE", "MIDDLE_SCHOOL_2ND_GRADE"}
     # Non-level fields are untouched by the filter
@@ -366,11 +367,18 @@ def test_taxonomy_from_build_summary_filters_on_load() -> None:
 def test_taxonomy_rejects_every_known_phantom_level() -> None:
     """The exact 12 values that leaked into the live /taxonomy response."""
     phantom = [
-        "LICENCE_1ST_GRADE", "LICENCE_2ND_GRADE", "LICENCE_3RD_GRADE",
-        "PREPARATORY_1ST_BG", "PREPARATORY_1ST_MP", "PREPARATORY_1ST_MPI",
-        "PREPARATORY_1ST_PC", "PREPARATORY_1ST_TECHNO",
-        "PREPARATORY_2ND_BG", "PREPARATORY_2ND_MP",
-        "PREPARATORY_2ND_PC", "PREPARATORY_2ND_TECHNO",
+        "LICENCE_1ST_GRADE",
+        "LICENCE_2ND_GRADE",
+        "LICENCE_3RD_GRADE",
+        "PREPARATORY_1ST_BG",
+        "PREPARATORY_1ST_MP",
+        "PREPARATORY_1ST_MPI",
+        "PREPARATORY_1ST_PC",
+        "PREPARATORY_1ST_TECHNO",
+        "PREPARATORY_2ND_BG",
+        "PREPARATORY_2ND_MP",
+        "PREPARATORY_2ND_PC",
+        "PREPARATORY_2ND_TECHNO",
     ]
     rows = [{"language": "ar", "subjects": [], "levels": ["HIGH_SCHOOL_1ST_GRADE"] + phantom}]
     tax = Taxonomy.from_rows(rows, level_prefixes=SCHOOL_LEVEL_PREFIXES)
@@ -379,6 +387,7 @@ def test_taxonomy_rejects_every_known_phantom_level() -> None:
 
 if __name__ == "__main__":
     import inspect
+
     mod = sys.modules[__name__]
     for name, fn in sorted(inspect.getmembers(mod, inspect.isfunction)):
         if name.startswith("test_"):

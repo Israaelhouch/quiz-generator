@@ -34,11 +34,20 @@ just the quiz and mirrors the rest onto `self.last_retrieval` /
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Type-check-only: these are the Literal aliases GenerationRequest
+    # validates against. Importing them at runtime would pull generation's
+    # module graph into orchestrator import time, which the lazy import
+    # inside generate_detailed deliberately avoids. `from __future__ import
+    # annotations` makes the signature below a string, so this is enough.
+    from src.generation.schemas import SUPPORTED_LANGUAGES, SUPPORTED_QUESTION_TYPES
+
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +60,8 @@ class GenerationResult:
     other's data.
     """
 
-    quiz: Any                                  # GeneratedQuiz
-    retrieval: list[Any] = field(default_factory=list)   # list[RetrievedQuestion]
+    quiz: Any  # GeneratedQuiz
+    retrieval: list[Any] = field(default_factory=list)  # list[RetrievedQuestion]
     timings: dict[str, Any] = field(default_factory=dict)
 
 
@@ -73,8 +82,8 @@ class QuizPipeline:
         _retriever: Any | None = None,
         _llm_client: Any | None = None,
     ) -> None:
-        from src.indexing.config import load_models_config
         from src.generation.generator import Generator
+        from src.indexing.config import load_models_config
 
         self.config_path = config_path
         self.ready_jsonl_path = ready_jsonl_path
@@ -86,6 +95,7 @@ class QuizPipeline:
             self.retriever = _retriever
         else:
             from src.retrieval.retriever import Retriever
+
             self.retriever = Retriever(
                 config_path=config_path,
                 ready_jsonl_path=ready_jsonl_path,
@@ -119,15 +129,19 @@ class QuizPipeline:
         provider = llm_cfg.provider
         if provider == "ollama":
             import os
+
             from src.generation.llm_client import OllamaClient
+
             host = os.environ.get("OLLAMA_HOST") or llm_cfg.host
             return OllamaClient(model=llm_cfg.model, host=host)
         if provider == "groq":
             from src.generation.llm_client import GroqClient
+
             # GROQ_API_KEY is read from the environment by GroqClient itself.
             return GroqClient(model=llm_cfg.model)
         if provider == "gemini":
             from src.generation.llm_client import GeminiClient
+
             # GEMINI_API_KEY is read from the environment by GeminiClient itself.
             return GeminiClient(model=llm_cfg.model)
         raise ValueError(
@@ -143,9 +157,9 @@ class QuizPipeline:
         self,
         *,
         topic: str,
-        language: str,
+        language: SUPPORTED_LANGUAGES,
         count: int = 5,
-        question_type: str = "MULTIPLE_CHOICE",
+        question_type: SUPPORTED_QUESTION_TYPES = "MULTIPLE_CHOICE",
         subject: str | None = None,
         school_phase: str | None = None,
         levels: list[str] | None = None,
@@ -187,7 +201,8 @@ class QuizPipeline:
                     "Multiple levels passed (%s); forwarding only the first "
                     "(%r) to GenerationRequest. The retriever still filters "
                     "on the full list internally.",
-                    levels, levels[0],
+                    levels,
+                    levels[0],
                 )
             first_level = levels[0]
 
@@ -205,12 +220,20 @@ class QuizPipeline:
         # Per-stage timing — returned on the result so callers (API server,
         # CLI) can log structured timings without re-instrumenting.
         import time as _time
+
         t_total_start = _time.perf_counter()
         logger.info(
             "generate start  topic=%r language=%s count=%d question_type=%s "
             "subject=%s school_phase=%s levels=%s few_shot=%d max_distance=%s",
-            topic, language, count, question_type, subject, school_phase,
-            levels, few_shot_count, max_distance,
+            topic,
+            language,
+            count,
+            question_type,
+            subject,
+            school_phase,
+            levels,
+            few_shot_count,
+            max_distance,
         )
 
         # Retrieve ONCE here. Two benefits:
@@ -235,7 +258,10 @@ class QuizPipeline:
         t_retrieve = _time.perf_counter() - t_retrieve_start
         logger.info(
             "retrieve done   %d examples in %.3fs (top_k=%d, threshold=%s)",
-            len(examples), t_retrieve, few_shot_count, max_distance,
+            len(examples),
+            t_retrieve,
+            few_shot_count,
+            max_distance,
         )
         retrieval = list(examples)
 
@@ -247,35 +273,44 @@ class QuizPipeline:
                 "levels=%r. Generation will proceed with what's available. "
                 "Consider broadening filters or rephrasing the topic for "
                 "richer few-shot context.",
-                few_shot_count, len(retrieval), topic, language, subject, levels,
+                few_shot_count,
+                len(retrieval),
+                topic,
+                language,
+                subject,
+                levels,
             )
 
         logger.info(
-            "llm call start  provider=%s model=%s temperature=%.2f "
-            "max_attempts=%d count=%d",
-            self.llm_config.provider, self.llm_config.model, temperature,
-            max_attempts, count,
+            "llm call start  provider=%s model=%s temperature=%.2f max_attempts=%d count=%d",
+            self.llm_config.provider,
+            self.llm_config.model,
+            temperature,
+            max_attempts,
+            count,
         )
         t_generate_start = _time.perf_counter()
-        quiz = self.generator.generate_with_examples(
-            request, retrieval, max_attempts=max_attempts
-        )
+        quiz = self.generator.generate_with_examples(request, retrieval, max_attempts=max_attempts)
         t_generate = _time.perf_counter() - t_generate_start
         n_questions = len(quiz.questions) if hasattr(quiz, "questions") else 0
         logger.info(
-            "llm call done   %d questions in %.3fs", n_questions, t_generate,
+            "llm call done   %d questions in %.3fs",
+            n_questions,
+            t_generate,
         )
 
         t_total = _time.perf_counter() - t_total_start
         timings = {
             "retrieve_seconds": round(t_retrieve, 3),
             "generate_seconds": round(t_generate, 3),
-            "total_seconds":    round(t_total, 3),
-            "n_examples_used":  len(retrieval),
+            "total_seconds": round(t_total, 3),
+            "n_examples_used": len(retrieval),
         }
         logger.info(
             "generate done   total=%.3fs (retrieve=%.3fs llm=%.3fs)",
-            t_total, t_retrieve, t_generate,
+            t_total,
+            t_retrieve,
+            t_generate,
         )
         return GenerationResult(quiz=quiz, retrieval=retrieval, timings=timings)
 

@@ -11,7 +11,6 @@ from typing import Any
 
 import yaml
 
-
 # Defaults are set here so a partial YAML file still loads cleanly.
 DEFAULT_METADATA_SCALARS = [
     "quiz_id",
@@ -27,7 +26,7 @@ DEFAULT_METADATA_SCALARS = [
 DEFAULT_METADATA_LISTS = ["subjects", "levels"]
 
 
-def load_models_config(config_path: Path) -> "ModelsConfig":
+def load_models_config(config_path: Path) -> ModelsConfig:
     """Load + validate `configs/models.yaml`. Returns a typed config object."""
     # Lazy Pydantic import so tests on the pure helpers run without it.
     from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -72,7 +71,9 @@ def load_models_config(config_path: Path) -> "ModelsConfig":
     class IndexingConfig(BaseModel):
         model_config = ConfigDict(extra="forbid")
         embedding_text_column: str = "search_text"
-        metadata_scalar_fields: list[str] = Field(default_factory=lambda: list(DEFAULT_METADATA_SCALARS))
+        metadata_scalar_fields: list[str] = Field(
+            default_factory=lambda: list(DEFAULT_METADATA_SCALARS)
+        )
         metadata_list_fields_as_json: list[str] = Field(default_factory=list)
         metadata_list_fields_as_booleans: list[str] = Field(default_factory=lambda: ["levels"])
         smoke_test: SmokeTestConfig = Field(default_factory=SmokeTestConfig)
@@ -93,10 +94,11 @@ def load_models_config(config_path: Path) -> "ModelsConfig":
           - 'groq'   — Groq hosted API (requires GROQ_API_KEY env var)
           - 'gemini' — Google Gemini (requires GEMINI_API_KEY env var)
         """
+
         model_config = ConfigDict(extra="forbid")
         provider: str = "ollama"
         model: str = "qwen2.5:7b"
-        host: str | None = None        # only used by Ollama provider
+        host: str | None = None  # only used by Ollama provider
         default_temperature: float = Field(default=0.75, ge=0.0, le=2.0)
         max_attempts: int = Field(default=3, ge=1, le=10)
         # Ceiling on examples passed to the LLM (after distance filter applies).
@@ -110,9 +112,7 @@ def load_models_config(config_path: Path) -> "ModelsConfig":
         def _check_provider(cls, v: str) -> str:
             allowed = {"ollama", "groq", "gemini"}
             if v not in allowed:
-                raise ValueError(
-                    f"Provider must be one of {sorted(allowed)}, got {v!r}"
-                )
+                raise ValueError(f"Provider must be one of {sorted(allowed)}, got {v!r}")
             return v
 
     class ModelsConfig(BaseModel):

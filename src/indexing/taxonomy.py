@@ -26,7 +26,6 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -76,7 +75,7 @@ class Taxonomy:
         rows: list[dict],
         *,
         level_prefixes: tuple[str, ...] | None = None,
-    ) -> "Taxonomy":
+    ) -> Taxonomy:
         """Scan a corpus and collect every distinct enum value observed.
 
         Args:
@@ -123,7 +122,7 @@ class Taxonomy:
         summary_path: Path,
         *,
         level_prefixes: tuple[str, ...] | None = None,
-    ) -> "Taxonomy":
+    ) -> Taxonomy:
         """Load from build_summary.json. Returns an empty taxonomy if file missing.
 
         `level_prefixes` is applied on load as well as at build time, so an
@@ -189,7 +188,8 @@ class Taxonomy:
         if language not in self.languages:
             logger.warning(
                 "language=%r not in known taxonomy. Known: %s",
-                language, sorted(self.languages),
+                language,
+                sorted(self.languages),
             )
             return False
         return True
@@ -200,7 +200,8 @@ class Taxonomy:
         if question_type not in self.question_types:
             logger.warning(
                 "question_type=%r not in known taxonomy. Known: %s",
-                question_type, sorted(self.question_types),
+                question_type,
+                sorted(self.question_types),
             )
             return False
         return True
@@ -211,7 +212,8 @@ class Taxonomy:
         if subject not in self.subjects:
             logger.warning(
                 "subject=%r not in known taxonomy. Known subjects: %s",
-                subject, sorted(self.subjects),
+                subject,
+                sorted(self.subjects),
             )
             return False
         return True
@@ -224,7 +226,8 @@ class Taxonomy:
             hint = sorted(self.levels)[:5]
             logger.warning(
                 "level=%r not in known taxonomy. Example known levels: %s",
-                level, hint,
+                level,
+                hint,
             )
             return False
         return True

@@ -10,12 +10,12 @@ in config (models.yaml), not hardcoded here.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 
 @dataclass
 class EmbeddingModelConfig:
     """Plain dataclass so we don't force Pydantic on the embedding layer."""
+
     name: str
     embedding_dim: int
     batch_size: int = 16
@@ -51,13 +51,16 @@ class EmbeddingModel:
 
     def __init__(self, config: EmbeddingModelConfig) -> None:
         import logging
+
         from sentence_transformers import SentenceTransformer  # heavy import
 
         self.config = config
         self.device = _resolve_device(config.device)
         logging.getLogger(__name__).info(
             "EmbeddingModel loading model=%r on device=%s (requested %r)",
-            config.name, self.device, config.device,
+            config.name,
+            self.device,
+            config.device,
         )
         self._model = SentenceTransformer(config.name, device=self.device)
 

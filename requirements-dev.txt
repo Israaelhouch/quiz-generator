@@ -1,0 +1,34 @@
+# requirements-dev.txt — what the quality gate needs, and nothing else.
+#
+# The unit suite mocks every heavy adapter (vector store, embedder, reranker,
+# LLM clients), so all 267 tests, ruff and mypy run without torch, CUDA,
+# chromadb or sentence-transformers. Verified: the full suite passes on
+# exactly this list. That keeps CI at seconds instead of a multi-GB install.
+#
+# Runtime dependencies are pinned in requirements.lock.txt — that is what
+# `make setup` and the Docker image install. This file is the CI gate only.
+#
+# Every package that also appears in requirements.lock.txt is pinned to the
+# SAME version here. CI must exercise the versions production ships; when
+# these drifted apart, CI installed fastapi 0.121.2 and pulled a starlette
+# with a known advisory that the locked fastapi 0.141.1 does not have.
+
+# Test runner
+pytest==9.1.1
+pytest-cov==7.0.0
+
+# Quality gates
+ruff==0.16.6
+mypy==2.3.1
+
+# Security scan
+pip-audit==2.10.1
+
+# Imported directly by src/ under test
+pydantic==2.13.4
+fastapi==0.141.1
+httpx==0.28.1          # fastapi.testclient
+pyyaml==6.0.3
+pylatexenc==2.11
+langdetect==1.0.9
+numpy==2.4.6

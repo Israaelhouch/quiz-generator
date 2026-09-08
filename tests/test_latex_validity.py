@@ -14,7 +14,6 @@ if str(ROOT) not in sys.path:
 
 from src.generation.latex_validity import check_latex_validity
 
-
 # ---------------------------------------------------------------------------
 # Valid cases — common patterns the LLM produces correctly
 # ---------------------------------------------------------------------------
