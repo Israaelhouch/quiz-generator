@@ -8,9 +8,16 @@
 name: CI
 
 on:
+  # Every branch, not just main. On a solo project most work happens on a
+  # branch that may never get a pull request, and a gate that only runs at
+  # merge time is a gate that tells you too late.
   push:
-    branches: [main]
   pull_request:
+    # `synchronize` is deliberately absent. Pushing to the branch behind an
+    # open PR already fires the push event above, and GitHub attaches those
+    # checks to the PR because they run against the same commit. Including
+    # synchronize here would run the whole gate twice for every such commit.
+    types: [opened, reopened]
   workflow_dispatch:
 
 permissions:
