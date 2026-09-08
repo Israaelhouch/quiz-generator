@@ -182,3 +182,33 @@ if __name__ == "__main__":
     test_multiple_subjects_any_violation_drops_the_row()
     test_multiple_subjects_no_rules_apply_means_compliant()
     print("All curriculum_rules tests passed.")
+
+
+# ---------------------------------------------------------------------------
+# Null subjects at the trust boundary — see the note in test_domain_rules.py
+# ---------------------------------------------------------------------------
+
+
+def test_check_compliance_skips_null_subjects_and_still_sees_the_real_one() -> None:
+    """A null ahead of a real subject must not mask that subject's rule.
+
+    This passes with or without the explicit None guard — a null stringifies
+    to "NONE" and falls through the same branch. It pins the behaviour rather
+    than the implementation, which is the point: the guard may be removed, the
+    result may not change.
+    """
+    compliant, reason = check_compliance(
+        subjects=[None, "MATHEMATICS"],
+        school_phase="PRIMARY",
+        language="en",
+    )
+    assert compliant is False
+    assert "MATHEMATICS" in reason
+
+
+def test_check_compliance_all_null_subjects_is_compliant() -> None:
+    compliant, reason = check_compliance(
+        subjects=[None], school_phase="PRIMARY", language="en"
+    )
+    assert compliant is True
+    assert reason == ""

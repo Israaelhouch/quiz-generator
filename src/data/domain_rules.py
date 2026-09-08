@@ -19,6 +19,8 @@ codebase with a different educational system, redefine these mappings.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 
 # Subjects whose content language is fixed by the subject itself.
 # Locking one of these overrides any detector or raw label disagreement.
@@ -43,7 +45,7 @@ SUBJECTS_NO_ENGLISH: frozenset[str] = frozenset({
 
 
 def apply_subject_language_rule(
-    subjects: list[str] | None,
+    subjects: Sequence[str | None] | None,
     detected_language: str | None,
     text_sample: str | None = None,
 ) -> tuple[str | None, str]:
@@ -59,6 +61,16 @@ def apply_subject_language_rule(
       is "en", override: use "ar" if text contains Arabic script, else "fr"
       (French is the Tunisian default for scientific content).
     - Otherwise keep the detected_language as-is.
+
+    `subjects` is typed as a Sequence of `str | None` on purpose. Callers
+    reach this via normalize_row, which is handed the result of a bare
+    json.loads on a line of the interim JSONL and never re-validates it
+    against FlatQuestion — so nothing between the file and this function
+    guarantees the element types. Through the normal pipeline a null subject
+    cannot get this far (ingest validates RawQuiz, whose `subjects: list[str]`
+    rejects it, and drops the whole quiz as "quiz_validation_failed"), but
+    normalize is a CLI stage that accepts any --input. The None guard below
+    is live defence, not dead code; the annotation used to claim otherwise.
     """
     if not subjects:
         return detected_language, "none"

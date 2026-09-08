@@ -23,6 +23,8 @@ violations show up in the normalize stats audit.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 
 # Map (subject_upper, school_phase) → set of acceptable language codes.
 #
@@ -48,7 +50,7 @@ EXPECTED_LANGUAGES: dict[tuple[str, str], frozenset[str]] = {
 
 
 def check_compliance(
-    subjects: list[str] | None,
+    subjects: Sequence[str | None] | None,
     school_phase: str | None,
     language: str | None,
 ) -> tuple[bool, str]:
@@ -70,6 +72,22 @@ def check_compliance(
       - Multiple subjects: if any subject has a rule and that rule is
         violated, the row is dropped. The first violating subject wins
         the reason string (deterministic, depends on input order).
+
+    `subjects` is typed as a Sequence of `str | None` on purpose. Callers
+    reach this via normalize_row, which is handed the result of a bare
+    json.loads on a line of the interim JSONL and never re-validates it
+    against FlatQuestion — so nothing between the file and this function
+    guarantees the element types. Through the normal pipeline a null subject
+    cannot get this far (ingest validates RawQuiz, whose `subjects: list[str]`
+    rejects it, and drops the whole quiz as "quiz_validation_failed"), but
+    normalize is a CLI stage that accepts any --input.
+
+    The None guard below is belt-and-braces here specifically: a null would
+    stringify to "NONE", match no key in EXPECTED_LANGUAGES, and be skipped by
+    the next branch anyway. It is kept for symmetry with the guard in
+    domain_rules.apply_subject_language_rule, where deleting it genuinely
+    changes the result — there a null becomes the primary subject and masks
+    the real one behind it.
     """
     if not subjects or school_phase is None:
         return True, ""
