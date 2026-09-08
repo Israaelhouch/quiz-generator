@@ -34,8 +34,14 @@ warn() { printf '  \033[33m!\033[0m %s\n' "$*"; }
 die()  { printf '  \033[31m✗\033[0m %s\n' "$*"; exit 1; }
 
 RAW=data/raw/quizzes-raw-data.json
-FLAT=data/interim/flat.jsonl
-NORM=data/interim/normalized.jsonl
+# These MUST match the --output defaults in src/data/ingest.py and
+# src/data/normalize.py, because the stages below are invoked without
+# --output and therefore write to those defaults. They previously read
+# flat.jsonl / normalized.jsonl — files nothing creates — so the "skip if
+# already built" test below was always true and both stages re-ran every
+# time, contradicting the idempotence this script promises at the top.
+FLAT=data/interim/flat_phase1.jsonl
+NORM=data/interim/normalized_phase1.jsonl
 READY=data/processed/ready_phase1.jsonl
 CHROMA=data/vector_store/chroma_db_phase1
 SUMMARY=data/vector_store/build_summary.json
