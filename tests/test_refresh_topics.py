@@ -23,10 +23,15 @@ if str(ROOT) not in sys.path:
 from scripts.eval import refresh_topics
 from scripts.eval.refresh_topics import (
     COLUMNS,
+    AliasProposal,
     CsvFormat,
+    dump_aliases,
+    load_aliases,
+    propose_safe_aliases,
     read_topics_csv,
     refresh_cell,
     render_topics_csv,
+    safe_title_key,
     topic_stats,
 )
 from scripts.eval.validate_test_cases import (
@@ -262,3 +267,113 @@ def test_main_write_updates_csv_and_keeps_backup_as_csv(
     backups = list(tmp_path.glob("topics_english.backup-*.csv"))
     assert len(backups) == 1, "backup must end in .csv so eval/*.csv keeps it out of git"
     assert backups[0].read_bytes() == before
+
+
+# ---------------------------------------------------------------------------
+# safe_title_key — what the automatic rule may and may not treat as one title
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("a", "b"),
+    [
+        ("Subject Pronouns", "Subject pronouns"),
+        ("The Simple Present", "simple present"),
+        ("Verb To Be", "Verb to be."),
+        ("There is / There are", "There is/There are"),
+        ("Addition & Opposition", "Addition and Opposition"),
+    ],
+)
+def test_safe_title_key_superficial_differences_share_a_key(a: str, b: str) -> None:
+    assert safe_title_key(a, "en") == safe_title_key(b, "en")
+
+
+@pytest.mark.parametrize(
+    ("a", "b"),
+    [
+        ("Greeting", "Greetings"),
+        ("At the restaurant (1)", "At the restaurant (2)"),
+        ("Object Pronouns", "Subject Pronouns"),
+        ("The + adjective", "Adjective"),
+    ],
+)
+def test_safe_title_key_judgement_calls_keep_distinct_keys(a: str, b: str) -> None:
+    assert safe_title_key(a, "en") != safe_title_key(b, "en")
+
+
+def test_safe_title_key_keeps_arabic_vowel_marks() -> None:
+    assert safe_title_key("صِيَغُ الأفعَالِ", "ar") == "صِيَغُ الأفعَالِ"
+
+
+def test_safe_title_key_strips_articles_only_for_english() -> None:
+    assert safe_title_key("The Plan", "fr") == "the plan"
+
+
+# ---------------------------------------------------------------------------
+# propose_safe_aliases and applying aliases
+# ---------------------------------------------------------------------------
+
+
+def test_propose_safe_aliases_merges_variant_into_its_only_owner() -> None:
+    idx, _full = _index([_row("q1__q0", "The Simple Present"), _row("q2__q0", "simple present")])
+    proposal = propose_safe_aliases(EN, [_csv_row("The Simple Present", "q1__q0")], idx)
+    assert proposal.aliases == {"simple present": "The Simple Present"}
+    assert proposal.conflicts == []
+
+
+def test_propose_safe_aliases_reports_conflict_instead_of_merging() -> None:
+    idx, _full = _index([_row("q1__q0", "Pets"), _row("q2__q0", "pets"), _row("q3__q0", "PETS")])
+    rows = [_csv_row("Pets", "q1__q0"), _csv_row("pets", "q2__q0")]
+    proposal = propose_safe_aliases(EN, rows, idx)
+    assert proposal.aliases == {}
+    assert proposal.conflicts == [(["Pets", "pets"], ["PETS", "Pets", "pets"])]
+
+
+def test_propose_safe_aliases_ignores_groups_outside_the_eval() -> None:
+    idx, _full = _index(
+        [_row("q1__q0", "Pets"), _row("q2__q0", "Numbers"), _row("q3__q0", "numbers")]
+    )
+    assert propose_safe_aliases(EN, [_csv_row("Pets", "q1__q0")], idx).aliases == {}
+
+
+def test_refresh_cell_with_alias_adds_variant_docs_and_keeps_topic_name() -> None:
+    idx, full = _index([_row("q1__q0", "The Simple Present"), _row("q2__q0", "simple present")])
+    result = refresh_cell(
+        EN,
+        [_csv_row("The Simple Present", "q1__q0")],
+        idx,
+        full,
+        {"simple present": "The Simple Present"},
+    )
+    assert result.rows[0]["quiz_title"] == "The Simple Present"
+    assert result.rows[0]["doc_ids"] == "q1__q0,q2__q0"
+    topics = {EN: {r["quiz_title"]: set(r["doc_ids"].split(",")) for r in result.rows}}
+    assert not check_ground_truth_against_index(topics, idx).has_problems
+
+
+def test_refresh_cell_alias_to_unknown_topic_raises() -> None:
+    idx, full = _index([_row("q1__q0", "Pets"), _row("q2__q0", "pets")])
+    with pytest.raises(ValueError, match="unknown topic"):
+        refresh_cell(EN, [_csv_row("Pets", "q1__q0")], idx, full, {"pets": "Animals"})
+
+
+def test_refresh_cell_alias_for_title_owned_by_another_topic_raises() -> None:
+    idx, full = _index([_row("q1__q0", "Pets"), _row("q2__q0", "Animals")])
+    rows = [_csv_row("Pets", "q1__q0"), _csv_row("Animals", "q2__q0")]
+    with pytest.raises(ValueError, match="already own"):
+        refresh_cell(EN, rows, idx, full, {"Animals": "Pets"})
+
+
+def test_aliases_yaml_round_trips_including_arabic(tmp_path: Path) -> None:
+    ar = ("ar", "ARABIC")
+    proposals = [
+        AliasProposal(EN, {"simple present": "The Simple Present"}, []),
+        AliasProposal(ar, {"صيغ الأفعال": "صِيَغُ الأفعَالِ"}, []),
+        AliasProposal(("fr", "FRENCH"), {}, []),
+    ]
+    path = tmp_path / "aliases.yaml"
+    path.write_text(dump_aliases(proposals), encoding="utf-8")
+    assert load_aliases(path) == {
+        EN: {"simple present": "The Simple Present"},
+        ar: {"صيغ الأفعال": "صِيَغُ الأفعَالِ"},
+    }

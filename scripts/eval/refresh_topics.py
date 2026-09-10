@@ -32,12 +32,22 @@ The eval reads only quiz_title and doc_ids. The other columns are descriptive,
 for people browsing the CSV, and on disk they often reflect the build the CSV
 was first made from; they are not refreshed on rows whose doc_ids are unchanged.
 
-It does NOT merge new spellings. Deciding that 'simple present' belongs to
-'The Simple Present' is a separate, reviewed step.
+A plain refresh never merges new spellings. That only happens through a
+title-alias file passed with --aliases.
+
+Title aliases (steps 2 and 3 of the eval repair)
+------------------------------------------------
+--propose-safe-aliases lists titles that differ from an eval topic's titles
+only in case, spacing, punctuation or a leading article, and with --write
+saves them as YAML. Judgement merges (typos, numbered parts, subtitles) belong
+in a separate, reviewed file. Keeping the two apart, and applying each in its
+own run, lets the effect of each step on the eval be measured on its own.
 
 Usage:
     python -m scripts.eval.refresh_topics                          # dry run, all cells
     python -m scripts.eval.refresh_topics --cell en:ENGLISH --write
+    python -m scripts.eval.refresh_topics --propose-safe-aliases eval/topic_aliases.safe.yaml --write
+    python -m scripts.eval.refresh_topics --cell en:ENGLISH --aliases eval/topic_aliases.safe.yaml --write
 """
 
 from __future__ import annotations
@@ -47,13 +57,15 @@ import csv
 import io
 import json
 import re
-from collections import defaultdict
+import unicodedata
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import yaml
 
 from scripts.eval.validate_test_cases import (
     DEFAULT_READY_JSONL,
@@ -159,11 +171,13 @@ def refresh_cell(
     csv_rows: list[dict[str, str]],
     index: dict[str, IndexDoc],
     full_rows: dict[str, dict[str, Any]],
+    aliases: dict[str, str] | None = None,
 ) -> RefreshResult:
     """Return the cell's CSV rows with every topic's doc_ids matching the index.
 
     A changed row keeps its existing doc_id order and appends added ids in index
     order, so reviewing the refreshed file shows additions rather than churn.
+    `aliases` maps extra titles onto existing topics; see _alias_additions.
     """
     listed_order = {row["quiz_title"]: _ordered_ids(row["doc_ids"]) for row in csv_rows}
     listed = {topic: set(ids) for topic, ids in listed_order.items()}
@@ -176,6 +190,8 @@ def refresh_cell(
         removed[issue.topic].add(issue.doc_id)
     for issue in problems.unlisted_docs:
         added[issue.topic].add(issue.doc_id)
+    for topic, doc_ids in _alias_additions(cell, csv_rows, listed, index, aliases or {}).items():
+        added[topic] |= doc_ids
 
     position = {doc_id: i for i, doc_id in enumerate(full_rows)}
     new_rows: list[dict[str, str]] = []
@@ -194,6 +210,145 @@ def refresh_cell(
     return RefreshResult(cell, new_rows, changes)
 
 
+# ---------------------------------------------------------------------------
+# Title aliases
+# ---------------------------------------------------------------------------
+
+LEADING_ARTICLE = {"en": re.compile(r"^(?:the|a|an)\s+(?=\w)")}
+
+
+@dataclass(frozen=True)
+class AliasProposal:
+    """Safe-rule title aliases for one cell, plus the groups it refused to merge."""
+
+    cell: tuple[str, str]
+    aliases: dict[str, str]  # variant title -> existing topic
+    conflicts: list[tuple[list[str], list[str]]]  # (claiming topics, titles)
+
+
+def safe_title_key(title: str, language: str) -> str:
+    """Key shared by titles that differ only in case, spacing, punctuation or article.
+
+    Deliberately narrow: no typo matching, no part numbers, no subtitles, so
+    'Greeting' and 'Greetings' stay apart. A leading article is removed only
+    when a word follows it, so 'The + adjective' does not collapse into
+    'adjective'. Punctuation is found by Unicode category rather than by a
+    word-character regex, which would also delete Arabic vowel marks.
+    """
+    key = unicodedata.normalize("NFKC", title).casefold().strip()
+    article = LEADING_ARTICLE.get(language)
+    if article is not None:
+        key = article.sub("", key)
+    key = key.replace("&", " and ")
+    key = "".join(" " if unicodedata.category(ch)[0] in "PS" else ch for ch in key)
+    return " ".join(key.split())
+
+
+def _title_owners(
+    cell: tuple[str, str], csv_rows: list[dict[str, str]], index: dict[str, IndexDoc]
+) -> dict[str, set[str]]:
+    """Map titles to the topics owning them: a topic's name and its doc_ids' titles."""
+    owners: dict[str, set[str]] = defaultdict(set)
+    for row in csv_rows:
+        owners[row["quiz_title"]].add(row["quiz_title"])
+        for doc_id in _ordered_ids(row["doc_ids"]):
+            doc = index.get(doc_id)
+            if doc is not None and (doc.language, doc.subject) == cell:
+                owners[doc.quiz_title].add(row["quiz_title"])
+    return owners
+
+
+def propose_safe_aliases(
+    cell: tuple[str, str], csv_rows: list[dict[str, str]], index: dict[str, IndexDoc]
+) -> AliasProposal:
+    """Propose aliases for titles that differ from one topic's titles only superficially.
+
+    A group of titles sharing a safe_title_key is merged only when exactly one
+    topic owns any of them. Groups owned by several topics are reported as
+    conflicts; groups no topic owns are outside the eval and ignored.
+    """
+    owners = _title_owners(cell, csv_rows, index)
+    groups: dict[str, list[str]] = defaultdict(list)
+    for title in sorted({d.quiz_title for d in index.values() if (d.language, d.subject) == cell}):
+        groups[safe_title_key(title, cell[0])].append(title)
+    aliases: dict[str, str] = {}
+    conflicts: list[tuple[list[str], list[str]]] = []
+    for titles in groups.values():
+        topics = set().union(*(owners.get(t, set()) for t in titles))
+        if len(titles) < 2 or not topics:
+            continue
+        if len(topics) > 1:
+            conflicts.append((sorted(topics), titles))
+            continue
+        (topic,) = topics
+        aliases.update({t: topic for t in titles if not owners.get(t)})
+    return AliasProposal(cell, aliases, conflicts)
+
+
+def _alias_additions(
+    cell: tuple[str, str],
+    csv_rows: list[dict[str, str]],
+    listed: dict[str, set[str]],
+    index: dict[str, IndexDoc],
+    aliases: dict[str, str],
+) -> dict[str, set[str]]:
+    """Doc_ids each topic gains from title aliases; refuses ambiguous merges."""
+    if not aliases:
+        return {}
+    owners = _title_owners(cell, csv_rows, index)
+    additions: dict[str, set[str]] = defaultdict(set)
+    for variant, topic in sorted(aliases.items()):
+        if topic not in listed:
+            raise ValueError(f"{cell}: alias {variant!r} points at unknown topic {topic!r}")
+        claimed = owners.get(variant, set()) - {topic}
+        if claimed:
+            raise ValueError(
+                f"{cell}: alias {variant!r} -> {topic!r}, but {sorted(claimed)} already own that title"
+            )
+        for doc_id, doc in index.items():
+            if (doc.language, doc.subject) == cell and doc.quiz_title == variant:
+                additions[topic].add(doc_id)
+        additions[topic] -= listed[topic]
+    return additions
+
+
+def dump_aliases(proposals: list[AliasProposal]) -> str:
+    """Serialise proposals as alias YAML, with a provenance header."""
+    body = {
+        f"{p.cell[0]}:{p.cell[1]}": dict(sorted(p.aliases.items())) for p in proposals if p.aliases
+    }
+    header = (
+        "# Title aliases generated by the safe rule in scripts/eval/refresh_topics.py:\n"
+        "# titles that differ from an eval topic's titles only in case, spacing,\n"
+        "# punctuation or a leading article. Regenerate rather than hand-edit;\n"
+        "# reviewed judgement merges belong in a separate file.\n"
+    )
+    return header + yaml.safe_dump(body, allow_unicode=True, sort_keys=True)
+
+
+def load_aliases(path: Path) -> dict[tuple[str, str], dict[str, str]]:
+    """Read alias YAML of the form {"lang:SUBJECT": {variant_title: topic}}."""
+    with path.open(encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return {
+        _parse_cell(str(cell)): {str(k): str(v) for k, v in (mapping or {}).items()}
+        for cell, mapping in data.items()
+    }
+
+
+def _merge_alias_files(paths: list[Path]) -> dict[tuple[str, str], dict[str, str]]:
+    merged: dict[tuple[str, str], dict[str, str]] = defaultdict(dict)
+    for path in paths:
+        for cell, mapping in load_aliases(path).items():
+            for variant, topic in mapping.items():
+                previous = merged[cell].setdefault(variant, topic)
+                if previous != topic:
+                    raise ValueError(
+                        f"{cell}: {variant!r} aliased to both {previous!r} and {topic!r}"
+                    )
+    return merged
+
+
 def load_full_rows(ready_path: Path) -> dict[str, dict[str, Any]]:
     """Read every payload row keyed by doc_id, in file order."""
     rows: dict[str, dict[str, Any]] = {}
@@ -205,12 +360,14 @@ def load_full_rows(ready_path: Path) -> dict[str, dict[str, Any]]:
     return rows
 
 
-def _report(result: RefreshResult, path: Path, is_lossless: bool) -> None:
+def _report(result: RefreshResult, path: Path, is_lossless: bool, n_aliases: int) -> None:
     n_added = sum(len(c.added) for c in result.changes)
     n_removed = sum(len(c.removed) for c in result.changes)
     n_suffixed = sum(1 for c in result.changes for d in c.added if COLLISION_SUFFIX.search(d))
     print(f"[{result.cell[0]} x {result.cell[1]}] {path}")
-    print(f"  topics: {len(result.rows)}  changed: {len(result.changes)}")
+    print(
+        f"  topics: {len(result.rows)}  changed: {len(result.changes)}  aliases given: {n_aliases}"
+    )
     print(f"  doc_ids: +{n_added} added ({n_suffixed} collision-suffixed)  -{n_removed} removed")
     for change in sorted(result.changes, key=lambda c: -len(c.added) - len(c.removed))[:10]:
         print(f"    +{len(change.added):<3} -{len(change.removed):<2} {change.topic!r}")
@@ -221,6 +378,7 @@ def _refresh_file(
     cell: tuple[str, str],
     index: dict[str, IndexDoc],
     full_rows: dict[str, dict[str, Any]],
+    aliases: dict[str, str],
     is_write: bool,
     stamp: str,
 ) -> bool:
@@ -230,9 +388,9 @@ def _refresh_file(
         print(f"[{cell[0]} x {cell[1]}] {path} not found, skipped")
         return True
     rows, fmt, original = read_topics_csv(path)
-    result = refresh_cell(cell, rows, index, full_rows)
+    result = refresh_cell(cell, rows, index, full_rows, aliases)
     is_lossless = render_topics_csv(rows, fmt) == original
-    _report(result, path, is_lossless)
+    _report(result, path, is_lossless, len(aliases))
     if not result.changes:
         print("  up to date, nothing to write\n")
         return True
@@ -249,6 +407,34 @@ def _refresh_file(
     return True
 
 
+def _propose(
+    cells: list[tuple[str, str]], index: dict[str, IndexDoc], out_path: Path, is_write: bool
+) -> int:
+    """Print safe-rule alias proposals per cell; with --write, save them as YAML."""
+    proposals: list[AliasProposal] = []
+    for cell in cells:
+        path = TOPICS_FILE_BY_LANG_SUBJECT[cell]
+        if not path.exists():
+            continue
+        rows, _fmt, _original = read_topics_csv(path)
+        proposal = propose_safe_aliases(cell, rows, index)
+        proposals.append(proposal)
+        sizes = Counter(d.quiz_title for d in index.values() if (d.language, d.subject) == cell)
+        print(
+            f"[{cell[0]} x {cell[1]}] {len(proposal.aliases)} aliases, {len(proposal.conflicts)} conflicts"
+        )
+        for variant, topic in sorted(proposal.aliases.items(), key=lambda kv: -sizes[kv[0]]):
+            print(f"    +{sizes[variant]:<3} {topic!r} <- {variant!r}")
+        for topics, titles in proposal.conflicts:
+            print(f"    CONFLICT, not merged: {titles} owned by {topics}")
+    if not is_write:
+        print(f"\nDRY RUN, {out_path} not written (pass --write)")
+        return 0
+    out_path.write_text(dump_aliases(proposals), encoding="utf-8")
+    print(f"\nWROTE {out_path}")
+    return 0
+
+
 def _parse_cell(value: str) -> tuple[str, str]:
     language, _, subject = value.partition(":")
     cell = (language, subject)
@@ -261,27 +447,48 @@ def _parse_cell(value: str) -> tuple[str, str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Refresh topics CSVs from the index; exit 1 if any write was refused."""
+    """Refresh topics CSVs from the index, or propose safe title aliases."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
         "--cell",
         action="append",
         type=_parse_cell,
         metavar="LANG:SUBJECT",
-        help="Cell to refresh, e.g. en:ENGLISH. Repeatable. Default: every registered cell.",
+        help="Cell to work on, e.g. en:ENGLISH. Repeatable. Default: every registered cell.",
     )
     parser.add_argument("--ready-jsonl", type=Path, default=DEFAULT_READY_JSONL)
     parser.add_argument(
+        "--aliases",
+        action="append",
+        type=Path,
+        default=[],
+        metavar="YAML",
+        help="Title-alias file to apply while refreshing. Repeatable.",
+    )
+    parser.add_argument(
+        "--propose-safe-aliases",
+        type=Path,
+        metavar="YAML",
+        help="Instead of refreshing, propose safe-rule aliases; with --write, save them here.",
+    )
+    parser.add_argument(
         "--write",
         action="store_true",
-        help="Write changes. Default is a dry run. The previous file is kept as <name>.backup-<UTC>.csv.",
+        help="Write changes. Default is a dry run. A refreshed CSV keeps its previous version "
+        "as <name>.backup-<UTC>.csv.",
     )
     args = parser.parse_args(argv)
     cells = args.cell or sorted(TOPICS_FILE_BY_LANG_SUBJECT)
     index = load_index(args.ready_jsonl)
+    if args.propose_safe_aliases is not None:
+        return _propose(cells, index, args.propose_safe_aliases, args.write)
+    aliases = _merge_alias_files(args.aliases)
     full_rows = load_full_rows(args.ready_jsonl)
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    results = [_refresh_file(cell, index, full_rows, args.write, stamp) for cell in cells]
+    results = [
+        _refresh_file(cell, index, full_rows, aliases.get(cell, {}), args.write, stamp)
+        for cell in cells
+    ]
     return 0 if all(results) else 1
 
 

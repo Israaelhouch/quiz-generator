@@ -59,6 +59,8 @@ data/sample/processed/
 # ---------------------------------------------------------------------------
 eval/*.json
 eval/*.csv
+# title-alias files name real quiz titles too
+eval/*.yaml
 eval/results/
 
 # Generated at runtime
