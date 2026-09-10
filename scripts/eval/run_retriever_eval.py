@@ -175,7 +175,10 @@ def run_eval(
             eta = (n - i) / rate if rate > 0 else 0
             print(f"  [{i}/{n}] {elapsed:.0f}s elapsed, ~{eta:.0f}s remaining ({rate:.1f} q/s)")
 
-        relevant = ground_truth.get((c.language, c.target_quiz_title), set())
+        # Union over every title that counts as correct for this case.
+        relevant = set().union(
+            *(ground_truth.get((c.language, title), set()) for title in c.target_titles)
+        )
 
         # Retrieve enough to compute metrics at all K_VALUES — cheap to over-
         # retrieve since the bottleneck is the query embedding.
@@ -215,6 +218,7 @@ def run_eval(
             "query_type": c.query_type,
             "query": c.query,
             "target_quiz_title": c.target_quiz_title,
+            "also_correct_quiz_titles": list(c.also_correct_quiz_titles),
             "primary_top_k": c.top_k,
             # Record the level filter actually used so post-hoc analysis can
             # tell which queries ran scoped vs unscoped.

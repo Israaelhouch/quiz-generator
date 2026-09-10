@@ -3,7 +3,8 @@
 Catches five classes of problem:
 
   1. Schema violations (missing field, wrong type, invalid enum value).
-  2. `target_quiz_title` values that don't exist in the corresponding
+  2. `target_quiz_title` or `also_correct_quiz_titles` values that don't exist
+     in the corresponding
      `eval/topics_<lang>.csv` — typically diacritic / accent / spacing typos
      from the generator LLM. These would silently get zero ground-truth docs
      and inflate "false negatives" in the eval.
@@ -81,8 +82,20 @@ class TestCase(BaseModel):
     top_k: int = Field(gt=0, le=200)
     query_type: str = Field(min_length=1)
     target_quiz_title: str = Field(min_length=1)
+    # Other quizzes that are an equally fair answer. Template-generated cases
+    # name exactly one target, but a realistic query such as "my students mix
+    # up since and for" can be served well by several topics, and scoring it
+    # against only one marks correct retrievals as wrong. Defaults to empty, so
+    # existing test-case files are unaffected.
+    also_correct_quiz_titles: list[str] = Field(default_factory=list)
     levels: list[str] | None = Field(default=None)
     levels_match: Literal["any", "all"] | None = Field(default=None)
+
+    @property
+    def target_titles(self) -> list[str]:
+        """Every quiz title that counts as a correct answer, primary first."""
+        extra = [t for t in self.also_correct_quiz_titles if t != self.target_quiz_title]
+        return [self.target_quiz_title, *dict.fromkeys(extra)]
 
 
 # ---------------------------------------------------------------------------
@@ -263,23 +276,26 @@ def parse_cases(raw: list[dict]) -> tuple[list[TestCase], list[tuple[int, str]]]
 
 def cross_check(
     cases: list[TestCase], topic_index: dict[tuple[str, str], int]
-) -> tuple[list[tuple[int, TestCase]], list[tuple[int, TestCase, int]]]:
+) -> tuple[list[tuple[int, TestCase, str]], list[tuple[int, TestCase, int]]]:
     """Return (missing_titles, recall_capped) lists.
 
-    missing_titles: cases whose (language, target_quiz_title) doesn't match
-        any row in the relevant topics CSV. These are hard failures.
+    missing_titles: (case index, case, title) for every target or
+        also-correct title that doesn't match a row in the relevant topics
+        CSV. These are hard failures.
 
-    recall_capped: cases where the ground-truth set is smaller than top_k.
-        Not failures — just warnings so the eval reader knows recall@k can't
-        reach 1.0 there even on a perfect retriever.
+    recall_capped: cases where the combined ground-truth set of all their
+        correct titles is smaller than top_k. Not failures — just warnings so
+        the eval reader knows recall@k can't reach 1.0 there even on a perfect
+        retriever.
     """
-    missing: list[tuple[int, TestCase]] = []
+    missing: list[tuple[int, TestCase, str]] = []
     recall_capped: list[tuple[int, TestCase, int]] = []
     for i, c in enumerate(cases):
-        n_docs = topic_index.get((c.language, c.target_quiz_title))
-        if n_docs is None:
-            missing.append((i, c))
+        absent = [t for t in c.target_titles if (c.language, t) not in topic_index]
+        missing.extend((i, c, t) for t in absent)
+        if absent:
             continue
+        n_docs = sum(topic_index[(c.language, t)] for t in c.target_titles)
         if n_docs < c.top_k:
             recall_capped.append((i, c, n_docs))
     return missing, recall_capped
@@ -308,7 +324,7 @@ def report(
     raw_count: int,
     cases: list[TestCase],
     schema_errors: list[tuple[int, str]],
-    missing: list[tuple[int, TestCase]],
+    missing: list[tuple[int, TestCase, str]],
     recall_capped: list[tuple[int, TestCase, int]],
     subject_mismatches: list[tuple[int, TestCase]],
 ) -> None:
@@ -356,8 +372,8 @@ def report(
     if missing:
         # Group by (language, title) so the same typo is not reported many times.
         by_title: dict[tuple[str, str], int] = defaultdict(int)
-        for _, c in missing:
-            by_title[(c.language, c.target_quiz_title)] += 1
+        for _, c, title in missing:
+            by_title[(c.language, title)] += 1
         print(_hr())
         print(
             f"Missing target_quiz_title ({len(missing)} cases across "

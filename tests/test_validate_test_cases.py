@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import json
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -20,13 +21,17 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.eval.run_retriever_eval import validate_or_die
+from scripts.eval.run_retriever_eval import run_eval, validate_or_die
 from scripts.eval.validate_test_cases import (
     TOPICS_FILE_BY_LANG_SUBJECT,
     IndexDoc,
     check_ground_truth_against_index,
+    cross_check,
     load_index,
     validate,
+)
+from scripts.eval.validate_test_cases import (
+    TestCase as RetrieverTestCase,
 )
 
 EN = ("en", "ENGLISH")
@@ -228,3 +233,78 @@ def test_validate_or_die_complete_answer_key_returns_cases(
 ) -> None:
     cases, ready = _fixture(tmp_path, monkeypatch, listed="quiz1__q3,quiz1__q3_2")
     assert [c.target_quiz_title for c in validate_or_die(cases, ready)] == ["Writing Ads"]
+
+
+# ---------------------------------------------------------------------------
+# Several correct quizzes per test case
+# ---------------------------------------------------------------------------
+
+
+def _case(**overrides: object) -> RetrieverTestCase:
+    fields: dict[str, object] = {
+        "query": "my students mix up since and for",
+        "language": "en",
+        "subject": "ENGLISH",
+        "top_k": 5,
+        "query_type": "goal",
+        "target_quiz_title": "The Present Perfect",
+    }
+    fields.update(overrides)
+    return RetrieverTestCase(**fields)
+
+
+def test_testcase_without_also_correct_titles_parses_as_before() -> None:
+    """Existing test-case files carry no also_correct_quiz_titles field."""
+    case = _case()
+    assert case.also_correct_quiz_titles == []
+    assert case.target_titles == ["The Present Perfect"]
+
+
+def test_testcase_target_titles_lists_primary_first_without_duplicates() -> None:
+    case = _case(
+        also_correct_quiz_titles=["Used to Vs. Would", "The Present Perfect", "Used to Vs. Would"]
+    )
+    assert case.target_titles == ["The Present Perfect", "Used to Vs. Would"]
+
+
+def test_cross_check_missing_also_correct_title_is_reported_by_name() -> None:
+    index = {("en", "The Present Perfect"): 97}
+    case = _case(also_correct_quiz_titles=["Used to Vs Wuold"])
+    missing, capped = cross_check([case], index)
+    assert [(i, title) for i, _c, title in missing] == [(0, "Used to Vs Wuold")]
+    assert capped == []
+
+
+def test_cross_check_recall_cap_uses_all_correct_titles() -> None:
+    index = {("en", "A"): 2, ("en", "B"): 2}
+    _missing, capped = cross_check(
+        [_case(target_quiz_title="A", also_correct_quiz_titles=["B"], top_k=5)], index
+    )
+    assert [n for _i, _c, n in capped] == [4]
+
+
+class _FixedRetriever:
+    """Returns the same doc_ids for every query."""
+
+    def __init__(self, doc_ids: list[str]) -> None:
+        self.doc_ids = doc_ids
+
+    def retrieve(self, **_kwargs: object) -> list[types.SimpleNamespace]:
+        return [types.SimpleNamespace(doc_id=d, distance=0.1) for d in self.doc_ids]
+
+
+def test_run_eval_counts_a_hit_on_any_correct_quiz() -> None:
+    ground_truth = {("en", "A"): {"a1"}, ("en", "B"): {"b1"}}
+    retriever = _FixedRetriever(["b1", "x1"])
+    only_a, a_or_b = run_eval(
+        [
+            _case(target_quiz_title="A"),
+            _case(target_quiz_title="A", also_correct_quiz_titles=["B"]),
+        ],
+        retriever,
+        ground_truth,
+    )
+    assert only_a["precision_at_1"] == 0.0
+    assert a_or_b["precision_at_1"] == 1.0
+    assert a_or_b["n_relevant"] == 2
+    assert a_or_b["also_correct_quiz_titles"] == ["B"]
