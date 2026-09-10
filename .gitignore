@@ -46,6 +46,21 @@ data/vector_store/
 data/sample/interim/
 data/sample/processed/
 
+# ---------------------------------------------------------------------------
+# Eval inputs and outputs.
+#
+# The ground-truth files are DERIVED FROM THE PRIVATE CORPUS: each test case
+# carries a real `target_quiz_title`, and the topics CSVs map those titles to
+# real doc_ids. No personal data, but it is private curriculum content and it
+# does not belong in a public repository.
+#
+# eval/RESULTS.md is the deliberate exception — aggregate metrics only, no
+# corpus content — and is tracked.
+# ---------------------------------------------------------------------------
+eval/*.json
+eval/*.csv
+eval/results/
+
 # Generated at runtime
 logs/
 last_run.json
