@@ -5,6 +5,90 @@ the per-commit detail; this file has the per-release story.
 
 ---
 
+## Unreleased — Eval answer key repair and realistic test questions
+
+### Fixed — the English eval scored correct retrievals as wrong
+
+`eval/topics_english.csv` predated the 2026-05-18 doc_id collision fix and was
+never rebuilt. Against the current index it omitted 205 questions belonging to
+its topics (178 re-numbered by that fix), listed one id that no longer exists,
+and carried 120 duplicate ids from the collisions — `'Writing Ads'` claimed 10
+questions and held 4 distinct ids. A retriever returning a missing question was
+scored as wrong.
+
+Repaired in three steps, each measured separately. English P@1 went from 0.735
+to 0.806, and on well-specified queries from 0.854 to 0.938. Every gain is
+attributed: re-scoring the earlier run's results against the refreshed key
+reproduces the new run exactly, and the step-2 prediction (0.8015) matched the
+measured run (0.8019). The final key rebuilds identically from the original CSV
+whether the steps are applied one by one or in one pass.
+
+### Added
+
+- `validate_test_cases` checks every answer key against the index: listed ids
+  that are unknown or outside their (language, subject) cell, and questions
+  missing from their topic. `run_retriever_eval` stops before loading the model
+  if either check fails.
+- `scripts/eval/refresh_topics.py` refreshes topics CSVs from the index,
+  keeping topic names and hand merges. Dry run by default. Only rows whose
+  doc_ids change are rewritten, added ids are appended rather than reshuffled,
+  and a file is not written unless re-rendering it unchanged reproduces it
+  byte for byte.
+- Title aliases: `--propose-safe-aliases` folds in titles that differ only in
+  case, spacing, punctuation or a leading article; `--aliases` applies alias
+  files. Reviewed merges live in a separate file that also records the
+  candidates that were rejected, and why.
+- `pandas==3.0.5` in `requirements-dev.txt`, pinned to the lockfile: the eval
+  scripts import it, so without it their tests fail in CI.
+- Test cases can list several correct quizzes (`also_correct_quiz_titles`); a
+  hit on any of them counts. Existing test files are unaffected.
+- A realistic English test set: 50 teacher-style questions that avoid their
+  quizzes' title words, labelled without the search model and reviewed before
+  scoring. P@1 0.760 (range 0.64–0.88), Hit@10 0.940; weakest when a teacher
+  describes a problem (0.59). See `eval/RESULTS.md`.
+- `make eval-realistic`, `make eval-validate` and `make refresh-topics` (a dry
+  run unless `WRITE=1`).
+
+### Fixed — re-applying an alias rewrote rows that had not changed
+
+Passing an alias file applied in an earlier run marked its topics as changed
+with +0 −0 and rewrote their rows. Caught by a dry run before any write.
+
+### Fixed — `make eval` could not run
+
+`make eval` called the eval script without the test file it requires, so it
+exited with a usage error. It now runs `EVAL_CASES`, which defaults to the
+English template set.
+
+### Changed
+
+- The README and `eval/RESULTS.md` report English P@1 0.806 instead of 0.735,
+  add a Limits section and the realistic-question results, and revise the maths
+  explanation: most of its gap is the test set's ceiling.
+- `CLAUDE.md` §0 is filled in (status, stack, key metrics, out of scope) and now
+  states Python 3.11 and GitHub Actions, which the project actually uses.
+
+### Found, not fixed
+
+- **Some test cases cannot be passed.** Queries repeated with different correct
+  quizzes cap P@1 at 0.887 (English), 0.892 (Arabic), 0.708 (French maths) and
+  0.667 (Arabic maths); `'english grammar exercises'` alone has 206 targets.
+  Against those ceilings maths is not the weak cell; the Arabic language cell is.
+- **The queries are templates containing the answer.** 90% of English and 100%
+  of Arabic non-vague queries contain the target title verbatim (Arabic once
+  vowel marks are ignored), and the generator is not in the repository.
+- **Retrieval is not exactly reproducible.** Chroma's HNSW search returns a
+  different candidate pool for about half of all queries between runs; query
+  embeddings are identical and aggregate metrics stay within ±0.0005. Tracked
+  as a separate task.
+
+### Privacy
+
+- Eval test cases, topics CSVs, alias files and results are derived from the
+  private corpus and are now ignored by git.
+
+---
+
 ## Unreleased — Tooling safety net
 
 ### Fixed — a silent data-loss bug in the reranker
