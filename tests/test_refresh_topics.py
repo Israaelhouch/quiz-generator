@@ -351,6 +351,21 @@ def test_refresh_cell_with_alias_adds_variant_docs_and_keeps_topic_name() -> Non
     assert not check_ground_truth_against_index(topics, idx).has_problems
 
 
+def test_refresh_cell_reapplying_an_applied_alias_changes_nothing() -> None:
+    """Regression: an alias whose questions are already listed must not mark its row changed.
+
+    Re-running a refresh with an alias file applied in an earlier run reported
+    the topic as changed with +0 -0 and rewrote the row, so a second --write
+    created a backup and rewrote the file for nothing.
+    """
+    idx, full = _index([_row("q1__q0", "The Simple Present"), _row("q2__q0", "simple present")])
+    aliases = {"simple present": "The Simple Present"}
+    once = refresh_cell(EN, [_csv_row("The Simple Present", "q1__q0")], idx, full, aliases).rows
+    twice = refresh_cell(EN, once, idx, full, aliases)
+    assert twice.changes == []
+    assert twice.rows[0] is once[0]
+
+
 def test_refresh_cell_alias_to_unknown_topic_raises() -> None:
     idx, full = _index([_row("q1__q0", "Pets"), _row("q2__q0", "pets")])
     with pytest.raises(ValueError, match="unknown topic"):

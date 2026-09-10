@@ -198,7 +198,7 @@ def refresh_cell(
     changes: list[TopicChange] = []
     for row in csv_rows:
         topic = row["quiz_title"]
-        if topic not in added and topic not in removed:
+        if not added.get(topic) and not removed.get(topic):
             new_rows.append(row)
             continue
         kept = [d for d in listed_order[topic] if d not in removed[topic]]
@@ -309,7 +309,9 @@ def _alias_additions(
             if (doc.language, doc.subject) == cell and doc.quiz_title == variant:
                 additions[topic].add(doc_id)
         additions[topic] -= listed[topic]
-    return additions
+    # An alias applied in an earlier run adds nothing; returning it as an empty
+    # entry would still mark its topic as changed.
+    return {topic: doc_ids for topic, doc_ids in additions.items() if doc_ids}
 
 
 def dump_aliases(proposals: list[AliasProposal]) -> str:
