@@ -2,9 +2,10 @@
 
 Pipeline:
 
-  1. Validate the test-cases JSON. If anything fails (schema / missing
-     target_quiz_title / subject mismatch), exit non-zero — DO NOT spend
-     30+ minutes running on broken input.
+  1. Validate the test-cases JSON and its answer key. If anything fails
+     (schema / missing target_quiz_title / subject mismatch / a topics CSV
+     that disagrees with the index), exit non-zero — DO NOT spend 30+ minutes
+     running on broken input.
 
   2. Load the production Retriever (configs/models.yaml). The active config
      in that file IS the configuration being evaluated. To compare runs
@@ -55,8 +56,11 @@ import pandas as pd
 
 from scripts.eval.validate_test_cases import (
     TestCase,
+    check_ground_truth_against_index,
     check_subject_consistency,
     cross_check,
+    load_index,
+    load_topic_doc_ids,
     load_topic_index,
     parse_cases,
 )
@@ -379,8 +383,8 @@ def print_headline(summary: dict) -> None:
 # ---------------------------------------------------------------------------
 
 
-def validate_or_die(test_cases_path: Path) -> list[TestCase]:
-    """Load + validate. Print problems and exit 1 on any failure."""
+def validate_or_die(test_cases_path: Path, ready_jsonl_path: Path) -> list[TestCase]:
+    """Load + validate test cases and their answer key; exit 1 on any failure."""
     if not test_cases_path.exists():
         print(f"error: file not found: {test_cases_path}", file=sys.stderr)
         sys.exit(1)
@@ -396,6 +400,11 @@ def validate_or_die(test_cases_path: Path) -> list[TestCase]:
     topic_index = load_topic_index(lang_subject_pairs)
     missing, _recall_capped = cross_check(cases, topic_index)
     subject_mismatches = check_subject_consistency(cases)
+    gt_problems = None
+    if ready_jsonl_path.exists():
+        gt_problems = check_ground_truth_against_index(
+            load_topic_doc_ids(lang_subject_pairs), load_index(ready_jsonl_path)
+        )
 
     problems = []
     if schema_errors:
@@ -404,6 +413,15 @@ def validate_or_die(test_cases_path: Path) -> list[TestCase]:
         problems.append(f"{len(missing)} missing target_quiz_title")
     if subject_mismatches:
         problems.append(f"{len(subject_mismatches)} subject mismatches")
+    if gt_problems is None:
+        problems.append(f"index payload not found: {ready_jsonl_path}")
+    elif gt_problems.has_problems:
+        problems.append(
+            "answer key disagrees with the index "
+            f"({len(gt_problems.unknown_ids)} unknown doc_ids, "
+            f"{len(gt_problems.wrong_cell_ids)} in the wrong cell, "
+            f"{len(gt_problems.unlisted_docs)} unlisted questions)"
+        )
 
     if problems:
         print(
@@ -411,7 +429,8 @@ def validate_or_die(test_cases_path: Path) -> list[TestCase]:
             file=sys.stderr,
         )
         print(
-            f"Run `python -m scripts.eval.validate_test_cases {test_cases_path}` for details.",
+            f"Run `python -m scripts.eval.validate_test_cases {test_cases_path}"
+            f" --ready-jsonl {ready_jsonl_path}` for details.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -460,7 +479,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     print(f"Validating {args.test_cases} ...")
-    cases = validate_or_die(args.test_cases)
+    cases = validate_or_die(args.test_cases, args.ready_jsonl)
     print(f"  OK: {len(cases)} cases valid")
 
     if args.limit is not None and args.limit < len(cases):

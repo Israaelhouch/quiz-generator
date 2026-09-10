@@ -32,3 +32,8 @@ pyyaml==6.0.3
 pylatexenc==2.11
 langdetect==1.0.9
 numpy==2.4.6
+
+# Imported at module level by scripts/eval/ (validate_test_cases,
+# run_retriever_eval), whose answer-key checks are under test. Pinned to the
+# lockfile version like every other shared package.
+pandas==3.0.5
