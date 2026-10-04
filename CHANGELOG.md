@@ -70,6 +70,14 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Changed
 
+- **Every eval run records what it searched.** A run directory described how
+  the retriever was configured but not what was in the index, so rebuilding the
+  index made earlier runs unattributable. Each run now writes
+  `provenance.json` — git SHA and dirty flag, SHA-256 of `models.yaml` and
+  `pipeline.yaml`, the payload hash, the index's model, dimension, collection
+  and row count, and the `search_text` recipe that produced the embedded text —
+  plus `pipeline_snapshot.yaml`. A payload that no longer matches the index it
+  was built from is reported by name instead of silently scored (ADR-0008).
 - **The remaining YAML configs are validated or refused** (`scope.yaml`,
   `pipeline.yaml`, `subject_aliases.yaml`), the way `models.yaml` already was:
   a Pydantic model per block with unknown keys forbidden, and a file that is

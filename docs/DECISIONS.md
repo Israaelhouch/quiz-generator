@@ -1,6 +1,6 @@
 # Decisions
 
-Seven records, kept because a future reader — including future you — would
+Eight records, kept because a future reader — including future you — would
 otherwise have no way to tell a deliberate choice from an accident: a security
 exposure that is dormant today but becomes real if the deployment shape
 changes, which of the checker's complaints turned out to be real bugs, and why
@@ -412,7 +412,63 @@ unknown key has to be an error.
   the suite.
 - The `DEFAULT_RECIPE_FLAGS` and `DEFAULT_SEPARATORS` constants are now
   derived from the models, so the defaults cannot drift from the schema.
-- Still open: `run_retriever_eval` snapshots `configs/models.yaml` with every
-  run but not `configs/pipeline.yaml`, so a run's numbers cannot be traced
-  back to the recipe that built the index it searched. Worth closing before
-  the next recipe A/B.
+- That left one gap, closed in the same series: `run_retriever_eval`
+  snapshotted `configs/models.yaml` but nothing identifying the index it
+  searched. Every run now writes `provenance.json` and
+  `pipeline_snapshot.yaml` — see ADR-0008.
+
+---
+
+## ADR-0008 — Every eval run records what it searched
+
+**Date:** 2026-10-04 · **Status:** accepted · **Extends:** ADR-0007
+
+### Context
+
+A run directory held `summary.json` (the metrics), `per_query.jsonl`,
+`run_args.json` and `config_snapshot.yaml` — a copy of `configs/models.yaml`.
+That describes how the *retriever* was configured. It does not describe what
+the retriever searched: the index appeared only as a directory path inside
+that config.
+
+So rebuilding the index made every earlier run unattributable. Worse, the
+failure is invisible: rebuild the payload without reindexing, run the eval,
+and the numbers describe an index built from a different payload with nothing
+on disk to say so. This repository has already had one metric mystery of
+exactly that shape — the English answer key that predated a doc_id fix
+(ADR-0004) — and the cost of it was days of work.
+
+The pieces were all on disk already and simply never gathered:
+
+- `configs/pipeline.yaml` holds the `search_text` recipe.
+- `data/processed/<ready>_stats.json` records the recipe actually applied.
+- `data/vector_store/build_summary.json` records the payload's SHA-256, the
+  model, the dimension, the collection and the row count.
+
+### Decision
+
+`scripts/eval/provenance.py` walks that chain and every run writes
+`provenance.json`: the git commit and whether the tree was dirty, SHA-256 of
+both configs, the payload hash on disk, the index's recorded identity, and the
+recipe that produced the embedded text. `configs/pipeline.yaml` is snapshotted
+alongside `config_snapshot.yaml`.
+
+Two things it deliberately does **not** do:
+
+- **It does not fail the run.** Anything missing is listed under `warnings`
+  and printed, because an index built before build summaries existed is still
+  worth evaluating. A run that cannot fully account for itself says so.
+- **It does not change the eval harness's measurement path.** The collection
+  is additive and runs after the metrics are written, so no published number
+  can move because of it (CLAUDE.md Part I P2: refactor around the harness).
+
+### Consequences
+
+- A payload that no longer matches the index it was built from is now reported
+  explicitly, naming both hashes. That was previously silent.
+- Each run directory grows by two small files.
+- The git SHA in the record satisfies CLAUDE.md Part II §4, which asks the
+  eval snapshot to carry a config hash and a git SHA; it carried neither.
+- `tests/test_eval_provenance.py` covers the complete chain, the stale-payload
+  case, a missing build summary, a missing payload, missing recipe stats, and
+  running outside a git repository.

@@ -27,6 +27,9 @@ Pipeline:
        - per_query.jsonl       — one row per test case, all metrics
        - summary.json          — aggregated by language / query_type / top_k
        - config_snapshot.yaml  — copy of configs/models.yaml that produced these numbers
+       - pipeline_snapshot.yaml — copy of configs/pipeline.yaml (the search_text recipe)
+       - provenance.json       — git sha, config hashes, and the index this run
+                                 searched: its payload hash, recipe, model and row count
 
 CRITICAL: calls retriever with dedup_by_quiz_title=False. The default
 True would cap hits at 1 per quiz_title (since all relevant docs share
@@ -54,6 +57,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from scripts.eval.provenance import collect_provenance, write_provenance
 from scripts.eval.validate_test_cases import (
     TestCase,
     check_ground_truth_against_index,
@@ -531,6 +535,12 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     write_results(out_dir, per_query, summary, args.config, args_record)
+
+    provenance = collect_provenance(config_path=args.config, ready_jsonl=args.ready_jsonl)
+    write_provenance(out_dir, provenance)
+    for warning in provenance["warnings"]:
+        print(f"  provenance: {warning}")
+
     print(f"Results written to {out_dir}/")
 
     print_headline(summary)
