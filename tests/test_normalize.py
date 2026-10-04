@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import pytest
+
 from src.data.language import (
     detect_language,
     normalize_language_label,
@@ -533,3 +535,44 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn()
     print("All Stage 2b tests passed.")
+
+
+# ---------------------------------------------------------------------------
+# Subject aliases — the map that folds raw subject spellings into canonical
+# names. A wrong entry removes rows from every subject filter downstream.
+# ---------------------------------------------------------------------------
+
+
+def test_the_repository_alias_config_loads() -> None:
+    from pathlib import Path as _Path
+
+    from src.data.normalize import load_subject_aliases
+
+    aliases = load_subject_aliases(_Path("configs/subject_aliases.yaml"))
+
+    assert aliases["MECHANIC"] == "PHYSICS"
+    assert aliases["PHYSICS_1-MECHANICS"] == "PHYSICS"
+
+
+def test_a_missing_alias_config_is_an_error(tmp_path) -> None:
+    """It used to return {}, so a wrong --aliases path silently disabled
+    canonicalisation for the whole run."""
+    import pytest
+
+    from src.data.normalize import load_subject_aliases
+
+    with pytest.raises(FileNotFoundError):
+        load_subject_aliases(tmp_path / "absent.yaml")
+
+
+@pytest.mark.parametrize("value", ["1", '""', "null", "[]"])
+def test_an_alias_that_is_not_a_subject_name_is_refused(tmp_path, value: str) -> None:
+    """`MECHANIC: 1` was coerced with str(), mapping the subject to "1" and
+    dropping those rows out of every subject filter."""
+    from src.data.normalize import load_subject_aliases
+
+    config = tmp_path / "aliases.yaml"
+    config.write_text(f"MECHANIC: {value}\n", encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        load_subject_aliases(config)

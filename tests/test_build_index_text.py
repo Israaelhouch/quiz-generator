@@ -151,3 +151,87 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn()
     print("All Stage 2c tests passed.")
+
+
+# ---------------------------------------------------------------------------
+# Recipe config — the search_text recipe decides what text gets embedded, so
+# a config this loader accepts quietly is an index nobody can account for.
+# ---------------------------------------------------------------------------
+
+
+def test_the_repository_pipeline_config_loads() -> None:
+    from pathlib import Path as _Path
+
+    from src.data.build_index_text import load_recipe
+
+    name, flags, separators, threshold, latex = load_recipe(_Path("configs/pipeline.yaml"))
+
+    assert name == "default"
+    assert flags == DEFAULT_RECIPE_FLAGS
+    assert separators == DEFAULT_SEPARATORS
+    assert threshold == 100
+    assert latex is True
+
+
+def test_a_missing_pipeline_config_is_an_error(tmp_path) -> None:
+    """It used to return the defaults, so an index could be built from a
+    config that was never read and the run would look successful."""
+    import pytest
+
+    from src.data.build_index_text import load_recipe
+
+    with pytest.raises(FileNotFoundError):
+        load_recipe(tmp_path / "absent.yaml")
+
+
+def test_a_recipe_naming_an_unknown_flag_is_refused(tmp_path) -> None:
+    """`include_choice` (singular) used to be dropped in silence: the index
+    would be built without answer choices while the config said otherwise."""
+    import pytest
+    from pydantic import ValidationError
+
+    from src.data.build_index_text import load_recipe
+
+    config = tmp_path / "pipeline.yaml"
+    config.write_text(
+        "search_text:\n  recipe: default\n  recipes:\n    default:\n      include_choice: false\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValidationError):
+        load_recipe(config)
+
+
+def test_selecting_an_undefined_recipe_is_refused(tmp_path) -> None:
+    """It used to fall back to the defaults — so an A/B test between two
+    recipes could run the control twice and report it as a comparison."""
+    import pytest
+
+    from src.data.build_index_text import load_recipe
+
+    config = tmp_path / "pipeline.yaml"
+    config.write_text(
+        "search_text:\n  recipe: title_only\n  recipes:\n    default:\n"
+        "      include_choices: false\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="title_only"):
+        load_recipe(config)
+
+
+def test_a_nonsensical_token_threshold_is_refused(tmp_path) -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    from src.data.build_index_text import load_recipe
+
+    config = tmp_path / "pipeline.yaml"
+    config.write_text(
+        "search_text:\n  recipe: default\n  recipes:\n    default: {}\n"
+        "  token_warning_threshold: 0\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValidationError):
+        load_recipe(config)

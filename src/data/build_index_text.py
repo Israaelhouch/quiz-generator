@@ -23,55 +23,92 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-import yaml
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.data.latex import normalize_latex
+from src.shared.yaml_config import read_yaml_mapping
 
 
-DEFAULT_RECIPE_FLAGS = {
-    "include_subjects": True,
-    "include_quiz_title": True,
-    "include_question": True,
-    "include_choices": True,
-    "include_correct_answers": False,
-    "include_levels": False,
-}
+class _RecipeFlags(BaseModel):
+    """Which fields a recipe folds into search_text.
 
-DEFAULT_SEPARATORS = {
-    "part": ". ",
-    "subjects": ", ",
-    "choices": " | ",
-}
+    Unknown keys are rejected: a flag spelled `include_choice` used to be
+    dropped in silence, so the index was built without answer choices while
+    the config said otherwise — and only the eval numbers would have shown it.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    include_subjects: bool = True
+    include_quiz_title: bool = True
+    include_question: bool = True
+    include_choices: bool = True
+    include_correct_answers: bool = False
+    include_levels: bool = False
+
+
+class _Separators(BaseModel):
+    """Strings joining the parts of search_text."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    part: str = ". "
+    subjects: str = ", "
+    choices: str = " | "
+
+
+class _SearchTextConfig(BaseModel):
+    """The `search_text:` block of configs/pipeline.yaml."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    recipe: str = "default"
+    recipes: dict[str, _RecipeFlags] = Field(default_factory=dict)
+    separators: _Separators = Field(default_factory=_Separators)
+    token_warning_threshold: int = Field(default=100, gt=0)
+    normalize_latex: bool = False
+
+
+class _PipelineFile(BaseModel):
+    """A pipeline config file: one `search_text:` block and nothing else."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    search_text: _SearchTextConfig
+
+
+DEFAULT_RECIPE_FLAGS = _RecipeFlags().model_dump()
+
+DEFAULT_SEPARATORS = _Separators().model_dump()
 
 
 def load_recipe(
     config_path: Path,
 ) -> tuple[str, dict[str, bool], dict[str, str], int, bool]:
-    """Return (recipe_name, flags, separators, token_threshold, normalize_latex_flag)."""
-    if not config_path.exists():
-        return "default", dict(DEFAULT_RECIPE_FLAGS), dict(DEFAULT_SEPARATORS), 100, False
+    """Return (recipe_name, flags, separators, token_threshold, normalize_latex).
 
-    with config_path.open("r", encoding="utf-8") as file:
-        loaded = yaml.safe_load(file) or {}
+    Raises FileNotFoundError if the config is absent, ValidationError on an
+    unknown key or a value of the wrong type, and ValueError when the selected
+    recipe is not defined — selecting a missing recipe used to fall back to
+    the defaults, so an A/B test silently ran the control twice.
+    """
+    raw = read_yaml_mapping(config_path, what="Pipeline")
+    section = _PipelineFile.model_validate(raw).search_text
 
-    section = loaded.get("search_text") or {}
-    recipe_name = str(section.get("recipe") or "default")
-    recipes = section.get("recipes") or {}
-    flags_from_config = recipes.get(recipe_name, {}) or {}
+    if section.recipe not in section.recipes:
+        available = ", ".join(sorted(section.recipes)) or "none"
+        raise ValueError(
+            f"Recipe {section.recipe!r} is not defined in {config_path}. "
+            f"Defined recipes: {available}."
+        )
 
-    flags = dict(DEFAULT_RECIPE_FLAGS)
-    for key, value in flags_from_config.items():
-        if key in flags:
-            flags[key] = bool(value)
-
-    separators = dict(DEFAULT_SEPARATORS)
-    for key, value in (section.get("separators") or {}).items():
-        if key in separators and isinstance(value, str):
-            separators[key] = value
-
-    token_threshold = int(section.get("token_warning_threshold", 100))
-    normalize_latex_flag = bool(section.get("normalize_latex", False))
-    return recipe_name, flags, separators, token_threshold, normalize_latex_flag
+    return (
+        section.recipe,
+        section.recipes[section.recipe].model_dump(),
+        section.separators.model_dump(),
+        section.token_warning_threshold,
+        section.normalize_latex,
+    )
 
 
 def _nonempty_strings(values: list[Any] | None) -> list[str]:

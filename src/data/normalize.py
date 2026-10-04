@@ -49,6 +49,7 @@ from src.data.curriculum_rules import check_compliance as check_curriculum_compl
 from src.data.domain_rules import apply_subject_language_rule
 from src.data.filters import strip_html_to_plain
 from src.data.language import SUPPORTED_LANGUAGES, resolve_language
+from src.shared.yaml_config import read_yaml_mapping
 from src.data.latex import normalize_latex, strip_latex_for_detection
 
 
@@ -68,11 +69,23 @@ def classify_empty_text_reason(raw_text: str | None) -> str:
 
 
 def load_subject_aliases(path: Path) -> dict[str, str]:
-    if not path.exists():
-        return {}
-    with path.open("r", encoding="utf-8") as file:
-        data = yaml.safe_load(file) or {}
-    return {str(key): str(value) for key, value in data.items()}
+    """Load the raw-subject to canonical-subject map.
+
+    Every entry must be a string pair. A non-string value used to be coerced
+    with `str()`, so `MECHANIC: 1` would have mapped a subject to the literal
+    "1" and quietly removed those rows from every subject filter.
+    """
+    raw = read_yaml_mapping(path, what="Subject alias")
+
+    aliases: dict[str, str] = {}
+    for key, value in raw.items():
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(
+                f"Subject alias config {path}: {key!r} maps to {value!r}; "
+                "every alias must map to a non-empty subject name."
+            )
+        aliases[str(key)] = value
+    return aliases
 
 
 def clean_quiz_title(raw_title: str | None) -> str:

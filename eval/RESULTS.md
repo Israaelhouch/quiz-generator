@@ -210,6 +210,11 @@ directory with:
 - `per_query.jsonl` — one row per test case for failure-mode analysis
 - `config_snapshot.yaml` — copy of `configs/models.yaml` that produced
   the numbers
+- `pipeline_snapshot.yaml` — copy of `configs/pipeline.yaml`, the
+  `search_text` recipe the index was built with
+- `provenance.json` — git SHA, config hashes, and the index this run
+  searched: payload hash, model, dimension, collection, row count, recipe.
+  Warnings here name anything the run could not account for
 - `run_args.json` — CLI invocation
 
 ## What's NOT measured
