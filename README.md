@@ -89,20 +89,38 @@ subject constraints narrow the candidate pool before anything is scored.
 
 | Cell | N | P@1 | Hit@10 | MRR |
 |------|--:|----:|-------:|----:|
-| `en × ENGLISH` | 2,761 | 0.735 | 0.871 | 0.784 |
+| `en × ENGLISH` | 2,761 | 0.806 | 0.875 | 0.828 |
 | `ar × ARABIC` | 400 | 0.585 | 0.778 | 0.655 |
 | `fr × FRENCH` | 46 | 0.870 | 1.000 | 0.914 |
 | `fr × MATHEMATICS` | 720 | 0.615 | 0.735 | 0.649 |
 | `ar × MATHEMATICS` | 360 | 0.492 | 0.692 | 0.547 |
 
-Maths sits ~10pp below the language cells. The failure mode is sibling-topic
-confusion — asked for "Fonction Logarithme" the retriever returns "Fonctions
-affines", which is semantically right and wrong for the task. Mitigated in
-production by the school-phase filter. The French number looks excellent and
-isn't: 46 test cases over 15 documents. Reporting it honestly is more useful
-than hiding it.
+English was re-measured on 2026-09-10. Its answer key turned out to be stale —
+built before a doc_id fix, so correct retrievals were being scored as wrong —
+and was repaired in three separately measured steps (it previously read
+0.735). The other rows are May runs whose answer keys were re-checked and are
+current.
 
-Full methodology in [`eval/RESULTS.md`](eval/RESULTS.md).
+On 50 realistic teacher questions that don't contain the quiz title, English
+P@1 is 0.76 (likely range 0.64–0.88), while 94% still have a correct quiz in the
+top 10: retrieval finds the right material, and ranking it first is the weak
+spot, especially when a teacher describes a problem rather than naming the
+grammar point.
+
+The numbers have known limits, written down rather than hidden. The test
+queries are templates that contain the target title, and some are labelled
+with several different correct quizzes, which caps the best possible score:
+0.71 for French maths, 0.67 for Arabic maths. Measured against that ceiling,
+maths is not the weak spot it looks like; the Arabic language cell is. The
+French number looks excellent and isn't: 46 test cases over 15 documents.
+
+These rows are not independently reproducible, and saying so is part of
+reporting them. The harness, the metric code and the answer-key validator are
+all in this repository, but the test cases and answer keys are derived from the
+private curriculum corpus and cannot ship with it. A fresh clone can run
+`make eval` against its own index; it cannot re-measure the table above.
+
+Full methodology and limits in [`eval/RESULTS.md`](eval/RESULTS.md).
 
 ## Engineering decisions worth reading
 
@@ -224,17 +242,16 @@ and most of them answer a question this README deliberately leaves short.
 
 | | |
 |---|---|
-| [`docs/scope.md`](docs/scope.md) | **Read this first for anything about the data.** The full audit of the raw corpus: 1,372 quizzes / 12,480 questions, the language-label variants, and the integrity findings — 7.2% of questions have no correct answer, the `multipleChoice` flag is unreliable, 99% of descriptions carry HTML, `hintText` is junk. Also the scope filters and per-stage row counts. |
+| [`docs/data_audit.md`](docs/data_audit.md) | **Read this first for anything about the data.** The full audit of the raw corpus: 1,372 quizzes / 12,480 questions, the language-label variants, and the integrity findings — 7.2% of questions have no correct answer, the `multipleChoice` flag is unreliable, 99% of descriptions carry HTML, `hintText` is junk. Also the scope filters and per-stage row counts. |
 | [`docs/cells_plan.md`](docs/cells_plan.md) | Which (language × subject) cells are shipped, beta, or out of scope, and why. Also the note explaining the `phase1` suffix on several filenames. |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | ADRs. Includes the four accepted chromadb advisories and, importantly, the condition under which they stop being safe. |
-| [`docs/frontend_integration.md`](docs/frontend_integration.md) | The API contract the single-page UI is written against. |
-| [`eval/RESULTS.md`](eval/RESULTS.md) | Measured retrieval metrics per cell, with the failure analysis. |
+| [`eval/RESULTS.md`](eval/RESULTS.md) | Measured retrieval metrics per cell, their limits, and results on realistic teacher questions. |
 | [`data/sample/README.md`](data/sample/README.md) | What the synthetic corpus is, what is deliberately broken in it, and why no real content appears. |
 | [`docker/README.md`](docker/README.md) | Running the service in containers. |
 | [`CHANGELOG.md`](CHANGELOG.md) | What shipped, per release. |
 
 This index exists because it was missing. Six of those files were reachable
-from nothing, and the cost was real: work was repeated that `docs/scope.md`
+from nothing, and the cost was real: work was repeated that `docs/data_audit.md`
 had already recorded in April, and a wrong filename in that document was
 copied into `run_local.sh`, where it silently disabled the script's
 skip-if-already-built logic for two of four stages.

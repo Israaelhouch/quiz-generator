@@ -1,8 +1,7 @@
-# Cells and Plan
+# Cells and plan
 
-**Status:** Active
-**Current branch:** `feature/math-subject` (Phase 2 math)
-**Last updated:** 2026-05-19
+Which (language × subject) cells this service ships, which are beta, which are
+out of scope, and the acceptance criteria each one is held to.
 
 ---
 
@@ -132,8 +131,7 @@ document; the filenames are just labels.
 
 ## References
 
-- `docs/scope.md` — original project scope (locked)
-- `docs/frontend_integration.md` — what the platform team needs to know
+- `docs/data_audit.md` — what the raw corpus contains and what is wrong with it
   (MathJax/KaTeX rendering, auth, error handling)
 - `CHANGELOG.md` — per-release shipped/known-issue breakdown
 - `configs/phase1_scope.yaml` — declarative scope filter (subjects + levels + languages)

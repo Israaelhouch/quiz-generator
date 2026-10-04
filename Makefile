@@ -25,7 +25,7 @@ PORT ?= 8000
 
 .PHONY: help setup test test-cov lint fmt fmt-check typecheck audit eval run \
         serve serve-all ci clean ingest normalize build-text build-index \
-        build build-verify rebuild
+        build build-verify rebuild eval-realistic eval-validate refresh-topics
 
 help:  ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -150,8 +150,23 @@ run: ## Serve the API on $(HOST):$(PORT), building anything missing first
 serve:  ## Serve the API only, assuming the index already exists
 	$(PY) -m src.api --host $(HOST) --port $(PORT)
 
-eval:  ## Run the retrieval eval and write a versioned snapshot to eval/results/
-	$(PY) -m scripts.eval.run_retriever_eval
+# The eval inputs are derived from the private corpus and are not in the
+# repository; these targets need them present in eval/.
+EVAL_CASES ?= eval/english_retriever_test_cases.json
+
+eval:  ## Run the retrieval eval on EVAL_CASES (default: English template set)
+	$(PY) -m scripts.eval.run_retriever_eval $(EVAL_CASES)
+
+eval-realistic:  ## Run the retrieval eval on the 50 realistic English questions
+	$(PY) -m scripts.eval.run_retriever_eval eval/english_realistic_test_cases.json
+
+eval-validate:  ## Check EVAL_CASES and its answer key against the index
+	$(PY) -m scripts.eval.validate_test_cases $(EVAL_CASES)
+
+refresh-topics:  ## Refresh eval answer keys from the index (dry run; WRITE=1 writes)
+	$(PY) -m scripts.eval.refresh_topics \
+	  --aliases eval/topic_aliases.safe.yaml \
+	  --aliases eval/topic_aliases.reviewed.yaml $(if $(WRITE),--write,)
 
 # ---------------------------------------------------------------------------
 # Housekeeping

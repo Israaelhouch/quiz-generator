@@ -1,10 +1,10 @@
 # Decisions
 
-Three records, kept because a future reader — including future you — would
-otherwise have no way to tell a deliberate choice from an accident, would not
-know about a security exposure that is dormant today but becomes real if the
-deployment shape changes, and would not know which of the checker's complaints
-turned out to be real bugs.
+Five records, kept because a future reader — including future you — would
+otherwise have no way to tell a deliberate choice from an accident: a security
+exposure that is dormant today but becomes real if the deployment shape
+changes, which of the checker's complaints turned out to be real bugs, and why
+the eval's answer key and test questions look the way they do.
 
 Format: **context → options → decision → consequences** (CLAUDE.md §2).
 
@@ -172,3 +172,114 @@ at all. All three surfaced within minutes of the gates being switched on. What
 catches them now: `ruff check` and `mypy --strict` on every push and pull
 request, plus 8 regression tests, of which the reranker one is verified to
 fail against the pre-fix code.
+
+---
+
+## ADR-0004 — The eval answer key is repaired in measured steps, not regenerated
+
+**Status:** accepted · 2026-09-10
+
+**Context.** The English retrieval eval scores a retrieved question as correct
+only if its doc_id is listed under the target topic in
+`eval/topics_english.csv`. That file was built on 2026-05-13, before the
+2026-05-18 doc_id collision fix, and never rebuilt. Against the current index
+it omitted 205 questions belonging to its topics, listed one unknown id, and
+carried 120 duplicate ids. Its 206 topics were also merged by hand from 251
+raw titles, and only partly: seven topic names exist on no indexed question at
+all. The
+2,761 test cases target those 206 hand-merged names. Nothing compared the key
+with the index, so the published English P@1 of 0.735 understated retrieval.
+
+**Options.**
+1. Regenerate the CSV by re-running the notebook that built it.
+2. Refresh doc_ids, then merge title variants automatically by similarity
+   (typos, subtitles, numbered parts).
+3. Refresh doc_ids, then merge only by a narrow mechanical rule, and leave
+   every judgement merge to a human — each step measured separately.
+
+**Decision.** Option 3, with a validator that refuses to run the eval on a key
+that disagrees with the index.
+
+**Why not option 1.** The notebook groups by exact title and produces about
+360 topics. Every one of the 2,761 test cases targets a hand-merged name that
+would no longer exist.
+
+**Why not option 2.** The evidence ran against it everywhere it was tried:
+
+- A similarity rule proposed 151 English subtitle/fuzzy pairs, most of them
+  wrong — `'The + adjective'` matched `'Compound Adjectives'` and
+  `'Possessive Adjectives'`.
+- In Arabic, all 29 near-identical title pairs are distinct lessons or
+  sub-topics:
+  `الدَّرْسُ الثَّانِي` (lesson 2) and `الدَّرْسُ الثَّانِي عَشَر` (lesson 12);
+  the same verb in the indicative and in the subjunctive mood. Near-identical
+  spelling routinely means different grammar.
+- Of the English candidates reviewed by hand, the single largest score gain
+  (+0.0025 P@1) came from a merge judged wrong — transport prepositions
+  folded into dependent prepositions. An automatic rule would have kept it and
+  reported an improvement.
+
+**The narrow rule.** Titles merge automatically only when they differ in case,
+spacing, punctuation, `&`/`and`, or a leading English article — and only into a
+topic that is the sole owner of the group. A leading article is stripped only
+when a word follows it, and punctuation is found by Unicode category, because a
+word-character regex also deletes Arabic vowel marks.
+
+**Consequences.**
+- English P@1: 0.735 (stale) → 0.795 (refresh) → 0.802 (safe merges) →
+  0.806 (reviewed merges). Re-scoring fixed retrieval results against each
+  key reproduces each run to within ±0.0005, so each gain is attributable to
+  its step.
+- The key is a function of the original CSV, the index and two alias files
+  (`eval/topic_aliases.safe.yaml`, `eval/topic_aliases.reviewed.yaml`), and
+  rebuilds identically whether the steps are applied one by one or in one pass. Rejected merges are recorded in the
+  reviewed file so they are not re-proposed without new evidence.
+- The alias files, like the CSVs, name real quiz titles and stay out of git.
+- What this does **not** fix: the test cases themselves. They are
+  template-generated with the target title inside the query, some queries are
+  labelled with several correct quizzes (capping P@1 at 0.887 for English and
+  0.667 for Arabic maths), and the generator is not in the repository. Those
+  need new test cases, not a better answer key.
+
+---
+
+## ADR-0005 — Realistic eval questions are labelled blind and may accept several quizzes
+
+**Status:** accepted · 2026-09-10
+
+**Context.** The template test cases contain their target quiz title word for
+word, so they mostly measure title matching (ADR-0004). A realistic set was
+needed: questions phrased the way teachers ask. Two choices decide whether such
+a set can be trusted — who picks the correct answers, and how many a question
+may have.
+
+**Options.**
+1. One correct quiz per question, as in the template set.
+2. Several correct quizzes, chosen with help from the search model — for
+   example by accepting what it retrieves.
+3. Several correct quizzes, chosen by reading each topic's questions, without
+   the search model and before any score is seen.
+
+**Decision.** Option 3.
+
+**Why.** Option 1 repeats the flaw that makes template queries such as
+'english grammar exercises' impossible to pass: a real request is often served
+equally well by several topics. Option 2 lets the system under test decide what
+counts as correct, which inflates its score by construction. Scores were also
+withheld until the questions had been reviewed, so failing questions could not
+be quietly removed.
+
+**Consequences.**
+- Test cases gained an optional `also_correct_quiz_titles` list; existing test
+  files are unaffected.
+- The rule is applied to every question, not only to failures. The first
+  labelling considered only topics with 8 or more questions and missed fair
+  answers among smaller ones. The audit that fixed it added answers to 13
+  questions, 9 of which had already passed, and P@1 moved from 0.680 to 0.760
+  with identical search results.
+- The check that a question avoids its titles' words ignores short function
+  words, so it cannot flag a title such as "In - On - At", and it is only as
+  complete as the answer list: six questions share a word with a correct title
+  added in the audit.
+- 50 questions give a wide range (P@1 0.64–0.88). The set is for finding
+  weaknesses, not for comparing close configurations.

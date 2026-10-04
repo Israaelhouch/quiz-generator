@@ -5,293 +5,175 @@ the per-commit detail; this file has the per-release story.
 
 ---
 
-## Unreleased — Tooling safety net
+## Unreleased
 
-### Fixed — a silent data-loss bug in the reranker
-
-`Reranker.rerank()` paired candidates with model scores using
-`zip(candidates, scores)`. `zip` stops at the shorter input, so a
-cross-encoder returning fewer scores than pairs caused the unscored tail to be
-**discarded with no error and no log line** — five candidates in, two out.
-Reproduced with a stub model before fixing.
-
-`score()` now enforces its own documented contract and raises `RerankerError`
-naming both counts; the `zip` uses `strict=True` as a backstop. The regression
-test is phrased as "never returns fewer candidates than it was handed" rather
-than "raises RerankerError", so it is meaningful against the old code — where
-it fails with `2 of 5 candidates and raised nothing`.
-
-### Fixed — two annotations that contradicted their own defensive code
-
-`curriculum_rules.check_compliance` and
-`domain_rules.apply_subject_language_rule` guarded against null subjects while
-declaring `subjects: list[str]`, so a type checker called the guard dead. The
-guards are right and the annotations were wrong: both are reached from
-`normalize_row`, which is handed an unvalidated `json.loads` result. Widened
-to `Sequence[str | None] | None`.
-
-Not symmetrical, and the code now says so: removing the guard in
-`domain_rules` genuinely changes behaviour (a null becomes the primary subject
-and masks the real one), while in `curriculum_rules` it is redundant.
-
-### Changed — the orchestrator no longer discards type information
-
-`generate_detailed` accepted `language: str` / `question_type: str` and passed
-them into a Pydantic model declaring `Literal` types. Both shipped entry
-points already constrain these (the API via the same Literal, the CLI via
-`argparse choices`), so nothing reachable could pass a bad value — the
-annotation was just weaker than reality. It now declares the same aliases,
-imported under `TYPE_CHECKING` to preserve the deliberate lazy runtime import.
-
-Baseline shrank from 93 type errors in 23 files to 89 in 20, and B905 left the
-ruff allow-list entirely. Suite: 267 -> 275 passed (8 regression tests).
-
-
-Repository infrastructure only. No runtime behaviour changed: the suite is
-267 passed before and after (it was 265 passed / 2 errored before the first
-commit below — see Fixed).
-
-### Fixed
-
-- `tests/test_api.py` called `json.loads` without importing `json`, so the two
-  feedback-log tests raised `NameError` instead of running. They pass now, and
-  the `/feedback` endpoint behaviour they assert is confirmed correct — the
-  bug was in the test file, not the endpoint.
+Four streams of work since v1.1.0: production hardening, an engineering UI with
+feedback capture, a tooling safety net, and the repair of the English eval
+answer key. The reasoning behind the non-obvious choices is in
+`docs/DECISIONS.md`; the measured retrieval numbers are in `eval/RESULTS.md`.
 
 ### Added
 
-- `Makefile` with the entry points CLAUDE.md §0 names — `setup`, `test`,
-  `lint`, `run` — plus `fmt`, `typecheck`, `audit`, `eval`, `ci`, `clean`.
-- `pyproject.toml`: ruff (format + lint), `mypy --strict` on `src/`, pytest
-  and coverage configuration in one place.
-- `.env.example` documenting all 14 environment variables the code reads,
-  with the defaults it actually applies. `.gitignore` gained `!.env.example`
-  so the template escapes the `.env.*` rule while `.env` stays ignored.
-- `requirements-dev.txt` — the minimal set the gate needs. Verified: all 267
-  tests, ruff and mypy pass in a clean virtualenv with only these pins and no
-  torch, CUDA, chromadb or sentence-transformers.
-- GitHub Actions `ci.yml` — ruff, mypy, pytest + coverage, gitleaks and
-  pip-audit on every push and pull request, in seconds.
-- `.pre-commit-config.yaml` with gitleaks, private-key detection and a 512 KB
-  large-file guard (CLAUDE.md §8).
-- `LICENSE` — MIT. A public repository without one is "all rights reserved"
-  by default, which is not what a portfolio project wants.
-- `docs/DECISIONS.md` with two records: how the lint/type baseline works and
-  which real findings it hides, and the conditional acceptance of four
-  chromadb advisories.
+- **API-key authentication** (`src/api/security.py`) — `X-API-Key` or
+  `Authorization: Bearer`, constant-time comparison, keys from `API_KEYS`.
+  Unset means auth is disabled, with a loud startup warning: fail-open so local
+  development and the test suite keep working. `/health` and `/ready` stay open
+  for container healthchecks.
+- **Rate limiting** on `/retrieve` and `/quiz/generate` —
+  `RATE_LIMIT_PER_MINUTE` (default 30) per API key or client IP over a rolling
+  60s window, returning 429 + `Retry-After`. Counted per process.
+- **Correlation IDs** — every response carries `X-Request-ID`, an inbound one is
+  honoured, and the ID is written into `runs.jsonl`.
+- **`GET /ready`** probes Chroma, payload load and the LLM client, 503 when
+  degraded. `/health` only ever proved the process was alive.
+- **`GET /metrics`** in Prometheus text format with no client library
+  (`src/api/observability.py`): request counts by method/path/status, latency
+  sum+count, counters for rate_limited / unauthorized / generation_failed.
+- **`CORS_ALLOW_ORIGINS`**, unset by default — correct for a server-to-server
+  caller; warns on `*`.
+- **`/ui`** — one self-contained HTML console served from `src/api/static/`, no
+  build step and no second container. The dropdowns encode the curriculum
+  rules, so combinations the corpus cannot satisfy are unselectable instead of
+  failing with a 400 fifteen seconds later. Arabic renders RTL, MathJax
+  typesets LaTeX, and a print stylesheet shows every answer. Unauthenticated by
+  design — a browser navigating to a URL cannot attach a header — and inert: no
+  key is baked in, a 401 prompts and holds the key in memory for the session
+  only, which a test asserts.
+- **Retrieval visibility** — a debug panel showing the chunks the LLM actually
+  saw, distance-coloured against the 0.60 floor, plus `timings` in the generate
+  response when `include_retrieval=true`. This is what separates "the quiz is
+  bad" from "the retriever fed it love poetry".
+- **`POST /feedback`** — one human judgement per generated question (up/down
+  plus an optional note) appended to `logs/feedback.jsonl`, carrying
+  `request_id` rather than a copy of the retrieval. Authenticated but
+  deliberately not rate-limited. `scripts/analyze_feedback.py` joins it back to
+  `runs.jsonl` and compares mean worst-chunk distance for upvoted against
+  downvoted questions; it refuses to interpret fewer than 5 judgements per
+  verdict.
+- **Tooling safety net** — `Makefile`, `pyproject.toml` (ruff, `mypy --strict`
+  on `src/`, pytest, coverage), `.env.example` covering all 14 environment
+  variables the code reads, `requirements-dev.txt`, GitHub Actions CI (ruff,
+  mypy, pytest + coverage, gitleaks, pip-audit), `.pre-commit-config.yaml`, an
+  MIT `LICENSE`, and `docs/DECISIONS.md`.
+- **Eval harness** — `validate_test_cases` checks every answer key against the
+  index (unknown ids, ids outside their cell, questions missing from their
+  topic) and `run_retriever_eval` stops before loading the model if it fails;
+  `scripts/eval/refresh_topics.py` rebuilds answer keys from the index, dry run
+  by default, writing only rows whose ids changed and only if re-rendering the
+  file unchanged reproduces it byte for byte; title aliases, with reviewed
+  merges in a file that also records the rejected candidates and why; test
+  cases may list several correct quizzes; a 50-question realistic English set,
+  labelled without the search model; `make eval-realistic`,
+  `make eval-validate`, `make refresh-topics`.
+- `pandas` pinned in `requirements-dev.txt` — the eval scripts import it, so
+  their tests failed in CI without it.
 
 ### Changed
 
-- Applied ruff's 62 safe autofixes (import ordering, dead imports,
-  `datetime.UTC`) across `src/`, `scripts/` and `tests/`. Mechanical only;
-  the suite stayed at 267 passed.
-- README: the quickstart now leads with the three make commands, the manual
-  stage-by-stage sequence is preserved in a `<details>` block, and the test
-  instructions use pytest instead of executing each test file as a script.
+- **Author PII removed from API responses and the run log.** `author_name` and
+  `author_email` identify the real teachers who wrote the source corpus and
+  were shipping on every `include_retrieval=true` response and every logged
+  run. `INCLUDE_AUTHOR_METADATA=1` restores them.
+- **Opaque error bodies.** 500s returned the exception string and 502s embedded
+  corpus diagnostics; both now return a generic message plus the request ID,
+  with full detail logged server-side. 400s still pass their message through —
+  those are caller-caused and actionable.
+- **LLM clients reuse their SDK client** and every call carries a timeout
+  (`LLM_TIMEOUT_SECONDS`, default 90). Without one, a hung provider pinned a
+  worker thread per retry attempt.
+- **`logs/runs.jsonl` rotates** past `RUNS_LOG_MAX_BYTES` (default 50 MB),
+  keeping 3 generations. It was unbounded.
+- **Operational signals moved from `warnings.warn` to `logging`.** The warnings
+  module dedupes per code location, so empty-retrieval, low-pool, multi-level
+  and taxonomy signals fired once per process and were then silent forever.
+- **Dependencies pinned** — `requirements.lock.txt` generated from the running
+  image, and the Dockerfile builds from it. `requirements.txt` remains the
+  statement of intent.
+- `generate_detailed` declares the same `Literal` aliases as the Pydantic model
+  it feeds instead of bare `str`; the type baseline shrank from 93 errors in 23
+  files to 89 in 20.
+- Applied ruff's 62 safe autofixes; every file is formatted and the check is a
+  real gate in CI, `make lint` and pre-commit.
+- The README and `eval/RESULTS.md` report the repaired English numbers, add a
+  Limits section and the realistic-question results, and revise the maths
+  explanation: most of that gap is the test set's own ceiling.
+
+### Fixed
+
+- **Cross-request data leak.** `QuizPipeline.generate()` stashed the retrieval
+  on `self.last_retrieval` and the endpoint read it after the call returned.
+  One pipeline instance serves every request from the thread pool, so a
+  concurrent call could overwrite it in between: teacher A's response, and A's
+  `runs.jsonl` entry, could carry teacher B's source questions.
+  `generate_detailed()` now returns a frozen result the API reads from, and a
+  regression test drives 8 threads through a deliberately slow retriever.
+- **The ML layer is serialised.** `Retriever.retrieve()` holds an `RLock` across
+  embed → Chroma → rerank. Neither SentenceTransformer nor CrossEncoder
+  documents thread-safety and one instance is shared by every request. The LLM
+  call is deliberately outside the lock, so generation stays concurrent.
+- **Silent data loss in the reranker.** `rerank()` paired candidates with model
+  scores using `zip`, which stops at the shorter input — a cross-encoder
+  returning fewer scores than pairs discarded the unscored tail with no error
+  and no log line (five candidates in, two out). `score()` now raises
+  `RerankerError` naming both counts.
+- **`/taxonomy` advertised 12 phantom levels** (`LICENCE_*`, `PREPARATORY_*`)
+  backed by 4 Arabic rows, because scope only inspects `levels[0]`. A teacher
+  picking one got an empty retrieval and a 502. `Taxonomy` now takes
+  `level_prefixes`, applied at build *and* load time, so existing indexes are
+  corrected on read: 38 levels → 26, no reindex.
+- **The English eval scored correct retrievals as wrong.** `topics_english.csv`
+  predated the doc_id collision fix and was never rebuilt: against the current
+  index it omitted 205 questions belonging to its own topics, listed one id that
+  no longer exists, and carried 120 duplicates. Repaired in three separately
+  measured steps — P@1 0.735 → 0.806, and 0.854 → 0.938 on well-specified
+  queries — with each step's prediction matching its measured run.
+- Re-applying an alias file from an earlier run marked its topics changed with
+  +0 −0 and rewrote their rows. Caught by a dry run before any write.
+- `make eval` called the eval script without the test file it requires, so it
+  exited with a usage error.
+- `tests/test_api.py` called `json.loads` without importing `json`, so two
+  feedback-log tests raised `NameError` instead of running. The `/feedback`
+  behaviour they assert was correct — the bug was in the test file.
+- Two annotations contradicted their own null guards
+  (`curriculum_rules.check_compliance`, `domain_rules.apply_subject_language_rule`).
+  Both are reached from `normalize_row`, which is handed an unvalidated
+  `json.loads` result, so the guards were right and the types were wrong.
 
 ### Security
 
-- `pip-audit` found 7 advisories in `pip` (fixed by the upgrade `make setup`
-  now performs) and 4 in `chromadb==1.5.9`, which has no fixed release. The
-  chromadb four are accepted with evidence and a 2026-12-01 review date: all
-  target the Chroma *server*, and this project only ever constructs
-  `PersistentClient` against a local directory. See ADR-0002 — which also
-  states the condition under which these ignores must be removed.
-- Verified the `GEMINI_API_KEY` in the working `.env` appears in no commit in
-  the repository's history, and no secret-shaped strings exist in tracked
-  files.
+- `pip-audit` found 7 advisories in `pip`, fixed by the upgrade `make setup`
+  now performs, and 4 in `chromadb==1.5.9`, which has no fixed release. Those
+  four are accepted with evidence and a 2026-12-01 review date: all target the
+  Chroma *server*, and this project only constructs `PersistentClient` against
+  a local directory (ADR-0002, which also states when the ignores must go).
+- `.gitignore` hardened — `quizzes-raw-data.json` is matched unanchored. A
+  stray 271 MB copy of the private corpus, carrying real teachers' names and
+  emails, was sitting untracked in `notebooks/`, one `git add .` away from
+  entering history.
+- Eval test cases, topics CSVs, alias files and results are ignored by git:
+  they are derived from the private corpus.
+- Verified that no provider key appears anywhere in the repository's history
+  and that no secret-shaped strings exist in tracked files.
 
-### Known debt, recorded not hidden
-
-- ruff and mypy carry an explicit, annotated allow-list of 34 lint and 93 type
-  findings that predate the gates (ADR-0001). It only shrinks. Three entries
-  are real findings needing their own PRs: `zip()` without `strict=` in four
-  modules, dead-or-wrong `None` guards in `curriculum_rules` and
-  `domain_rules`, and a `str` passed where a `Literal` is declared in the
-  orchestrator.
-- ~~`ruff format` would rewrite 42 of 67 files.~~ Done — all 68 files are
-  formatted and the check is a real gate in CI, `make lint` and pre-commit.
-
----
-
-## Unreleased — Engineering UI + generation feedback
-
-**On branch:** `feature/ui` (branched off `dev`)
-
-> Note: three commits on this branch carry messages that don't match their
-> contents (they were committed between edits, so each `git add -A` swept up
-> the previous change). The branch was already pushed, so the history stands.
-> This section is the accurate record.
-
-### Added — `/ui`, a single-page console
-
-- One self-contained HTML file (`src/api/static/index.html`) served at `/ui`,
-  with `/` redirecting to it. No build step, no node, no second container —
-  it lives under `src/` so the existing `COPY src/` picks it up, and being
-  same-origin means CORS stays off.
-- **The dropdowns encode the curriculum.** Subject → language → school phase
-  narrow each other according to `src/data/curriculum_rules.py`: maths is
-  Arabic at primary/collège and French at lycée; ENGLISH/ARABIC/FRENCH each
-  fix their language. Combinations the corpus physically cannot satisfy are
-  unselectable rather than a 400 fifteen seconds later, with a line of text
-  explaining why the choice narrowed.
-- **Thin-cell warning.** Selecting Français warns that the entire subject is
-  15 questions across two quizzes (`l'amour`, `Enfants de tous les pays`),
-  both literature, and steers the topic field at them. Discovered the hard
-  way: `future simple` returned 400 because no French grammar exists.
-- Arabic results render RTL; MathJax typesets after each render so LaTeX in
-  maths questions displays; answers hide behind a reveal toggle; a print
-  stylesheet drops the form and shows every answer.
-- `/ui` is unauthenticated **by design** — a browser navigating to a URL
-  cannot attach `X-API-Key`, so requiring one would make the page
-  unreachable. The page is inert: no key baked in. When an API call returns
-  401 it prompts and retries, holding the key in memory for the session only.
-  Never `localStorage`; a test asserts that.
-
-### Added — retrieval visibility
-
-- The debug panel shows the chunks the LLM actually saw: cosine distance
-  colour-coded against the 0.60 floor, quiz title, question text, levels and
-  `doc_id`, plus per-stage timings. This is what separates "the quiz is bad"
-  from "the retriever fed it love poetry".
-- `POST /quiz/generate` now returns `timings` alongside `retrieval` when
-  `include_retrieval=true`. Opt-in, so the default response shape the
-  platform sees is unchanged.
-
-### Added — `POST /feedback`, the missing measurement
-
-- One human judgement per generated question (`up`/`down` + optional note),
-  appended to `logs/feedback.jsonl`. `eval/RESULTS.md` has real retrieval
-  baselines but states outright that generation quality is judged manually
-  and never written down — which makes every prompt or threshold change
-  unfalsifiable. This turns normal use into a labelled set.
-- Rows carry `request_id` and **not** the retrieval: the join back to
-  `runs.jsonl` already has the filters, chunks, distances and timings.
-  Duplicating them would double the storage and let the copies drift.
-- Authenticated but deliberately **not** rate-limited — throttling the one
-  signal we want more of would be perverse.
-- `scripts/analyze_feedback.py` performs the join and reports up/down by
-  cell, the downvote notes, and the comparison that matters: mean worst-chunk
-  distance for upvoted vs downvoted questions. If downvoted questions were
-  built from farther chunks, `llm.default_max_distance` is too loose — which
-  is the per-language split `configs/models.yaml` has had a TODO for since
-  May. Refuses to interpret below 5 judgements per verdict.
-
-### Known issues / limitations
-
-- The UI is an engineering tool, not a product surface: French copy, no
-  i18n, no responsive testing beyond a narrow breakpoint.
-- Only `MULTIPLE_CHOICE` is exposed. `FILL_IN_THE_BLANKS` works in the API
-  but has 99 rows in the corpus, so retrieval is thin.
-- Feedback is single-rater and unblinded — useful for spotting patterns and
-  tuning thresholds, not a substitute for a proper eval set.
-
----
-
-## Unreleased — Production hardening
-
-**On branch:** `feature/production-hardening`
-
-Everything here is about making the service safe to expose. No change to
-retrieval or generation behaviour; no reindex required.
-
-### Added — API security boundary
-
-- **API-key authentication** (`src/api/security.py`). `X-API-Key` header or
-  `Authorization: Bearer`. Keys come from the `API_KEYS` env var
-  (comma-separated); constant-time comparison. **Unset means auth is
-  DISABLED** and the server logs a loud warning at startup — fail-open by
-  design so local development and the test suite keep working.
-  `/health` and `/ready` stay open so container healthchecks work.
-- **Rate limiting** on `/retrieve` and `/quiz/generate` —
-  `RATE_LIMIT_PER_MINUTE` (default 30) per caller over a rolling 60s window,
-  keyed on the API key (hashed) or client IP. Returns 429 + `Retry-After`.
-  Counted **per process**: with N workers the real ceiling is N × the limit.
-- **Correlation IDs** — every response carries `X-Request-ID`, an inbound one
-  is honoured, and the ID is written into `runs.jsonl`.
-- **Opaque error bodies.** 500 responses returned `f"{type(exc).__name__}:
-  {exc}"`; 502s embedded `diagnose_empty()` output (corpus size, per-subject
-  language counts). Both now return a generic message plus the request ID,
-  with full detail logged server-side. 400s still pass their message through
-  — those are caller-caused and actionable.
-- **CORS is now an explicit decision** — `CORS_ALLOW_ORIGINS`, unset by
-  default (correct for a server-to-server caller). Warns on `*`.
-
-### Fixed — cross-request data leak (concurrency)
-
-- `QuizPipeline.generate()` stashed the retrieval on `self.last_retrieval`
-  and the endpoint read it after the call returned. One pipeline instance
-  serves every request from FastAPI's thread pool, so a concurrent call could
-  overwrite it in between: teacher A's response — and A's `runs.jsonl` entry —
-  could carry teacher B's source questions.
-  New `generate_detailed()` returns a frozen `GenerationResult(quiz,
-  retrieval, timings)`; the API reads only from it. `generate()` remains for
-  the CLI and still mirrors `last_*`. Regression test drives 8 threads through
-  a deliberately slow retriever and asserts each gets only its own data.
-- **The ML layer is serialised.** `Retriever.retrieve()` now holds an `RLock`
-  across embed → Chroma → rerank. Neither SentenceTransformer nor CrossEncoder
-  documents thread-safety, and one instance is shared by every request. The
-  LLM call is deliberately outside the lock, so generation stays concurrent.
-
-### Fixed — out-of-scope levels in `/taxonomy`
-
-- `scope.decide_in_scope()` only inspects `levels[0]`, so a kept row could
-  carry out-of-scope SECONDARY tags. The taxonomy harvested all of them, and
-  `/taxonomy` advertised 12 phantom levels (`LICENCE_*`, `PREPARATORY_*`)
-  backed by 4 Arabic rows. A teacher picking one from a dropdown got an empty
-  retrieval and a 502. `Taxonomy` now takes `level_prefixes`, applied at build
-  **and load** time — so existing indexes are corrected on read, no reindex.
-  38 levels → 26.
-
-### Changed — resource safety
-
-- **LLM clients reuse their SDK client** instead of constructing one per call,
-  and every call carries a timeout (`LLM_TIMEOUT_SECONDS`, default 90).
-  Without one a hung provider pinned a worker thread, up to `max_attempts` of
-  them per request. Timeout wiring falls back gracefully when an SDK version
-  rejects the argument.
-- **`logs/runs.jsonl` rotates** past `RUNS_LOG_MAX_BYTES` (default 50 MB),
-  keeping 3 generations. It was unbounded.
-- **Author PII removed from API responses and the run log.**
-  `author_name` / `author_email` identify real teachers who wrote the source
-  corpus and were shipping on every `include_retrieval=true` response and
-  every logged run. Set `INCLUDE_AUTHOR_METADATA=1` to restore.
-- **Operational signals moved from `warnings.warn` to `logging`.**
-  The warnings module dedupes per code location, so empty-retrieval,
-  low-pool, multi-level and taxonomy-validation signals fired **once per
-  process** and were then silent forever. A test now asserts the empty-store
-  signal repeats on every call.
-- **Dependencies pinned.** `requirements.lock.txt` generated from the running
-  image; the Dockerfile builds from it. `requirements.txt` remains the
-  statement of intent.
-- **`.gitignore` hardened** — `quizzes-raw-data.json` is now matched
-  unanchored. A stray 271 MB copy of the private corpus (real teachers' names
-  and emails) was sitting untracked in `notebooks/`, one `git add .` away
-  from entering history.
-
-### Added — operations
-
-- **`GET /ready`** — probes Chroma document count, payload load and LLM
-  client; 503 when degraded. `/health` only ever proved the process was
-  alive, which cannot distinguish "serving" from "will 502 on every request".
-  The compose healthcheck now uses `/ready`.
-- **`GET /metrics`** — Prometheus text format, no client library
-  (`src/api/observability.py`). Request counts by method/path/status, latency
-  sum+count per path, event counters for rate_limited / unauthorized /
-  generation_failed. Behind the API key. `/health` and `/metrics` excluded
-  from their own metrics. Per-process, like the rate limiter.
-
-### Known issues / limitations
+### Known limitations
 
 - Rate limits and metrics are per process. Scaling out needs Redis-backed
-  counters, or enforcement at Nginx.
-- Secrets live in a plaintext `.env` on the host.
+  counters, or enforcement at the proxy.
 - Latency is exported as sum+count, not a histogram — true percentiles still
   come from `scripts/analyze_runs.py` offline.
-- The 4 Arabic rows carrying phantom level tags still have
-  `levels_LICENCE_*` keys in Chroma metadata. A caller who hardcodes one can
-  still filter on it; `/taxonomy` no longer offers it. Cleaning the metadata
-  needs a reindex.
+- Secrets live in a plaintext `.env` on the host.
+- The UI is an engineering tool, not a product surface: French copy, no i18n,
+  little responsive testing, and only `MULTIPLE_CHOICE` is exposed.
+- Feedback is single-rater and unblinded — useful for spotting patterns, not a
+  substitute for a labelled set.
+- Lint and type debt is an explicit, annotated allow-list that only shrinks
+  (ADR-0001).
+- The eval has ceilings of its own: duplicate queries with different correct
+  quizzes cap P@1, the template queries contain their target title, and HNSW
+  search returns a different candidate pool for about half of all queries
+  between runs (aggregates stay within ±0.0005). See `eval/RESULTS.md`.
+- 4 Arabic rows still carry phantom level keys in Chroma metadata; a caller who
+  hardcodes one can still filter on it. Cleaning them needs a reindex.
 
 ---
 
@@ -390,6 +272,7 @@ retrieval or generation behaviour; no reindex required.
   - `scripts/eval/run_retriever_eval.py` computes precision@k,
     recall@k, hit@k, MRR. Recorded baselines:
     - EN (2,761 cases): precision@1 0.735, hit@10 0.871, MRR 0.784
+      (later found to be scored against a stale answer key — see Unreleased)
     - AR (400 cases): precision@1 0.585, hit@10 0.778, MRR 0.655
     - FR (46 cases): precision@1 0.870, hit@10 1.000, MRR 0.914
       (small sample, French literature is the smallest corpus slice).
