@@ -66,3 +66,6 @@ eval/results/
 # Generated at runtime
 logs/
 last_run.json
+
+# Local AI-assistant guide — kept out of the public repo on purpose
+CLAUDE.md
