@@ -226,6 +226,8 @@ class BuildIndexTextStats(BaseModel):
     rows_over_token_threshold: int
     token_threshold: int
     empty_search_text_rows: int
+    # Rows the output schema rejected. They used to disappear with no record.
+    schema_validation_failed: int = 0
 
 
 class TaxonomyRecord(BaseModel):

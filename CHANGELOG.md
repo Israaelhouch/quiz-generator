@@ -14,6 +14,12 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Added
 
+- `tests/test_build_index_text_pipeline.py` — 11 tests for the stage that
+  composes the single string every embedding is computed from: the recipe is
+  applied, the correct answer stays out of it, every other field passes
+  through untouched, empty and rejected rows are counted, the stats name the
+  recipe, and long rows are flagged against the token threshold.
+
 - `tests/test_normalize_pipeline.py` — `normalize_row` and `dedup_rows` were
   tested, the stage that drives them was not, though it removes 869 of 6,651
   rows. 18 tests now cover cleaning, the subject-locked language override,
@@ -115,6 +121,13 @@ answer key. The reasoning behind the non-obvious choices is in
   question with `model_dump()`.
 
 ### Fixed
+
+- `build_index_text` discarded rows the output schema rejected with a bare
+  `except ValidationError: continue` — no counter, no reason, nothing in the
+  stats. The payload could be short and no record would say so. Rejections are
+  now counted, reported by the CLI and logged as a warning. Its output and
+  stats are also written to a temporary file and renamed on success, like the
+  earlier stages.
 
 - `normalize` reported `output_rows`, `by_language` and `by_type` over the
   rows that reached the writer rather than the rows that survived validation
