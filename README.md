@@ -232,7 +232,6 @@ and most of them answer a question this README deliberately leaves short.
 | [`data/sample/README.md`](data/sample/README.md) | What the synthetic corpus is, what is deliberately broken in it, and why no real content appears. |
 | [`docker/README.md`](docker/README.md) | Running the service in containers. |
 | [`CHANGELOG.md`](CHANGELOG.md) | What shipped, per release. |
-| [`CLAUDE.md`](CLAUDE.md) | The engineering standards this repository is held to. |
 
 This index exists because it was missing. Six of those files were reachable
 from nothing, and the cost was real: work was repeated that `docs/scope.md`
