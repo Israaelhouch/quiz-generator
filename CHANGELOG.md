@@ -70,6 +70,17 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Changed
 
+- **The remaining YAML configs are validated or refused** (`scope.yaml`,
+  `pipeline.yaml`, `subject_aliases.yaml`), the way `models.yaml` already was:
+  a Pydantic model per block with unknown keys forbidden, and a file that is
+  missing or not a mapping is an error rather than a silent fall back to
+  defaults. Five silent failure modes are now loud: a mistyped recipe flag
+  (`include_choice`) used to be dropped, selecting an undefined recipe used to
+  run the default, `subjects: ENGLISH` written as a string used to empty the
+  corpus, a non-string alias used to be coerced with `str()`, and a missing
+  file used to produce an index no config on disk describes (ADR-0007).
+- `src/data/scope.py` — which decides corpus membership — went from **0% to
+  100% coverage**; `tests/test_scope.py` is new.
 - **The environment is read once, through a typed `Settings` object**
   (`src/shared/settings.py`). The 13 scattered `os.environ` reads across five
   modules are gone; every variable has a declared type, a declared default and

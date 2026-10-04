@@ -1,6 +1,6 @@
 # Decisions
 
-Six records, kept because a future reader — including future you — would
+Seven records, kept because a future reader — including future you — would
 otherwise have no way to tell a deliberate choice from an accident: a security
 exposure that is dormant today but becomes real if the deployment shape
 changes, which of the checker's complaints turned out to be real bugs, and why
@@ -356,3 +356,63 @@ Two deliberate restrictions:
 - The LLM client now takes its key from settings, which is the seam the
   roadmap's vLLM and Langfuse work needs: a new provider adds a field, not
   another `os.environ` call.
+
+---
+
+## ADR-0007 — A pipeline config is validated or refused, never defaulted
+
+**Date:** 2026-10-04 · **Status:** accepted · **Extends:** ADR-0006
+
+### Context
+
+`configs/models.yaml` was already parsed into a validated Pydantic model. The
+other three configs were read with a bare `yaml.safe_load` and a chain of
+`.get(key, default)` calls, which meant every mistake in them was silent:
+
+- `load_recipe` copied only keys it already knew: `include_choice` (singular)
+  was **dropped without a word**, so the index would be built without answer
+  choices while the config said they were included.
+- Selecting a recipe that does not exist — `recipe: title_only` with only
+  `default` defined — fell back to the default flags. An A/B test between two
+  recipes could therefore run the control twice and be reported as a
+  comparison.
+- A missing config file returned the defaults. The job succeeded and produced
+  an index that no file on disk describes.
+- `load_scope` accepted `subjects: ENGLISH` (a string, not a list) and turned
+  it into `frozenset({'E','N','G','L','I','S','H'})`, dropping every row as
+  out of scope. The pipeline would report an empty corpus, not an error.
+- `load_subject_aliases` coerced values with `str()`, so `MECHANIC: 1` mapped
+  that subject to the literal `"1"` and removed those rows from every subject
+  filter downstream.
+
+These are not crashes. They are quality regressions in a system whose
+deliverable is measured quality, and each one would surface as an unexplained
+move in P@1 days later.
+
+### Decision
+
+The three remaining configs get what `models.yaml` already had: a Pydantic
+model per block with `extra="forbid"`, loaded through
+`src/shared/yaml_config.read_yaml_mapping`, which requires the file to exist
+and to contain a mapping. A selected recipe that is not defined raises and
+names the recipes that are.
+
+`extra="forbid"` is the point of the decision rather than an implementation
+detail: a config key that nobody reads is the failure mode here, so an
+unknown key has to be an error.
+
+### Consequences
+
+- Behaviour change, in the same direction as ADR-0006: a malformed or missing
+  pipeline config now stops the run. No existing test depended on the silent
+  fallbacks; the real configs load to byte-identical values (recipe
+  `default`, the same six flags, threshold 100, `normalize_latex: true`).
+- `src/data/scope.py` went from **0% to 100%** test coverage. It decides
+  corpus membership and had no tests at all, which was the weakest point in
+  the suite.
+- The `DEFAULT_RECIPE_FLAGS` and `DEFAULT_SEPARATORS` constants are now
+  derived from the models, so the defaults cannot drift from the schema.
+- Still open: `run_retriever_eval` snapshots `configs/models.yaml` with every
+  run but not `configs/pipeline.yaml`, so a run's numbers cannot be traced
+  back to the recipe that built the index it searched. Worth closing before
+  the next recipe A/B.

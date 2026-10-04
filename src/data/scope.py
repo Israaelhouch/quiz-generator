@@ -19,7 +19,9 @@ detection happens later in normalize.py. The `languages` list in the
 scope config is enforced indirectly: normalize.py already drops rows
 whose resolved language isn't in {en, fr, ar}.
 
-Pure-dict — no Pydantic dependency, easy to unit test.
+The config is validated on load: unknown keys are rejected, and a value of
+the wrong shape (`subjects: ENGLISH` instead of a list) is an error rather
+than a frozenset of single characters that silently empties the corpus.
 """
 
 from __future__ import annotations
@@ -28,7 +30,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import yaml
+from pydantic import BaseModel, ConfigDict, Field
+
+from src.shared.yaml_config import read_yaml_mapping
 
 
 @dataclass(frozen=True)
@@ -40,33 +44,39 @@ class ScopeConfig:
     languages: frozenset[str]
 
 
+class _ScopeBlock(BaseModel):
+    """The `scope:` block of a scope config. Unknown keys are rejected."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = "unnamed_scope"
+    subjects: list[str] = Field(min_length=1)
+    level_prefixes: list[str] = Field(min_length=1)
+    languages: list[str] = Field(min_length=1)
+
+
+class _ScopeFile(BaseModel):
+    """A scope config file: one `scope:` block and nothing else."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    scope: _ScopeBlock
+
+
 def load_scope(config_path: Path) -> ScopeConfig:
-    """Load + validate a scope YAML file."""
-    if not config_path.exists():
-        raise FileNotFoundError(f"Scope config not found: {config_path}")
+    """Load and validate a scope YAML file.
 
-    with config_path.open(encoding="utf-8") as f:
-        raw = yaml.safe_load(f) or {}
-
-    scope_block = raw.get("scope") or {}
-
-    name = scope_block.get("name", "unnamed_scope")
-    subjects = scope_block.get("subjects") or []
-    level_prefixes = scope_block.get("level_prefixes") or []
-    languages = scope_block.get("languages") or []
-
-    if not subjects:
-        raise ValueError(f"Scope {name!r}: at least one subject is required")
-    if not level_prefixes:
-        raise ValueError(f"Scope {name!r}: at least one level_prefix is required")
-    if not languages:
-        raise ValueError(f"Scope {name!r}: at least one language is required")
+    Raises FileNotFoundError if the file is absent, and ValidationError if a
+    key is unknown, a list is empty, or a value has the wrong shape.
+    """
+    raw = read_yaml_mapping(config_path, what="Scope")
+    block = _ScopeFile.model_validate(raw).scope
 
     return ScopeConfig(
-        name=str(name),
-        subjects=frozenset(s.upper() for s in subjects),
-        level_prefixes=tuple(level_prefixes),
-        languages=frozenset(l.lower() for l in languages),
+        name=block.name,
+        subjects=frozenset(subject.upper() for subject in block.subjects),
+        level_prefixes=tuple(block.level_prefixes),
+        languages=frozenset(language.lower() for language in block.languages),
     )
 
 
