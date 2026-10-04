@@ -38,7 +38,7 @@ def _parse_args() -> argparse.Namespace:
     )
     p.add_argument("query", help="Query text (quote if it has spaces)")
     p.add_argument("--config", type=Path, default=Path("configs/models.yaml"))
-    p.add_argument("--ready", type=Path, default=Path("data/processed/ready.jsonl"))
+    p.add_argument("--payload", type=Path, default=Path("data/processed/payload.jsonl"))
     p.add_argument("--language", required=True, choices=["en", "fr", "ar"])
     p.add_argument("--top-k", type=int, default=5)
     p.add_argument(
@@ -210,7 +210,7 @@ def main() -> None:
         levels = [l.strip() for l in args.levels.split(",") if l.strip()]
 
     print("Loading retriever (this also loads the reranker model on first run)…")
-    retriever = Retriever(config_path=args.config, ready_jsonl_path=args.ready)
+    retriever = Retriever(config_path=args.config, payload_path=args.ready)
 
     if retriever._reranker is None:
         raise SystemExit(

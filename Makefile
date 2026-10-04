@@ -120,7 +120,7 @@ FLAT       ?= data/interim/flat.jsonl
 FLAT_STATS ?= data/interim/flat_stats.json
 NORM       ?= data/interim/normalized.jsonl
 NORM_STATS ?= data/interim/normalized_stats.json
-READY      ?= data/processed/ready.jsonl
+PAYLOAD      ?= data/processed/payload.jsonl
 BUILD_SUM  ?= data/vector_store/build_summary.json
 
 ingest:  ## Stage 1: raw -> flat (scope filter + structural drops)
@@ -130,17 +130,17 @@ normalize:  ## Stage 2: flat -> normalized (HTML, language, curriculum, dedup)
 	$(PY) -m quiz_generator.ingestion.normalize --input $(FLAT) --output $(NORM) 	  --stats $(NORM_STATS)
 
 build-text:  ## Stage 3: normalized -> ready (compose search_text)
-	$(PY) -m quiz_generator.ingestion.build_index_text --input $(NORM) --output $(READY)
+	$(PY) -m quiz_generator.ingestion.build_index_text --input $(NORM) --output $(PAYLOAD)
 
 build-index:  ## Stage 4: ready -> Chroma (BGE-M3 embed)
-	$(PY) -m quiz_generator.indexing.build --input $(READY)
+	$(PY) -m quiz_generator.indexing.build --input $(PAYLOAD)
 
 build: ingest normalize build-text build-index build-verify  ## All four stages (~3 min)
 	@echo ""
 	@echo "Build complete."
 
 build-verify:  ## Check the index row count matches the file it was built from
-	@n_ready=$$(wc -l < $(READY) | tr -d ' '); 	n_indexed=$$($(PY) -c "import json;print(json.load(open('$(BUILD_SUM)'))['rows_indexed'])"); 	src_sha=$$($(PY) -c "import json;print(json.load(open('$(BUILD_SUM)')).get('source_sha256','')[:16] or 'NOT RECORDED')"); 	file_sha=$$(shasum -a 256 $(READY) | cut -c1-16); 	if [ "$$n_ready" != "$$n_indexed" ]; then 	  echo "MISMATCH: $(READY) has $$n_ready rows, the index has $$n_indexed."; 	  echo "Re-run: make build-index"; exit 1; fi; 	if [ "$$src_sha" != "$$file_sha" ]; then 	  echo "STALE: the index was built from a DIFFERENT $(READY)."; 	  echo "  index recorded $$src_sha, the file on disk is $$file_sha"; 	  echo "Re-run: make build-index"; exit 1; fi; 	echo "OK: $$n_ready rows, index source sha $$src_sha matches $(READY)"
+	@n_ready=$$(wc -l < $(PAYLOAD) | tr -d ' '); 	n_indexed=$$($(PY) -c "import json;print(json.load(open('$(BUILD_SUM)'))['rows_indexed'])"); 	src_sha=$$($(PY) -c "import json;print(json.load(open('$(BUILD_SUM)')).get('source_sha256','')[:16] or 'NOT RECORDED')"); 	file_sha=$$(shasum -a 256 $(PAYLOAD) | cut -c1-16); 	if [ "$$n_ready" != "$$n_indexed" ]; then 	  echo "MISMATCH: $(PAYLOAD) has $$n_ready rows, the index has $$n_indexed."; 	  echo "Re-run: make build-index"; exit 1; fi; 	if [ "$$src_sha" != "$$file_sha" ]; then 	  echo "STALE: the index was built from a DIFFERENT $(PAYLOAD)."; 	  echo "  index recorded $$src_sha, the file on disk is $$file_sha"; 	  echo "Re-run: make build-index"; exit 1; fi; 	echo "OK: $$n_ready rows, index source sha $$src_sha matches $(PAYLOAD)"
 
 serve-all:  ## Build anything missing, then serve (wraps run_local.sh)
 	./run_local.sh --no-serve

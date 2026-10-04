@@ -121,7 +121,7 @@ See `CHANGELOG.md` for what shipped per release.
 ## A note on filenames
 
 The data artefacts were renamed on 2026-10-04: `flat.jsonl`,
-`normalized.jsonl`, `ready.jsonl` and `chroma_db/`
+`normalized.jsonl`, `payload.jsonl` and `chroma_db/`
 dropped the suffix, which named a project phase that ended when maths
 shipped in v1.1.0. `configs/phase1_scope.yaml` became `configs/scope.yaml`
 in the same series.

@@ -100,7 +100,7 @@ All other filters (subject, level, publish, generatedByAI) are **not applied**.
 2. Data Cleaning & Preparation         — src/quiz_generator/ingestion/
    2a. ingest.py           raw JSON    → interim/flat.jsonl
    2b. normalize.py        flat        → interim/normalized.jsonl
-   2c. build_index_text.py normalized  → processed/ready.jsonl
+   2c. build_index_text.py normalized  → processed/payload.jsonl
 3. Embedding & Vector Store            — src/quiz_generator/indexing/
 4. Retrieval Logic                     — src/quiz_generator/retrieval/ (kept)
 5. Generation Prompt Design            — src/quiz_generator/generation/prompts/
@@ -131,7 +131,7 @@ quiz-generator/
 ├── data/
 │   ├── raw/            quizzes-raw-data.json
 │   ├── interim/        flat.jsonl, normalized.jsonl
-│   ├── processed/      ready.jsonl
+│   ├── processed/      payload.jsonl
 │   └── vector_store/   (gitignored)
 ├── src/
 │   ├── data/           ingest.py, normalize.py, build_index_text.py

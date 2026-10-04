@@ -64,12 +64,12 @@ def _run(tmp_path: Path, rows: list[dict], recipe: str = RECIPE) -> tuple[Any, l
     src.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
     config = tmp_path / "pipeline.yaml"
     config.write_text(recipe, encoding="utf-8")
-    out = tmp_path / "ready.jsonl"
+    out = tmp_path / "payload.jsonl"
 
     stats = build_index_text(
         input_path=src,
         output_path=out,
-        stats_path=tmp_path / "ready_stats.json",
+        stats_path=tmp_path / "payload_stats.json",
         config_path=config,
     )
 
@@ -167,7 +167,7 @@ def test_rows_over_the_token_threshold_are_counted(tmp_path: Path) -> None:
 
 def test_the_stats_file_is_written_and_matches_the_returned_record(tmp_path: Path) -> None:
     stats, rows = _run(tmp_path, [_normalized()])
-    written = json.loads((tmp_path / "ready_stats.json").read_text(encoding="utf-8"))
+    written = json.loads((tmp_path / "payload_stats.json").read_text(encoding="utf-8"))
 
     assert written["output_rows"] == stats.output_rows == len(rows)
     assert written["recipe"] == "default"
@@ -181,8 +181,8 @@ def test_the_stats_file_is_written_and_matches_the_returned_record(tmp_path: Pat
 def test_the_output_is_written_atomically(tmp_path: Path) -> None:
     _run(tmp_path, [_normalized()])
 
-    assert not (tmp_path / "ready.jsonl.tmp").exists()
-    assert not (tmp_path / "ready_stats.json.tmp").exists()
+    assert not (tmp_path / "payload.jsonl.tmp").exists()
+    assert not (tmp_path / "payload_stats.json.tmp").exists()
 
 
 def test_re_running_produces_the_same_output(tmp_path: Path) -> None:
@@ -201,7 +201,7 @@ def test_blank_lines_in_the_input_are_skipped(tmp_path: Path) -> None:
 
     stats = build_index_text(
         input_path=src,
-        output_path=tmp_path / "ready.jsonl",
+        output_path=tmp_path / "payload.jsonl",
         stats_path=tmp_path / "stats.json",
         config_path=config,
     )

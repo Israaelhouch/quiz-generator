@@ -30,7 +30,7 @@ def row_to_metadata(
     list_fields_as_booleans: list[str] | None = None,
     derive_scalar_subject: bool = True,
 ) -> dict[str, Any]:
-    """Build a Chroma-safe metadata dict from a ready.jsonl row.
+    """Build a Chroma-safe metadata dict from a payload.jsonl row.
 
     - Scalar fields: copied as-is if the value is str/int/float/bool AND non-empty.
     - list_fields_as_json: JSON-encoded as `<name>_json`. Empty lists → "[]".

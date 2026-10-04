@@ -216,7 +216,7 @@ class IndexedQuestion(BaseModel):
 
 
 class BuildIndexTextStats(BaseModel):
-    """Audit record written alongside ready.jsonl."""
+    """Audit record written alongside payload.jsonl."""
 
     input_rows: int
     output_rows: int

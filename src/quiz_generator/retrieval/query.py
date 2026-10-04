@@ -24,7 +24,7 @@ def _parse_args() -> argparse.Namespace:
     )
     p.add_argument("query", nargs="?", help="Query text (quote if it has spaces)")
     p.add_argument("--config", type=Path, default=Path("configs/models.yaml"))
-    p.add_argument("--ready", type=Path, default=Path("data/processed/ready.jsonl"))
+    p.add_argument("--payload", type=Path, default=Path("data/processed/payload.jsonl"))
     p.add_argument("--language", choices=["en", "fr", "ar"], help="REQUIRED for query")
     p.add_argument("--top-k", type=int, default=5)
     p.add_argument("--candidate-pool-size", type=int, default=50)
@@ -57,7 +57,7 @@ def main() -> None:
 
     if args.list_taxonomy:
         # Minimal retriever init just to access taxonomy
-        retriever = Retriever(config_path=args.config, ready_jsonl_path=args.ready)
+        retriever = Retriever(config_path=args.config, payload_path=args.ready)
         print(f"Languages ({len(retriever.list_languages())}): {retriever.list_languages()}")
         print(
             f"Question types ({len(retriever.list_question_types())}): {retriever.list_question_types()}"
@@ -82,7 +82,7 @@ def main() -> None:
     if args.levels:
         levels = [l.strip() for l in args.levels.split(",") if l.strip()]
 
-    retriever = Retriever(config_path=args.config, ready_jsonl_path=args.ready)
+    retriever = Retriever(config_path=args.config, payload_path=args.ready)
     results = retriever.retrieve(
         args.query,
         language=args.language,

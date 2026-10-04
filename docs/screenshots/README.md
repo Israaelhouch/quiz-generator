@@ -22,8 +22,8 @@ python -m quiz_generator.ingestion.normalize --input data/sample/interim/flat.js
     --output data/sample/interim/normalized.jsonl \
     --stats data/sample/interim/normalized_stats.json
 python -m quiz_generator.ingestion.build_index_text --input data/sample/interim/normalized.jsonl \
-    --output data/sample/processed/ready.jsonl \
-    --stats data/sample/processed/ready_stats.json
-python -m quiz_generator.indexing.build --input data/sample/processed/ready.jsonl
+    --output data/sample/processed/payload.jsonl \
+    --stats data/sample/processed/payload_stats.json
+python -m quiz_generator.indexing.build --input data/sample/processed/payload.jsonl
 python -m quiz_generator.api          # http://localhost:8000/ui
 ```

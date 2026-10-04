@@ -82,7 +82,7 @@ llm:
   default_max_distance: 0.60
 
 indexing:
-  # Which column of ready.jsonl gets embedded
+  # Which column of payload.jsonl gets embedded
   embedding_text_column: search_text
 
   # Scalar fields copied into Chroma metadata (filterable via Chroma `where`).

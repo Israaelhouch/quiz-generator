@@ -5,7 +5,7 @@ API suitable for the LLM generator. Rewritten from scratch on top of the
 single-model BGE-M3 architecture (no more profile routing).
 
 Responsibilities:
-  - Load payload (ready.jsonl) into memory, keyed by doc_id
+  - Load payload (payload.jsonl) into memory, keyed by doc_id
   - Load taxonomy from build_summary.json for input validation
   - Normalize queries (LaTeX) for symmetry with the corpus
   - Build Chroma `where` clauses from scalar + boolean-per-level filters
@@ -143,7 +143,7 @@ class Retriever:
     def __init__(
         self,
         config_path: Path | str = Path("configs/models.yaml"),
-        ready_jsonl_path: Path | str = Path("data/processed/ready.jsonl"),
+        payload_path: Path | str = Path("data/processed/payload.jsonl"),
         *,
         _model: Any | None = None,
         _collection: Any | None = None,
@@ -153,12 +153,12 @@ class Retriever:
     ) -> None:
         """Initialize the retriever.
 
-        Under normal use, pass only config_path and ready_jsonl_path.
+        Under normal use, pass only config_path and payload_path.
         The underscored kwargs exist to support unit tests that inject mocks
         instead of loading the model/collection/payload from disk.
         """
         self.config_path = Path(config_path)
-        self.ready_jsonl_path = Path(ready_jsonl_path)
+        self.payload_path = Path(payload_path)
         # Serialises access to the ML layer. One Retriever instance is shared
         # by every HTTP request (FastAPI thread pool), and neither
         # SentenceTransformer nor CrossEncoder documents thread-safety.
@@ -185,9 +185,9 @@ class Retriever:
                 f"Models config not found: {self.config_path}. "
                 "Have you created configs/models.yaml?"
             )
-        if not self.ready_jsonl_path.exists():
+        if not self.payload_path.exists():
             raise FileNotFoundError(
-                f"Payload JSONL not found: {self.ready_jsonl_path}. "
+                f"Payload JSONL not found: {self.payload_path}. "
                 "Run `python -m quiz_generator.ingestion.build_index_text` first."
             )
 
@@ -232,7 +232,7 @@ class Retriever:
         )
 
         # Payload — load all rows into memory, dict by doc_id (~50 MB at 10k rows)
-        self._payload = self._load_payload(self.ready_jsonl_path)
+        self._payload = self._load_payload(self.payload_path)
 
         # Optional reranker — loaded only when configured `enabled: true`.
         self._reranker = None

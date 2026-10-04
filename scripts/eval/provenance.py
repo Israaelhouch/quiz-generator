@@ -113,7 +113,7 @@ def _recipe_from_payload_stats(source_path: str | None) -> tuple[dict[str, Any],
 def collect_provenance(
     *,
     config_path: Path,
-    ready_jsonl: Path,
+    payload: Path,
     pipeline_config_path: Path = Path("configs/pipeline.yaml"),
     index_summary_path: Path | None = None,
     repo_root: Path | None = None,
@@ -157,13 +157,13 @@ def collect_provenance(
         if recipe_warning:
             warnings.append(recipe_warning)
 
-    searched_payload_sha = sha256_of(ready_jsonl)
+    searched_payload_sha = sha256_of(payload)
     if searched_payload_sha is None:
-        warnings.append(f"payload not found at {ready_jsonl}")
+        warnings.append(f"payload not found at {payload}")
     elif index.get("payload_sha256") and index["payload_sha256"] != searched_payload_sha:
         warnings.append(
             "the payload on disk is NOT the one this index was built from "
-            f"({ready_jsonl} hashes to {searched_payload_sha[:12]}…, the index records "
+            f"({payload} hashes to {searched_payload_sha[:12]}…, the index records "
             f"{str(index['payload_sha256'])[:12]}…) — the index is stale or the payload "
             "was rebuilt after it"
         )
@@ -177,7 +177,7 @@ def collect_provenance(
                 "sha256": sha256_of(pipeline_config_path),
             },
         },
-        "payload_on_disk": {"path": str(ready_jsonl), "sha256": searched_payload_sha},
+        "payload_on_disk": {"path": str(payload), "sha256": searched_payload_sha},
         "index": index,
         "search_text": payload_recipe,
         "warnings": warnings,

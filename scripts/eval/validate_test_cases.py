@@ -29,7 +29,7 @@ Exit code: 0 if every case and the answer key are valid, 1 otherwise.
 Usage:
     python -m scripts.eval.validate_test_cases eval/english_retriever_test_cases.json
     python -m scripts.eval.validate_test_cases eval/arabic_retriever_test_cases.json \\
-        --ready-jsonl data/processed/ready.jsonl
+        --payload data/processed/payload.jsonl
 """
 
 from __future__ import annotations
@@ -116,7 +116,7 @@ TOPICS_FILE_BY_LANG_SUBJECT: dict[tuple[str, str], Path] = {
 }
 
 # The payload the retriever serves — same default as run_retriever_eval.
-DEFAULT_READY_JSONL = Path("data/processed/ready.jsonl")
+DEFAULT_PAYLOAD_JSONL = Path("data/processed/payload.jsonl")
 
 
 def load_topic_index(
@@ -438,7 +438,7 @@ def report_ground_truth(problems: GroundTruthProblems, ready_path: Path) -> None
 # ---------------------------------------------------------------------------
 
 
-def validate(path: Path, ready_path: Path = DEFAULT_READY_JSONL) -> int:
+def validate(path: Path, ready_path: Path = DEFAULT_PAYLOAD_JSONL) -> int:
     """Validate test cases and their answer key; return the process exit code."""
     if not path.exists():
         print(f"error: file not found: {path}", file=sys.stderr)
@@ -512,11 +512,11 @@ def main(argv: list[str] | None = None) -> int:
     if not args or args[0] in {"-h", "--help"}:
         print(__doc__)
         return 0 if args else 2
-    ready_path = DEFAULT_READY_JSONL
-    if "--ready-jsonl" in args:
-        i = args.index("--ready-jsonl")
+    ready_path = DEFAULT_PAYLOAD_JSONL
+    if "--payload" in args:
+        i = args.index("--payload")
         if i + 1 >= len(args):
-            print("error: --ready-jsonl needs a path", file=sys.stderr)
+            print("error: --payload needs a path", file=sys.stderr)
             return 2
         ready_path = Path(args[i + 1])
         del args[i : i + 2]

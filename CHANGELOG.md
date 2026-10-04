@@ -93,6 +93,13 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Changed
 
+- `data/processed/ready.jsonl` is now `payload.jsonl` (and its stats file
+  follows). "Ready" said when the file is used, not what it is, and thirteen
+  modules already called it the payload — `retriever.py` loads "payload
+  (ready.jsonl)", and an eval run records it as `payload_sha256`. The CLI
+  flags, the Makefile variable and the function parameters take the same name,
+  so `--payload` now points at `payload.jsonl`.
+
 - `data/` is split into `ingestion/` (ingest, normalize, build_index_text,
   filters, scope), `curriculum/` (the Tunisian curriculum rules, which the API
   and UI depend on and which are not an ingest stage) and `shared/` (the
@@ -112,7 +119,7 @@ answer key. The reasoning behind the non-obvious choices is in
   is a different task from prose retrieval. ~4,411 indexed questions instead of
   5,782.
 - The data artefacts drop their `phase1` suffix — `flat.jsonl`,
-  `normalized.jsonl`, `ready.jsonl`, `chroma_db/` — matching the earlier rename
+  `normalized.jsonl`, `payload.jsonl`, `chroma_db/` — matching the earlier rename
   of `phase1_scope.yaml`. The suffix named a project phase that ended when
   maths shipped in v1.1.0. Renaming the index directory forces a reindex, which
   the scope change required anyway.

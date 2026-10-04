@@ -68,7 +68,7 @@ import pandas as pd
 import yaml
 
 from scripts.eval.validate_test_cases import (
-    DEFAULT_READY_JSONL,
+    DEFAULT_PAYLOAD_JSONL,
     TOPICS_FILE_BY_LANG_SUBJECT,
     IndexDoc,
     check_ground_truth_against_index,
@@ -458,7 +458,7 @@ def main(argv: list[str] | None = None) -> int:
         metavar="LANG:SUBJECT",
         help="Cell to work on, e.g. en:ENGLISH. Repeatable. Default: every registered cell.",
     )
-    parser.add_argument("--ready-jsonl", type=Path, default=DEFAULT_READY_JSONL)
+    parser.add_argument("--payload", type=Path, default=DEFAULT_PAYLOAD_JSONL)
     parser.add_argument(
         "--aliases",
         action="append",
@@ -481,11 +481,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     cells = args.cell or sorted(TOPICS_FILE_BY_LANG_SUBJECT)
-    index = load_index(args.ready_jsonl)
+    index = load_index(args.payload)
     if args.propose_safe_aliases is not None:
         return _propose(cells, index, args.propose_safe_aliases, args.write)
     aliases = _merge_alias_files(args.aliases)
-    full_rows = load_full_rows(args.ready_jsonl)
+    full_rows = load_full_rows(args.payload)
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     results = [
         _refresh_file(cell, index, full_rows, aliases.get(cell, {}), args.write, stamp)

@@ -405,7 +405,7 @@ def test_sha256_of_matches_hashlib_for_the_same_bytes(tmp_path) -> None:
 
     from quiz_generator.indexing.build import _sha256_of
 
-    f = tmp_path / "ready.jsonl"
+    f = tmp_path / "payload.jsonl"
     f.write_bytes(b'{"doc_id": "a"}\n{"doc_id": "b"}\n')
     assert _sha256_of(f) == hashlib.sha256(f.read_bytes()).hexdigest()
 
@@ -415,7 +415,7 @@ def test_sha256_of_differs_when_contents_differ_at_the_same_path(tmp_path) -> No
     from a different corpus written to the same filename must be detectable."""
     from quiz_generator.indexing.build import _sha256_of
 
-    f = tmp_path / "ready.jsonl"
+    f = tmp_path / "payload.jsonl"
     f.write_bytes(b"sample corpus\n")
     first = _sha256_of(f)
     f.write_bytes(b"real corpus\n")

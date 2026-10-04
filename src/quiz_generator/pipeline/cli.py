@@ -39,7 +39,7 @@ def _parse_args() -> argparse.Namespace:
     )
     p.add_argument("topic", help="Topic / free-text query for the quiz")
     p.add_argument("--config", type=Path, default=Path("configs/models.yaml"))
-    p.add_argument("--ready", type=Path, default=Path("data/processed/ready.jsonl"))
+    p.add_argument("--payload", type=Path, default=Path("data/processed/payload.jsonl"))
     p.add_argument("--language", required=True, choices=["en", "fr", "ar"])
     p.add_argument(
         "--count", type=int, default=5, help="How many new questions to generate (default: 5)"
@@ -278,7 +278,7 @@ def main() -> None:
 
     print("Loading pipeline (this also loads the embedder and reranker)…", file=sys.stderr)
 
-    pipeline = QuizPipeline(config_path=args.config, ready_jsonl_path=args.ready)
+    pipeline = QuizPipeline(config_path=args.config, payload_path=args.ready)
 
     result = pipeline.generate_detailed(
         topic=args.topic,

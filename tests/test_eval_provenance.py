@@ -27,7 +27,7 @@ PIPELINE = Path("configs/pipeline.yaml")
 
 
 def _payload(tmp_path: Path, text: str = '{"doc_id": "q1"}\n') -> Path:
-    path = tmp_path / "ready.jsonl"
+    path = tmp_path / "payload.jsonl"
     path.write_text(text, encoding="utf-8")
     return path
 
@@ -81,7 +81,7 @@ def test_a_complete_record_names_the_index_the_recipe_and_the_commit(tmp_path: P
 
     record = collect_provenance(
         config_path=CONFIG,
-        ready_jsonl=payload,
+        payload=payload,
         pipeline_config_path=PIPELINE,
         index_summary_path=summary,
     )
@@ -97,7 +97,7 @@ def test_a_complete_record_names_the_index_the_recipe_and_the_commit(tmp_path: P
     assert "sha" in record["git"]
 
 
-PAYLOAD = Path("data/processed/ready.jsonl")
+PAYLOAD = Path("data/processed/payload.jsonl")
 INDEX_SUMMARY = Path("data/vector_store/build_summary.json")
 
 
@@ -122,7 +122,7 @@ def _repository_is_built() -> bool:
 def test_a_built_repository_produces_a_record_without_warnings() -> None:
     """With the artefacts present, the record should account for all of them:
     the index was built from the payload that is on disk."""
-    record = collect_provenance(config_path=CONFIG, ready_jsonl=PAYLOAD)
+    record = collect_provenance(config_path=CONFIG, payload=PAYLOAD)
 
     assert record["warnings"] == []
     assert record["index"]["payload_sha256"] == record["payload_on_disk"]["sha256"]
@@ -142,7 +142,7 @@ def test_a_payload_that_no_longer_matches_the_index_is_reported(tmp_path: Path) 
     stale = hashlib.sha256(b"a different payload entirely").hexdigest()
     summary = _index_summary(tmp_path, payload, stale)
 
-    record = collect_provenance(config_path=CONFIG, ready_jsonl=payload, index_summary_path=summary)
+    record = collect_provenance(config_path=CONFIG, payload=payload, index_summary_path=summary)
 
     assert any("NOT the one this index was built from" in w for w in record["warnings"])
 
@@ -154,7 +154,7 @@ def test_a_missing_index_summary_is_a_warning_not_a_crash(tmp_path: Path) -> Non
 
     record = collect_provenance(
         config_path=CONFIG,
-        ready_jsonl=payload,
+        payload=payload,
         index_summary_path=tmp_path / "absent.json",
     )
 
@@ -166,7 +166,7 @@ def test_a_missing_payload_stats_file_leaves_the_recipe_unknown(tmp_path: Path) 
     payload = _payload(tmp_path)  # no _stats.json beside it
     summary = _index_summary(tmp_path, payload, sha256_of(payload) or "")
 
-    record = collect_provenance(config_path=CONFIG, ready_jsonl=payload, index_summary_path=summary)
+    record = collect_provenance(config_path=CONFIG, payload=payload, index_summary_path=summary)
 
     assert record["search_text"] == {}
     assert any("recipe is unknown" in w for w in record["warnings"])
@@ -175,7 +175,7 @@ def test_a_missing_payload_stats_file_leaves_the_recipe_unknown(tmp_path: Path) 
 def test_a_missing_payload_is_reported(tmp_path: Path) -> None:
     record = collect_provenance(
         config_path=CONFIG,
-        ready_jsonl=tmp_path / "absent.jsonl",
+        payload=tmp_path / "absent.jsonl",
         index_summary_path=tmp_path / "absent.json",
     )
 
