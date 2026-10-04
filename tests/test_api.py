@@ -39,6 +39,8 @@ for _leaky in (
     "INCLUDE_AUTHOR_METADATA",
     "RUNS_LOG_MAX_BYTES",
     "LOG_RUNS",
+    "RUNS_LOG_PATH",
+    "FEEDBACK_LOG_PATH",
 ):
     _os_bootstrap.environ.pop(_leaky, None)
 
@@ -443,7 +445,14 @@ from src.api.security import reset_rate_limits
 
 @contextlib.contextmanager
 def _env(**overrides: str | None):
-    """Temporarily set/unset environment variables (script-runner friendly)."""
+    """Temporarily set/unset environment variables (script-runner friendly).
+
+    `Settings` is read once per process and cached, so the cache is dropped on
+    the way in and on the way out — otherwise the override would be invisible
+    to code that already asked for settings.
+    """
+    from src.shared.settings import reset_settings
+
     previous = {k: _os.environ.get(k) for k in overrides}
     try:
         for k, v in overrides.items():
@@ -451,6 +460,7 @@ def _env(**overrides: str | None):
                 _os.environ.pop(k, None)
             else:
                 _os.environ[k] = v
+        reset_settings()
         yield
     finally:
         for k, v in previous.items():
@@ -458,6 +468,7 @@ def _env(**overrides: str | None):
                 _os.environ.pop(k, None)
             else:
                 _os.environ[k] = v
+        reset_settings()
 
 
 def test_auth_disabled_when_api_keys_unset() -> None:
@@ -611,52 +622,46 @@ def test_run_log_rotates_past_the_size_cap() -> None:
     import tempfile
     from pathlib import Path as _Path
 
-    from src.api import server as _server
-
-    original = _server.RUNS_LOG_PATH
     with tempfile.TemporaryDirectory() as td:
         log = _Path(td) / "runs.jsonl"
-        _server.RUNS_LOG_PATH = log
-        try:
-            with _env(
-                API_KEYS=None, RATE_LIMIT_PER_MINUTE="0", LOG_RUNS="1", RUNS_LOG_MAX_BYTES="10"
-            ):
-                client = _make_client(_FakePipeline())
-                body = {"topic": "x", "language": "en", "count": 1}
+        with _env(
+            API_KEYS=None,
+            RATE_LIMIT_PER_MINUTE="0",
+            LOG_RUNS="1",
+            RUNS_LOG_MAX_BYTES="10",
+            RUNS_LOG_PATH=str(log),
+        ):
+            client = _make_client(_FakePipeline())
+            body = {"topic": "x", "language": "en", "count": 1}
 
-                assert client.post("/quiz/generate", json=body).status_code == 200
-                assert log.exists()
-                assert not log.with_suffix(".jsonl.1").exists()  # nothing to roll yet
+            assert client.post("/quiz/generate", json=body).status_code == 200
+            assert log.exists()
+            assert not log.with_suffix(".jsonl.1").exists()  # nothing to roll yet
 
-                assert client.post("/quiz/generate", json=body).status_code == 200
-                assert log.with_suffix(".jsonl.1").exists(), "log never rotated"
-                assert len(log.read_text(encoding="utf-8").strip().splitlines()) == 1
-        finally:
-            _server.RUNS_LOG_PATH = original
+            assert client.post("/quiz/generate", json=body).status_code == 200
+            assert log.with_suffix(".jsonl.1").exists(), "log never rotated"
+            assert len(log.read_text(encoding="utf-8").strip().splitlines()) == 1
 
 
 def test_run_log_rotation_disabled_at_zero() -> None:
     import tempfile
     from pathlib import Path as _Path
 
-    from src.api import server as _server
-
-    original = _server.RUNS_LOG_PATH
     with tempfile.TemporaryDirectory() as td:
         log = _Path(td) / "runs.jsonl"
-        _server.RUNS_LOG_PATH = log
-        try:
-            with _env(
-                API_KEYS=None, RATE_LIMIT_PER_MINUTE="0", LOG_RUNS="1", RUNS_LOG_MAX_BYTES="0"
-            ):
-                client = _make_client(_FakePipeline())
-                body = {"topic": "x", "language": "en", "count": 1}
-                for _ in range(3):
-                    client.post("/quiz/generate", json=body)
-                assert not log.with_suffix(".jsonl.1").exists()
-                assert len(log.read_text(encoding="utf-8").strip().splitlines()) == 3
-        finally:
-            _server.RUNS_LOG_PATH = original
+        with _env(
+            API_KEYS=None,
+            RATE_LIMIT_PER_MINUTE="0",
+            LOG_RUNS="1",
+            RUNS_LOG_MAX_BYTES="0",
+            RUNS_LOG_PATH=str(log),
+        ):
+            client = _make_client(_FakePipeline())
+            body = {"topic": "x", "language": "en", "count": 1}
+            for _ in range(3):
+                client.post("/quiz/generate", json=body)
+            assert not log.with_suffix(".jsonl.1").exists()
+            assert len(log.read_text(encoding="utf-8").strip().splitlines()) == 3
 
 
 # ---------------------------------------------------------------------------
@@ -851,16 +856,10 @@ def _feedback_log():
     import tempfile
     from pathlib import Path as _Path
 
-    from src.api import server as _server
-
-    original = _server.FEEDBACK_LOG_PATH
     with tempfile.TemporaryDirectory() as td:
         path = _Path(td) / "feedback.jsonl"
-        _server.FEEDBACK_LOG_PATH = path
-        try:
+        with _env(FEEDBACK_LOG_PATH=str(path)):
             yield path
-        finally:
-            _server.FEEDBACK_LOG_PATH = original
 
 
 def test_feedback_appends_one_row_per_judgement() -> None:

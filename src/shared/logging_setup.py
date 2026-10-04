@@ -33,8 +33,9 @@ from __future__ import annotations
 
 import contextvars
 import logging
-import os
 import sys
+
+from src.shared.settings import get_settings
 
 # Set by the API middleware on every request. Defaults to "-" outside
 # of a request scope so non-API code (CLI, pipeline) still logs cleanly.
@@ -104,7 +105,7 @@ def setup_logging(level: str | None = None, *, force: bool = False) -> None:
         new_factory = logging.getLogRecordFactory()
         setattr(new_factory, _FACTORY_INSTALLED_SENTINEL, True)
 
-    resolved = (level or os.environ.get("LOG_LEVEL") or "INFO").upper()
+    resolved = (level or get_settings().log_level).upper()
 
     logging.basicConfig(
         level=resolved,

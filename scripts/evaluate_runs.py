@@ -22,9 +22,10 @@ from __future__ import annotations
 
 import csv
 import json
-import os
 import sys
 from pathlib import Path
+
+from src.shared.settings import get_settings
 
 # Load .env at the project root so GEMINI_API_KEY (and friends) are
 # available when running this script natively on the host. Best-effort —
@@ -180,7 +181,7 @@ def _judge_one(run: dict, model: str) -> dict | None:
     from google import genai
     from google.genai import types
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = get_settings().gemini_key
     if not api_key:
         print("❌ GEMINI_API_KEY not set in environment.", file=sys.stderr)
         sys.exit(1)
@@ -317,5 +318,5 @@ def evaluate(log_path: Path, csv_path: Path, model: str = "gemini-2.5-flash") ->
 if __name__ == "__main__":
     log_arg = sys.argv[1] if len(sys.argv) > 1 else "logs/runs.jsonl"
     out_arg = sys.argv[2] if len(sys.argv) > 2 else "logs/eval_report.csv"
-    model_arg = os.environ.get("JUDGE_MODEL", "gemini-2.5-flash")
+    model_arg = get_settings().judge_model
     evaluate(Path(log_arg), Path(out_arg), model=model_arg)

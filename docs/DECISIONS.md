@@ -1,6 +1,6 @@
 # Decisions
 
-Five records, kept because a future reader — including future you — would
+Six records, kept because a future reader — including future you — would
 otherwise have no way to tell a deliberate choice from an accident: a security
 exposure that is dormant today but becomes real if the deployment shape
 changes, which of the checker's complaints turned out to be real bugs, and why
@@ -283,3 +283,76 @@ be quietly removed.
   added in the audit.
 - 50 questions give a wide range (P@1 0.64–0.88). The set is for finding
   weaknesses, not for comparing close configurations.
+
+---
+
+## ADR-0006 — The environment is read once, through a typed Settings object
+
+**Date:** 2026-10-04 · **Status:** accepted
+
+### Context
+
+Thirteen `os.environ.get` calls were spread across five modules — API-key
+auth and rate limiting in `api/security.py`, the run-log paths, rotation size
+and privacy switch in `api/server.py`, the LLM timeout and provider keys in
+`generation/llm_client.py`, the Ollama host in `pipeline/orchestrator.py`, the
+log level in `shared/logging_setup.py` — and two more in
+`scripts/evaluate_runs.py`.
+
+Three consequences, all observed in this repository:
+
+1. **Malformed values were swallowed.** `RATE_LIMIT_PER_MINUTE=abc` logged a
+   warning and applied 30; `LLM_TIMEOUT_SECONDS=not-a-number` applied 90; a
+   negative size was clamped. A typo in a deployment therefore looked as if it
+   had been applied, and only an operator reading warning logs would notice.
+2. **Defaults lived at the point of use.** `RUNS_LOG_PATH` was read into a
+   module constant at import time, which also meant tests had to reassign a
+   module global to redirect it.
+3. **The documentation drifted.** `.env.example` claimed an unset
+   `LLM_TIMEOUT_SECONDS` meant "the provider's own default" (the code applied
+   90s) and an unset `RUNS_LOG_MAX_BYTES` meant "no rotation" (the code
+   applied 50 MB). Nothing could catch that.
+
+### Options
+
+1. **Leave it.** Zero risk, but CLAUDE.md Part II §2 requires typed,
+   validated, injected configuration, and every new variable repeats the
+   problem.
+2. **A plain dataclass loaded by hand.** No new dependency, but the parsing
+   and validation would be hand-written per field.
+3. **A `pydantic-settings` `BaseSettings` class** — already present
+   transitively via FastAPI's dependency tree, matching the Pydantic v2 models
+   used everywhere else in the project.
+
+### Decision
+
+Option 3. `src/shared/settings.py` declares every variable with its type and
+its default; `get_settings()` returns a cached instance, so the environment is
+read once per process and a malformed value raises at startup. Secrets are
+`SecretStr`, so a stray log line or `repr` prints `**********`.
+
+Two deliberate restrictions:
+
+- **No `.env` file is read by the class.** Compose and `run_local.sh` inject
+  the variables and the test suite scrubs them; an untracked local `.env`
+  silently changing test behaviour is worse than an explicit injection.
+- **Settings are cached, not re-read per access.** Request handling must not
+  see the environment shift underneath it. `reset_settings()` exists for tests
+  and is called by the suite's `_env` helper.
+
+### Consequences
+
+- A bad value now **stops the process** instead of degrading quietly. This is
+  a behaviour change, and the test that asserted the old lenient fallback was
+  rewritten to assert the refusal.
+- `RUNS_LOG_PATH` and `FEEDBACK_LOG_PATH` became functions rather than
+  import-time constants, so tests redirect them through the environment like
+  every other setting instead of patching module globals.
+- A test compares the fields of `Settings` against the variables documented in
+  `.env.example` and fails if either side gains an entry the other lacks, so
+  the drift in point 3 above cannot recur.
+- `pydantic-settings` moves from a transitive pin to a declared dependency in
+  `requirements.txt`.
+- The LLM client now takes its key from settings, which is the seam the
+  roadmap's vLLM and Langfuse work needs: a new provider adds a field, not
+  another `os.environ` call.

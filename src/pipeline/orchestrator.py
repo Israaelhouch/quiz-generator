@@ -128,11 +128,10 @@ class QuizPipeline:
         """
         provider = llm_cfg.provider
         if provider == "ollama":
-            import os
-
             from src.generation.llm_client import OllamaClient
+            from src.shared.settings import get_settings
 
-            host = os.environ.get("OLLAMA_HOST") or llm_cfg.host
+            host = get_settings().ollama_host or llm_cfg.host
             return OllamaClient(model=llm_cfg.model, host=host)
         if provider == "groq":
             from src.generation.llm_client import GroqClient

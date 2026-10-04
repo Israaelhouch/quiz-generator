@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import hmac
 import logging
-import os
 import threading
 import time
 import uuid
@@ -32,6 +31,8 @@ from collections import defaultdict, deque
 
 from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader
+
+from src.shared.settings import get_settings
 
 logger = logging.getLogger("quiz_api.security")
 
@@ -62,30 +63,17 @@ _RATE_WINDOW_SECONDS = 60.0
 
 
 def configured_api_keys() -> set[str]:
-    """Parse API_KEYS. Empty set means authentication is disabled."""
-    raw = os.environ.get("API_KEYS", "")
-    return {k.strip() for k in raw.split(",") if k.strip()}
+    """The configured API keys. Empty set means authentication is disabled."""
+    return set(get_settings().api_key_set)
 
 
 def auth_enabled() -> bool:
-    return bool(configured_api_keys())
+    return get_settings().auth_enabled
 
 
 def configured_rate_limit() -> int:
     """Requests per minute per caller. 0 disables limiting."""
-    raw = os.environ.get("RATE_LIMIT_PER_MINUTE")
-    if raw is None:
-        return DEFAULT_RATE_LIMIT_PER_MINUTE
-    try:
-        value = int(raw)
-    except ValueError:
-        logger.warning(
-            "RATE_LIMIT_PER_MINUTE=%r is not an integer; using default %d",
-            raw,
-            DEFAULT_RATE_LIMIT_PER_MINUTE,
-        )
-        return DEFAULT_RATE_LIMIT_PER_MINUTE
-    return max(0, value)
+    return get_settings().rate_limit_per_minute
 
 
 def configured_cors_origins() -> list[str]:
@@ -98,8 +86,7 @@ def configured_cors_origins() -> list[str]:
     not want, since any page on the internet could then spend your quota
     using a key it scraped from your own frontend bundle.
     """
-    raw = os.environ.get("CORS_ALLOW_ORIGINS", "")
-    return [o.strip() for o in raw.split(",") if o.strip()]
+    return get_settings().cors_origin_list
 
 
 def log_security_posture() -> None:
