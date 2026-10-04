@@ -15,6 +15,9 @@
 
 set -euo pipefail
 
+# The package lives at src/quiz_generator, not installed as a distribution.
+export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}src"
+
 cd "$(dirname "${BASH_SOURCE[0]}")"
 ROOT="$(pwd)"
 
@@ -140,22 +143,22 @@ else
   bold "   building (this takes ~10-15 min; the index build is the slow part)"
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$FLAT" ]; then
     echo "   → ingest"
-    python -m src.data.ingest --scope configs/scope.yaml
+    python -m quiz_generator.data.ingest --scope configs/scope.yaml
   else ok "flat.jsonl exists (skip ingest)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$NORM" ]; then
     echo "   → normalize"
-    python -m src.data.normalize
+    python -m quiz_generator.data.normalize
   else ok "normalized.jsonl exists (skip normalize)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$READY" ]; then
     echo "   → build_index_text   (the step the README forgets)"
-    python -m src.data.build_index_text
+    python -m quiz_generator.data.build_index_text
   else ok "ready_phase1.jsonl exists (skip build_index_text)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -d "$CHROMA" ]; then
     echo "   → indexing.build     (downloads ~1.2 GB of BGE models on first run)"
-    python -m src.indexing.build
+    python -m quiz_generator.indexing.build
   else ok "chroma_db_phase1/ exists (skip index build)"; fi
   ok "data pipeline complete"
 fi
@@ -170,4 +173,4 @@ echo "   first request waits ~30-60s while BGE-M3 + the reranker load"
 echo "   docs:   http://127.0.0.1:8000/docs"
 echo "   verify: curl localhost:8000/health && curl localhost:8000/taxonomy"
 echo
-exec python -m src.api --host 127.0.0.1 --port 8000
+exec python -m quiz_generator.api --host 127.0.0.1 --port 8000

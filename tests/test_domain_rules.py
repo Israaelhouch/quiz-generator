@@ -3,13 +3,8 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.data.domain_rules import apply_subject_language_rule
+from quiz_generator.data.domain_rules import apply_subject_language_rule
 
 
 def test_subject_english_locks_to_en() -> None:

@@ -6,15 +6,6 @@ Retriever and Ollama, so these tests run without ML stack or a server.
 
 from __future__ import annotations
 
-import json
-import sys
-import warnings
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 # ---------------------------------------------------------------------------
 # Log capture
 # ---------------------------------------------------------------------------
@@ -23,19 +14,23 @@ if str(ROOT) not in sys.path:
 # long-running server each of these fired ONCE and was then silent forever —
 # exactly backwards for an operational signal. Tests assert on log records now.
 import contextlib as _contextlib
+import json
 import logging as _logging
+import sys
+import warnings
+from pathlib import Path
 
-from src.generation.llm_client import MockClient
-from src.generation.schemas import GeneratedQuiz
-from src.pipeline import QuizPipeline
-from src.pipeline.cli import (
+from quiz_generator.generation.llm_client import MockClient
+from quiz_generator.generation.schemas import GeneratedQuiz
+from quiz_generator.pipeline import QuizPipeline
+from quiz_generator.pipeline.cli import (
     render_human,
     render_json,
     render_retrieval_human,
     retrieval_to_dict,
     save_run_to_file,
 )
-from src.retrieval.schemas import RetrievedQuestion
+from quiz_generator.retrieval.schemas import RetrievedQuestion
 
 
 @_contextlib.contextmanager
@@ -86,7 +81,7 @@ def _retrieved(doc_id: str, question_text: str = "What is X?") -> RetrievedQuest
 
 
 class _FakeRetriever:
-    """Stand-in for src.retrieval.Retriever. Returns a canned list."""
+    """Stand-in for quiz_generator.retrieval.Retriever. Returns a canned list."""
 
     def __init__(self, results: list[RetrievedQuestion]) -> None:
         self.results = results
@@ -186,7 +181,7 @@ def test_pipeline_low_pool_warns_but_proceeds(tmp_path: Path) -> None:
         _llm_client=mock_llm,
     )
 
-    with _capture_logs("src.pipeline.orchestrator") as records:
+    with _capture_logs("quiz_generator.pipeline.orchestrator") as records:
         quiz = pipeline.generate(
             topic="x",
             language="en",
@@ -234,7 +229,7 @@ def test_pipeline_multi_levels_warns_about_first_only(tmp_path: Path) -> None:
         _llm_client=mock_llm,
     )
 
-    with _capture_logs("src.pipeline.orchestrator") as records:
+    with _capture_logs("quiz_generator.pipeline.orchestrator") as records:
         pipeline.generate(
             topic="x",
             language="en",

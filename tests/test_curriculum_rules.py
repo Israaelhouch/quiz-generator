@@ -6,14 +6,7 @@ these tests run in minimal environments alongside test_ingest.py.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.data.curriculum_rules import (
+from quiz_generator.data.curriculum_rules import (
     EXPECTED_LANGUAGES,
     check_compliance,
 )

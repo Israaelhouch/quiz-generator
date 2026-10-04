@@ -8,26 +8,21 @@ from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.generation.generator import GenerationError, Generator
-from src.generation.llm_client import MockClient
-from src.generation.prompts.simple import (
+from quiz_generator.generation.generator import GenerationError, Generator
+from quiz_generator.generation.llm_client import MockClient
+from quiz_generator.generation.prompts.simple import (
     build_mcq_prompt_english,
     build_prompt,
     build_prompt_english,
 )
-from src.generation.schemas import (
+from quiz_generator.generation.schemas import (
     GeneratedQuestion,
     GeneratedQuiz,
     GenerationRequest,
 )
-from src.retrieval.schemas import RetrievedQuestion
+from quiz_generator.retrieval.schemas import RetrievedQuestion
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -800,8 +795,8 @@ def test_resolve_timeout_defaults_and_env_override() -> None:
     loop means up to max_attempts of them per request."""
     import os as _os
 
-    from src.generation.llm_client import DEFAULT_TIMEOUT_SECONDS, resolve_timeout
-    from src.shared.settings import reset_settings
+    from quiz_generator.generation.llm_client import DEFAULT_TIMEOUT_SECONDS, resolve_timeout
+    from quiz_generator.shared.settings import reset_settings
 
     previous = _os.environ.pop("LLM_TIMEOUT_SECONDS", None)
     reset_settings()
@@ -832,7 +827,7 @@ def test_resolve_timeout_rejects_a_value_it_cannot_honour() -> None:
     import pytest
     from pydantic import ValidationError
 
-    from src.shared.settings import get_settings, reset_settings
+    from quiz_generator.shared.settings import get_settings, reset_settings
 
     previous = _os.environ.pop("LLM_TIMEOUT_SECONDS", None)
     try:
@@ -850,7 +845,7 @@ def test_resolve_timeout_rejects_a_value_it_cannot_honour() -> None:
 
 def test_llm_clients_reuse_their_sdk_client() -> None:
     """Constructing an SDK client per call redoes TLS + credential setup."""
-    from src.generation.llm_client import GeminiClient
+    from quiz_generator.generation.llm_client import GeminiClient
 
     client = GeminiClient(model="gemini-2.5-flash", api_key="fake-key")
     assert client._client is None  # nothing built until first use

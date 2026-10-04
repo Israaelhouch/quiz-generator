@@ -25,7 +25,7 @@ import json
 import sys
 from pathlib import Path
 
-from src.shared.settings import get_settings
+from quiz_generator.shared.settings import get_settings
 
 # Load .env at the project root so GEMINI_API_KEY (and friends) are
 # available when running this script natively on the host. Best-effort —

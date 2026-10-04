@@ -7,14 +7,7 @@ in every environment. Full-pipeline tests live in test_ingest_pipeline.py.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.data.filters import (
+from quiz_generator.data.filters import (
     count_correct,
     decide_drop,
     derive_multiple_correct_answers,

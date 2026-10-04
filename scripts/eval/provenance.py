@@ -76,7 +76,7 @@ def git_state(repo_root: Path | None = None) -> dict[str, Any]:
 def _index_summary_path(config_path: Path) -> Path | None:
     """Where `build_summary.json` sits for the index this config points at."""
     try:
-        from src.indexing.config import load_models_config
+        from quiz_generator.indexing.config import load_models_config
 
         config = load_models_config(config_path)
     except Exception:  # a config this malformed is reported by the caller

@@ -6,13 +6,6 @@ underscored test-injection kwargs. No real model or Chroma is loaded.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 # ---------------------------------------------------------------------------
 # Log capture
 # ---------------------------------------------------------------------------
@@ -22,15 +15,17 @@ if str(ROOT) not in sys.path:
 # exactly backwards for an operational signal. Tests assert on log records now.
 import contextlib as _contextlib
 import logging as _logging
+import sys
+from pathlib import Path
 
-from src.indexing.taxonomy import Taxonomy
-from src.retrieval.retriever import (
+from quiz_generator.indexing.taxonomy import Taxonomy
+from quiz_generator.retrieval.retriever import (
     Retriever,
     _build_where,
     _detect_dominant_script,
     _row_matches_requested_language,
 )
-from src.retrieval.schemas import RetrievedQuestion
+from quiz_generator.retrieval.schemas import RetrievedQuestion
 
 
 @_contextlib.contextmanager
@@ -313,7 +308,7 @@ def test_retrieve_rejects_empty_language() -> None:
 
 def test_retrieve_empty_store_warns_and_returns_empty() -> None:
     r = _make_retriever(ids=[], distances=[], payload={})
-    with _capture_logs("src.retrieval.retriever") as records:
+    with _capture_logs("quiz_generator.retrieval.retriever") as records:
         result = r.retrieve("anything", language="en")
     assert result == []
     messages = [rec.getMessage().lower() for rec in records]
@@ -324,7 +319,7 @@ def test_empty_store_signal_repeats_every_call() -> None:
     """The reason this moved off `warnings.warn`: that deduped per code
     location, so a server logged this once and never again."""
     r = _make_retriever(ids=[], distances=[], payload={})
-    with _capture_logs("src.retrieval.retriever") as records:
+    with _capture_logs("quiz_generator.retrieval.retriever") as records:
         for _ in range(3):
             r.retrieve("anything", language="en")
     assert len(records) == 3, f"expected 3 signals, got {len(records)}"

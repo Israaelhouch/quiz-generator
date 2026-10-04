@@ -5,14 +5,7 @@ Stdlib-only (no Pydantic, no pylatexenc) — runs anywhere.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.generation.latex_validity import check_latex_validity
+from quiz_generator.generation.latex_validity import check_latex_validity
 
 # ---------------------------------------------------------------------------
 # Valid cases — common patterns the LLM produces correctly

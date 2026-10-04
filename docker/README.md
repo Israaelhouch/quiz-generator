@@ -26,7 +26,7 @@ docker compose up -d
 docker compose exec ollama ollama pull qwen2.5:7b
 
 # 4. Build the vector index (one time only, ~10 minutes)
-docker compose run --rm api python -m src.indexing.build
+docker compose run --rm api python -m quiz_generator.indexing.build
 ```
 
 After step 4, the system is fully ready.

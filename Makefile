@@ -15,6 +15,10 @@ SHELL := /usr/bin/env bash
 
 VENV    := .venv
 PY      := $(VENV)/bin/python
+
+# The package lives at src/quiz_generator and is not installed as a
+# distribution yet, so every recipe needs `src` on the import path.
+export PYTHONPATH := src
 PIP     := $(VENV)/bin/pip
 RUFF    := $(VENV)/bin/ruff
 MYPY    := $(VENV)/bin/mypy
@@ -120,16 +124,16 @@ READY      ?= data/processed/ready_phase1.jsonl
 BUILD_SUM  ?= data/vector_store/build_summary.json
 
 ingest:  ## Stage 1: raw -> flat (scope filter + structural drops)
-	$(PY) -m src.data.ingest --input $(RAW) --output $(FLAT) 	  --stats $(FLAT_STATS) --scope $(SCOPE)
+	$(PY) -m quiz_generator.data.ingest --input $(RAW) --output $(FLAT) 	  --stats $(FLAT_STATS) --scope $(SCOPE)
 
 normalize:  ## Stage 2: flat -> normalized (HTML, language, curriculum, dedup)
-	$(PY) -m src.data.normalize --input $(FLAT) --output $(NORM) 	  --stats $(NORM_STATS)
+	$(PY) -m quiz_generator.data.normalize --input $(FLAT) --output $(NORM) 	  --stats $(NORM_STATS)
 
 build-text:  ## Stage 3: normalized -> ready (compose search_text)
-	$(PY) -m src.data.build_index_text --input $(NORM) --output $(READY)
+	$(PY) -m quiz_generator.data.build_index_text --input $(NORM) --output $(READY)
 
 build-index:  ## Stage 4: ready -> Chroma (BGE-M3 embed)
-	$(PY) -m src.indexing.build --input $(READY)
+	$(PY) -m quiz_generator.indexing.build --input $(READY)
 
 build: ingest normalize build-text build-index build-verify  ## All four stages (~3 min)
 	@echo ""
@@ -148,7 +152,7 @@ run: ## Serve the API on $(HOST):$(PORT), building anything missing first
 	./run_local.sh
 
 serve:  ## Serve the API only, assuming the index already exists
-	$(PY) -m src.api --host $(HOST) --port $(PORT)
+	$(PY) -m quiz_generator.api --host $(HOST) --port $(PORT)
 
 # The eval inputs are derived from the private corpus and are not in the
 # repository; these targets need them present in eval/.

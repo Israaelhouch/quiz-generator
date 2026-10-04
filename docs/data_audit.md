@@ -90,21 +90,21 @@ All other filters (subject, level, publish, generatedByAI) are **not applied**.
 
 - **Intermediate/processed format:** JSONL (readable, streamable, preserves nested structure).
 - **Schema validation:** Pydantic v2 models at every stage boundary.
-- **Retrieval code:** keep `src/retrieval/` as-is (well-designed, tested).
+- **Retrieval code:** keep `src/quiz_generator/retrieval/` as-is (well-designed, tested).
 - **Rebuild:** ingestion, normalization, search_text composition, vector-store build.
 
 ## 7. Pipeline stages (RAG framework)
 
 ```
 1. Data Understanding & Scoping        — this document
-2. Data Cleaning & Preparation         — src/data/
+2. Data Cleaning & Preparation         — src/quiz_generator/data/
    2a. ingest.py           raw JSON    → interim/flat_phase1.jsonl
    2b. normalize.py        flat        → interim/normalized_phase1.jsonl
    2c. build_index_text.py normalized  → processed/ready_phase1.jsonl
-3. Embedding & Vector Store            — src/indexing/
-4. Retrieval Logic                     — src/retrieval/ (kept)
-5. Generation Prompt Design            — src/generation/prompts/
-6. RAG Pipeline Assembly               — src/pipeline/
+3. Embedding & Vector Store            — src/quiz_generator/indexing/
+4. Retrieval Logic                     — src/quiz_generator/retrieval/ (kept)
+5. Generation Prompt Design            — src/quiz_generator/generation/prompts/
+6. RAG Pipeline Assembly               — src/quiz_generator/pipeline/
 7. Evaluation & Quality Check          — src/eval/
 ```
 

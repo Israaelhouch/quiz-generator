@@ -8,7 +8,7 @@
 #     For dev speed on Mac, run the API natively instead:
 #       set -a; source .env; set +a
 #       source venv/bin/activate
-#       python -m src.api --host 127.0.0.1 --port 8000
+#       python -m quiz_generator.api --host 127.0.0.1 --port 8000
 #   - NVIDIA host (Linux server, Windows + WSL2): use the GPU override:
 #       docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 #     See docker-compose.gpu.yml for prerequisites.
@@ -23,7 +23,7 @@
 #
 # Then:
 #   docker compose up -d                              # start the API container (CPU)
-#   docker compose run --rm api python -m src.indexing.build  # one-time index build
+#   docker compose run --rm api python -m quiz_generator.indexing.build  # one-time index build
 #   docker compose down                               # stop
 
 services:

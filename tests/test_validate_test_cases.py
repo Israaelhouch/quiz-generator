@@ -11,15 +11,10 @@ from __future__ import annotations
 
 import csv
 import json
-import sys
 import types
 from pathlib import Path
 
 import pytest
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
 from scripts.eval.run_retriever_eval import run_eval, validate_or_die
 from scripts.eval.validate_test_cases import (

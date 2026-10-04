@@ -1,21 +1,13 @@
 """Tests for the FastAPI HTTP surface (Stage 6 — API endpoint).
 
 Uses FastAPI's TestClient with a fake QuizPipeline injected via app.state.
-The lifespan in src.api.server skips the heavy real load when a pipeline
+The lifespan in quiz_generator.api.server skips the heavy real load when a pipeline
 is already attached, so these tests run without ML stack or Ollama.
 """
 
 from __future__ import annotations
 
 import json
-import sys
-from pathlib import Path
-from typing import Any
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 
 # ---------------------------------------------------------------------------
 # Hermetic environment
@@ -27,10 +19,12 @@ if str(ROOT) not in sys.path:
 # pre-existing endpoint test into a 401.
 #
 # Tests that care about these settings opt in explicitly via `_env(...)`.
-# This runs before src.api.server is first imported (the server import is
+# This runs before quiz_generator.api.server is first imported (the server import is
 # lazy, inside _make_client), which matters because the CORS middleware is
 # installed at import time from the environment.
 import os as _os_bootstrap
+import sys
+from typing import Any
 
 for _leaky in (
     "API_KEYS",
@@ -165,7 +159,7 @@ class _FakePipeline:
     def generate_detailed(self, **kwargs):
         """What the API actually calls. Returns quiz+retrieval+timings
         together, so nothing is read back off shared instance state."""
-        from src.pipeline.orchestrator import GenerationResult
+        from quiz_generator.pipeline.orchestrator import GenerationResult
 
         quiz = self.generate(**kwargs)
         return GenerationResult(
@@ -188,12 +182,12 @@ class _FakePipeline:
 def _make_client(pipeline: _FakePipeline):
     """Build a TestClient that uses the injected pipeline.
 
-    The lifespan in src.api.server skips real loading when app.state.pipeline
+    The lifespan in quiz_generator.api.server skips real loading when app.state.pipeline
     is already set — that's how we avoid loading BGE-M3 in tests.
     """
     from fastapi.testclient import TestClient
 
-    from src.api.server import app
+    from quiz_generator.api.server import app
 
     app.state.pipeline = pipeline
     return TestClient(app)
@@ -349,7 +343,7 @@ def _assert_no_corpus_internals(detail: str) -> None:
 def test_generate_returns_400_when_nothing_was_retrieved() -> None:
     """Empty retrieval is the caller's fault, so 400 — and Cloudflare passes
     4xx bodies through unchanged, so the hint actually reaches the user."""
-    from src.generation.generator import GenerationError
+    from quiz_generator.generation.generator import GenerationError
 
     with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="0"):
         client = _make_client(_FakePipeline(raise_on_generate=GenerationError(_CORPUS_LEAK)))
@@ -367,7 +361,7 @@ def test_generate_returns_400_when_nothing_was_retrieved() -> None:
 def test_generate_returns_502_when_the_llm_gives_up() -> None:
     """Context existed, the model still couldn't produce a valid quiz —
     that's upstream, not the caller."""
-    from src.generation.generator import GenerationError
+    from quiz_generator.generation.generator import GenerationError
 
     exhausted = (
         "Generation failed after 3 attempts. Last error: Question 0 failed "
@@ -440,7 +434,7 @@ def test_generate_rejects_tuning_knobs_in_request() -> None:
 import contextlib
 import os as _os
 
-from src.api.security import reset_rate_limits
+from quiz_generator.api.security import reset_rate_limits
 
 
 @contextlib.contextmanager
@@ -451,7 +445,7 @@ def _env(**overrides: str | None):
     the way in and on the way out — otherwise the override would be invisible
     to code that already asked for settings.
     """
-    from src.shared.settings import reset_settings
+    from quiz_generator.shared.settings import reset_settings
 
     previous = {k: _os.environ.get(k) for k in overrides}
     try:
@@ -565,7 +559,7 @@ def test_unhandled_exception_body_is_opaque() -> None:
     paths, config values and SDK internals."""
     from fastapi.testclient import TestClient
 
-    from src.api.server import app
+    from quiz_generator.api.server import app
 
     leaky = RuntimeError("/app/configs/models.yaml exploded with key sk-live-XYZ")
     with _env(API_KEYS=None, RATE_LIMIT_PER_MINUTE="0"):
@@ -748,7 +742,7 @@ def test_metrics_requires_the_api_key() -> None:
 
 
 def test_metrics_counts_requests_and_excludes_noise() -> None:
-    from src.api.observability import reset_metrics
+    from quiz_generator.api.observability import reset_metrics
 
     reset_metrics()
     try:
@@ -767,7 +761,7 @@ def test_metrics_counts_requests_and_excludes_noise() -> None:
 
 
 def test_metrics_records_rate_limit_events() -> None:
-    from src.api.observability import reset_metrics
+    from quiz_generator.api.observability import reset_metrics
 
     reset_metrics()
     reset_rate_limits()
@@ -787,7 +781,7 @@ def test_metrics_records_rate_limit_events() -> None:
 def test_cors_origins_parsing() -> None:
     """CORS middleware is installed at import time, so the unit under test is
     the configuration reader."""
-    from src.api.security import configured_cors_origins
+    from quiz_generator.api.security import configured_cors_origins
 
     with _env(CORS_ALLOW_ORIGINS=None):
         assert configured_cors_origins() == []  # server-to-server default
