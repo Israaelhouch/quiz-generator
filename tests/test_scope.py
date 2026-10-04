@@ -40,9 +40,22 @@ def test_the_repository_scope_config_loads() -> None:
     scope = load_scope(Path("configs/scope.yaml"))
 
     assert scope.name == "current"
-    assert {"ENGLISH", "ARABIC", "FRENCH", "MATHEMATICS"} <= scope.subjects
+    assert scope.subjects == frozenset({"ENGLISH", "ARABIC", "FRENCH"})
     assert scope.level_prefixes == ("PRIMARY_SCHOOL", "MIDDLE_SCHOOL", "HIGH_SCHOOL")
     assert scope.languages == frozenset({"en", "fr", "ar"})
+
+
+def test_mathematics_is_out_of_scope() -> None:
+    """Maths left the scope on 2026-10-04 (ADR-0009). Re-adding it is a corpus
+    change that invalidates every published metric, so it should not happen by
+    accident — this test is the tripwire."""
+    scope = load_scope(Path("configs/scope.yaml"))
+
+    assert "MATHEMATICS" not in scope.subjects
+    assert decide_in_scope({"subjects": ["MATHEMATICS"], "levels": ["HIGH_SCHOOL_2"]}, scope) == (
+        False,
+        "subject_out_of_scope",
+    )
 
 
 def test_subjects_are_upper_cased_and_languages_lower_cased(tmp_path: Path) -> None:

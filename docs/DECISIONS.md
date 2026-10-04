@@ -1,6 +1,6 @@
 # Decisions
 
-Eight records, kept because a future reader — including future you — would
+Nine records, kept because a future reader — including future you — would
 otherwise have no way to tell a deliberate choice from an accident: a security
 exposure that is dormant today but becomes real if the deployment shape
 changes, which of the checker's complaints turned out to be real bugs, and why
@@ -472,3 +472,69 @@ Two things it deliberately does **not** do:
 - `tests/test_eval_provenance.py` covers the complete chain, the stale-payload
   case, a missing build summary, a missing payload, missing recipe stats, and
   running outside a git repository.
+
+---
+
+## ADR-0009 — Scope narrows to the three language subjects
+
+**Date:** 2026-10-04 · **Status:** accepted
+
+### Context
+
+The corpus was scoped to four subjects: ENGLISH, ARABIC, FRENCH and
+MATHEMATICS. Counting the raw export by language and subject showed what that
+scope actually bought:
+
+| Language | Language subject | Mathematics | Sciences |
+|---|---:|---:|---:|
+| English | 3,946 | 793 | 605 |
+| Arabic | 1,414 | 571 | 133 |
+| French | **15** | 1,370 | 836 |
+
+French is not a taught language in this corpus. It is the language maths and
+physics are taught *in*. The project's multilingual claim therefore rested on
+maths: remove maths and the French cell is 15 questions across 2 quizzes.
+
+Two further facts argued the same way. Retrieval over formula-bearing
+questions is a different task from retrieval over prose — it carries the LaTeX
+normalisation, the LaTeX validator and the curriculum language rules, none of
+which the language cells need. And the maths cells are the weakest measured:
+P@1 0.615 (fr) and 0.492 (ar) against language cells at 0.806 and 0.585.
+
+### Options
+
+1. **Keep four subjects.** Three languages stay true, at the cost of carrying
+   a second task whose weakest numbers front the README.
+2. **Language subjects plus sciences, no maths.** Keeps three real languages —
+   French through physics and chemistry (677 questions) — but adds two
+   subjects and keeps the formula tooling in play.
+3. **Language subjects only.** One task: generating language-teaching
+   questions. English and Arabic are substantial and cover two scripts, two
+   directions and three school levels. French becomes a documented thin cell.
+
+### Decision
+
+Option 3. `configs/scope.yaml` admits ENGLISH, ARABIC and FRENCH.
+
+The French cell stays in scope at 15 questions rather than being dropped: it
+is the honest size of French-as-a-subject in this corpus, and reporting a cell
+that small with its sample size attached says more about the project's
+discipline than hiding it would.
+
+### Consequences
+
+- The corpus goes from 5,782 to ~4,411 indexed questions; the index must be
+  rebuilt and all three cells re-measured before any number is republished.
+- The two mathematics test sets (1,080 cases) and their topics CSVs leave the
+  evaluation. They are retired, not deleted.
+- `curriculum_rules.py` — which drops rows violating the Tunisian rule that
+  primary and middle maths is Arabic and high-school maths is French — has no
+  rows left to act on. The module and its 17 tests stay: the rule is correct
+  and the cost of keeping it is nothing, but it stops being an example worth
+  leading with in the README.
+- The LaTeX normalisation and the LaTeX validity check go near-idle. Both stay
+  for the same reason.
+- The project describes itself as multilingual over two scripts rather than
+  three languages of equal weight. That is what the data supports.
+- `tests/test_scope.py` carries a tripwire: re-adding MATHEMATICS fails a test,
+  because it is a corpus change that invalidates every published metric.
