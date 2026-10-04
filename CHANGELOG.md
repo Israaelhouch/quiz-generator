@@ -14,6 +14,16 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Added
 
+- `tests/test_ingest_pipeline.py` — the ingest stage had 7 tests, all of them
+  on the pure helpers in `filters.py`, and none on the stage itself: the
+  flattening, the per-quiz `order` counter, the scope integration, the stats
+  record and both validation paths were untested. 27 tests now cover them, and
+  they found the two defects above.
+- The ingest stats record names the scope that produced its drop counts
+  (`scope_name`, `scope_config_path`, `scope_config_sha256`) and samples the
+  first five validation failures — the field and the rule, never the payload,
+  which is corpus content.
+
 - **API-key authentication** (`src/api/security.py`) — `X-API-Key` or
   `Authorization: Bearer`, constant-time comparison, keys from `API_KEYS`.
   Unset means auth is disabled, with a loud startup warning: fail-open so local
@@ -70,6 +80,10 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Changed
 
+- `ingest` logs through `logging` instead of printing from inside the library
+  function, and reports its outcome and any validation rejections at the end
+  of a run. The CLI's own summary output is unchanged.
+
 - Scope narrows to the three language subjects — ENGLISH, ARABIC, FRENCH.
   Mathematics leaves the corpus: French-as-a-subject is 15 questions here, so
   the multilingual claim had been resting on French maths, and maths retrieval
@@ -85,6 +99,16 @@ answer key. The reasoning behind the non-obvious choices is in
   question with `model_dump()`.
 
 ### Fixed
+
+- **One malformed question used to reject its entire quiz.** `RawQuiz` declared
+  `questions: list[RawQuestion]`, so validating a quiz validated every question
+  in it: a single bad row discarded all of its healthy siblings, and the
+  per-question validation path — with its own counter in the stats record —
+  was unreachable. Questions are now validated individually, so a bad row costs
+  that row only. No change on the current export, where both counters are zero.
+- `ingest` wrote straight into `flat.jsonl`; a crash partway through left a
+  truncated file that the next stage reads as a complete corpus. Output and
+  stats are now written to a temporary file and renamed on success.
 
 - The runbook and screenshot walkthroughs wrote their sample-corpus output into
   `data/processed/` and then indexed the real payload instead of the sample one
