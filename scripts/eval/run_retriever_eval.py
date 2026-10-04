@@ -496,7 +496,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print("Loading retriever (model + vector store + payload) ...")
     # Local import — keeps validation/CLI cheap if the user just wants -h.
-    from src.retrieval.retriever import Retriever
+    from quiz_generator.retrieval.retriever import Retriever
 
     retriever = Retriever(
         config_path=args.config,

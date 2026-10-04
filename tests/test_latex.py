@@ -9,13 +9,8 @@ output, but the regex fallback covers the patterns we care about most.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.data.latex import _regex_normalize, contains_latex
+from quiz_generator.data.latex import _regex_normalize, contains_latex
 
 
 def test_inline_math_delimiters_are_unwrapped() -> None:

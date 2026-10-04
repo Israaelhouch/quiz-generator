@@ -8,15 +8,10 @@ model — no actual ML stack needed in the sandbox.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
 import pytest
 
-from src.retrieval.reranker import Reranker, RerankerConfig, RerankerError
+from quiz_generator.retrieval.reranker import Reranker, RerankerConfig, RerankerError
 
 # ---------------------------------------------------------------------------
 # Mock model — predict() returns canned scores per pair

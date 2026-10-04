@@ -127,7 +127,7 @@ Full methodology and limits in [`eval/RESULTS.md`](eval/RESULTS.md).
 **The corpus decides what's possible.** The curriculum constrains which
 language a subject is taught in at each level — maths is Arabic in primary and
 middle school, French in high school. Rows violating that are mistagged at
-source, so [`curriculum_rules.py`](src/data/curriculum_rules.py) drops them at
+source, so [`curriculum_rules.py`](src/quiz_generator/data/curriculum_rules.py) drops them at
 cleaning time, and the UI encodes the same rules so an impossible request can't
 be made.
 
@@ -187,25 +187,25 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 # build an index from the synthetic sample corpus (~1 min after model download)
-python -m src.data.ingest        --input data/sample/quizzes-sample-raw.json \
+python -m quiz_generator.data.ingest        --input data/sample/quizzes-sample-raw.json \
                                  --scope configs/scope.yaml \
                                  --output data/sample/interim/flat.jsonl \
                                  --stats  data/sample/interim/flat_stats.json
-python -m src.data.normalize     --input  data/sample/interim/flat.jsonl \
+python -m quiz_generator.data.normalize     --input  data/sample/interim/flat.jsonl \
                                  --output data/sample/interim/normalized.jsonl \
                                  --stats  data/sample/interim/normalized_stats.json
-python -m src.data.build_index_text --input  data/sample/interim/normalized.jsonl \
+python -m quiz_generator.data.build_index_text --input  data/sample/interim/normalized.jsonl \
                                  --output data/processed/ready_phase1.jsonl \
                                  --stats  data/processed/ready_stats.json
-python -m src.indexing.build
+python -m quiz_generator.indexing.build
 
 # retrieval only — no API key needed
-python -m src.retrieval.query "past tense" --language en --top-k 3
+python -m quiz_generator.retrieval.query "past tense" --language en --top-k 3
 
 # full generation needs a key
 echo "GEMINI_API_KEY=..." > .env
 set -a; source .env; set +a
-python -m src.api          # then open http://localhost:8000/ui
+python -m quiz_generator.api          # then open http://localhost:8000/ui
 ```
 
 </details>
@@ -226,13 +226,14 @@ make lint          # ruff + mypy --strict, the same gates CI runs
 ## Layout
 
 ```
-src/data/        ingestion, cleaning, language resolution, curriculum rules
-src/indexing/    embedding, Chroma build, taxonomy discovery
-src/retrieval/   filtered vector search + cross-encoder rerank
-src/generation/  prompts (en/fr/ar), LLM clients, validation + retry
-src/pipeline/    orchestrator + CLI
-src/api/         FastAPI surface, security, metrics, single-page UI
-scripts/         retrieval eval harness, run analysis, feedback analysis
+src/quiz_generator/
+  data/        ingestion, cleaning, language resolution, curriculum rules
+  indexing/    embedding, Chroma build, taxonomy discovery
+  retrieval/   filtered vector search + cross-encoder rerank
+  generation/  prompts (en/fr/ar), LLM clients, validation + retry
+  pipeline/    orchestrator + CLI
+  api/         FastAPI surface, security, metrics, single-page UI
+scripts/       retrieval eval harness, run analysis, feedback analysis
 ```
 
 ## Where things are

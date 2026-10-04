@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from src.data.scope import ScopeConfig, decide_in_scope, load_scope
+from quiz_generator.data.scope import ScopeConfig, decide_in_scope, load_scope
 
 _VALID = """
 scope:

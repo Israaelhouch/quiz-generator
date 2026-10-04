@@ -8,7 +8,7 @@
 # Usage — always pass BOTH files:
 #
 #   docker compose -f docker-compose.yml -f docker-compose.etl.yml \
-#     run --rm api python -m src.data.ingest --scope configs/scope.yaml \
+#     run --rm api python -m quiz_generator.data.ingest --scope configs/scope.yaml \
 #       --output data/interim/flat_verify.jsonl \
 #       --stats  data/interim/flat_verify_stats.json
 #
@@ -18,7 +18,7 @@
 #
 # SAFE: stages 1-3 (ingest / normalize / build_index_text) only ever write
 #       the --output paths you give them.
-# UNSAFE: stage 4 (src.indexing.build) wipes vector_store.persist_directory
+# UNSAFE: stage 4 (quiz_generator.indexing.build) wipes vector_store.persist_directory
 #       from configs/models.yaml before writing — and that directory IS
 #       mounted. See the notes in the runbook before running it.
 

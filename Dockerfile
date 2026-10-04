@@ -36,7 +36,10 @@ COPY configs/ ./configs/
 # We point it at /cache/huggingface, which docker-compose mounts as a
 # named volume so models persist across container restarts (the alternative
 # is re-downloading 1.2 GB of BGE-M3 + reranker every time).
+# PYTHONPATH: the package is at /app/src/quiz_generator and is not installed
+# as a distribution, so `python -m quiz_generator.api` needs /app/src on the path.
 ENV HF_HOME=/cache/huggingface \
+    PYTHONPATH=/app/src \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
@@ -45,4 +48,4 @@ EXPOSE 8000
 # Bind to 0.0.0.0 so other containers on the docker network can reach us.
 # Inside the container, that's safe — it's only exposed to the host via
 # the port mapping in docker-compose.yml.
-CMD ["python", "-m", "src.api", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "quiz_generator.api", "--host", "0.0.0.0", "--port", "8000"]

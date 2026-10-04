@@ -9,14 +9,6 @@ integration tests best run on the user's machine. Here we validate:
 
 from __future__ import annotations
 
-import json
-import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 # ---------------------------------------------------------------------------
 # Log capture
 # ---------------------------------------------------------------------------
@@ -25,10 +17,13 @@ if str(ROOT) not in sys.path:
 # long-running server each of these fired ONCE and was then silent forever —
 # exactly backwards for an operational signal. Tests assert on log records now.
 import contextlib as _contextlib
+import json
 import logging as _logging
+import sys
+from pathlib import Path
 
-from src.indexing.taxonomy import SCHOOL_LEVEL_PREFIXES, Taxonomy
-from src.indexing.vector_store import build_ids, row_to_metadata
+from quiz_generator.indexing.taxonomy import SCHOOL_LEVEL_PREFIXES, Taxonomy
+from quiz_generator.indexing.vector_store import build_ids, row_to_metadata
 
 
 @_contextlib.contextmanager
@@ -252,7 +247,7 @@ def test_taxonomy_to_dict_returns_sorted_lists() -> None:
 
 def test_taxonomy_validate_level_warns_on_unknown() -> None:
     tax = Taxonomy(levels={"HIGH_SCHOOL_4TH_GRADE_MATH"})
-    with _capture_logs("src.indexing.taxonomy") as records:
+    with _capture_logs("quiz_generator.indexing.taxonomy") as records:
         assert tax.validate_level("HIGH_SCHOOL_4TH_GRAD_MATH") is False  # typo
         assert tax.validate_level("HIGH_SCHOOL_4TH_GRADE_MATH") is True  # exact
     # Only the typo call produced a signal.
@@ -264,7 +259,7 @@ def test_taxonomy_validate_level_warns_on_unknown() -> None:
 def test_taxonomy_validate_empty_does_not_warn() -> None:
     """No taxonomy loaded → validation is a no-op (nothing logged)."""
     tax = Taxonomy()
-    with _capture_logs("src.indexing.taxonomy") as records:
+    with _capture_logs("quiz_generator.indexing.taxonomy") as records:
         tax.validate_level("anything")
         tax.validate_subject("anything")
         tax.validate_language("xx")
@@ -408,7 +403,7 @@ if __name__ == "__main__":
 def test_sha256_of_matches_hashlib_for_the_same_bytes(tmp_path) -> None:
     import hashlib
 
-    from src.indexing.build import _sha256_of
+    from quiz_generator.indexing.build import _sha256_of
 
     f = tmp_path / "ready.jsonl"
     f.write_bytes(b'{"doc_id": "a"}\n{"doc_id": "b"}\n')
@@ -418,7 +413,7 @@ def test_sha256_of_matches_hashlib_for_the_same_bytes(tmp_path) -> None:
 def test_sha256_of_differs_when_contents_differ_at_the_same_path(tmp_path) -> None:
     """The point of hashing contents rather than trusting the path: rebuilding
     from a different corpus written to the same filename must be detectable."""
-    from src.indexing.build import _sha256_of
+    from quiz_generator.indexing.build import _sha256_of
 
     f = tmp_path / "ready.jsonl"
     f.write_bytes(b"sample corpus\n")
@@ -429,7 +424,7 @@ def test_sha256_of_differs_when_contents_differ_at_the_same_path(tmp_path) -> No
 
 def test_build_stats_provenance_fields_default_to_empty() -> None:
     """Older summaries on disk predate these fields; loading one must not fail."""
-    from src.shared.schemas import BuildVectorStoreStats
+    from quiz_generator.shared.schemas import BuildVectorStoreStats
 
     stats = BuildVectorStoreStats(
         rows_indexed=1,

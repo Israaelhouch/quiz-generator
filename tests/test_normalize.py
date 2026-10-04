@@ -7,20 +7,15 @@ run even when Pydantic is unavailable in the sandbox.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
 import pytest
 
-from src.data.language import (
+from quiz_generator.data.language import (
     detect_language,
     normalize_language_label,
     resolve_language,
 )
-from src.data.normalize import (
+from quiz_generator.data.normalize import (
     _union_preserving_order,
     apply_subject_aliases,
     classify_empty_text_reason,
@@ -242,7 +237,7 @@ def test_normalize_row_drops_when_dedup_leaves_too_few_choices() -> None:
     """Source row with choices=['2', '2'] dedups to ['2'] → MCQ with 1 choice
     isn't really an MCQ; drop it with reason 'too_few_choices_after_dedup'.
     """
-    from src.data.normalize import normalize_row
+    from quiz_generator.data.normalize import normalize_row
 
     flat = {
         "doc_id": "dup",
@@ -285,7 +280,7 @@ def test_mathematics_subject_mislabeled_english_gets_overridden_to_fr() -> None:
     doesn't need langdetect or strong stopword density; subject alone
     triggers the override.
     """
-    from src.data.normalize import normalize_row
+    from quiz_generator.data.normalize import normalize_row
 
     flat = {
         "doc_id": "m",
@@ -331,7 +326,7 @@ def test_detect_language_uses_langdetect_when_available() -> None:
     """
     from unittest.mock import MagicMock
 
-    from src.data import language as lang_mod
+    from quiz_generator.data import language as lang_mod
 
     # Create a fake candidate (mimics langdetect's return shape)
     class _FakeCandidate:
@@ -360,7 +355,7 @@ def test_detect_language_falls_back_to_stopwords_when_langdetect_unavailable() -
     """If langdetect is NOT installed, detection falls through to the
     stopword heuristic (existing behaviour preserved).
     """
-    from src.data import language as lang_mod
+    from quiz_generator.data import language as lang_mod
 
     real_has = lang_mod._HAS_LANGDETECT
     try:
@@ -381,7 +376,7 @@ def test_french_title_boosts_detection_when_title_has_stopword_density() -> None
     slip through — that's a fundamental limitation of stopword heuristics
     and requires langdetect to fix.
     """
-    from src.data.normalize import normalize_row
+    from quiz_generator.data.normalize import normalize_row
 
     flat = {
         "doc_id": "t",
@@ -415,7 +410,7 @@ def test_french_title_boosts_detection_when_title_has_stopword_density() -> None
 
 def test_all_empty_choices_are_dropped() -> None:
     """Ghost-row filter: MCQ with choices=['','',''] → dropped."""
-    from src.data.normalize import normalize_row
+    from quiz_generator.data.normalize import normalize_row
 
     flat = {
         "doc_id": "ghost",
@@ -444,7 +439,7 @@ def test_all_empty_choices_are_dropped() -> None:
 
 def test_rows_with_real_choices_pass() -> None:
     """Sanity: the ghost filter must NOT reject rows with real choices."""
-    from src.data.normalize import normalize_row
+    from quiz_generator.data.normalize import normalize_row
 
     flat = {
         "doc_id": "ok",
@@ -478,7 +473,7 @@ def test_latex_heavy_french_content_detects_as_french() -> None:
     (left, right, frac, mathbb, ...) diluted the French stopword signal.
     After the fix, detection sees LaTeX-free text and catches the French.
     """
-    from src.data.normalize import normalize_row
+    from quiz_generator.data.normalize import normalize_row
 
     flat = {
         "doc_id": "test-1",
@@ -546,7 +541,7 @@ if __name__ == "__main__":
 def test_the_repository_alias_config_loads() -> None:
     from pathlib import Path as _Path
 
-    from src.data.normalize import load_subject_aliases
+    from quiz_generator.data.normalize import load_subject_aliases
 
     aliases = load_subject_aliases(_Path("configs/subject_aliases.yaml"))
 
@@ -559,7 +554,7 @@ def test_a_missing_alias_config_is_an_error(tmp_path) -> None:
     canonicalisation for the whole run."""
     import pytest
 
-    from src.data.normalize import load_subject_aliases
+    from quiz_generator.data.normalize import load_subject_aliases
 
     with pytest.raises(FileNotFoundError):
         load_subject_aliases(tmp_path / "absent.yaml")
@@ -569,7 +564,7 @@ def test_a_missing_alias_config_is_an_error(tmp_path) -> None:
 def test_an_alias_that_is_not_a_subject_name_is_refused(tmp_path, value: str) -> None:
     """`MECHANIC: 1` was coerced with str(), mapping the subject to "1" and
     dropping those rows out of every subject filter."""
-    from src.data.normalize import load_subject_aliases
+    from quiz_generator.data.normalize import load_subject_aliases
 
     config = tmp_path / "aliases.yaml"
     config.write_text(f"MECHANIC: {value}\n", encoding="utf-8")

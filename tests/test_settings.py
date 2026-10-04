@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from src.shared.settings import Settings, describe_settings, get_settings, reset_settings
+from quiz_generator.shared.settings import Settings, describe_settings, get_settings, reset_settings
 
 # Every variable Settings reads. Scrubbed before each test so the suite does
 # not behave differently depending on whose shell or .env it runs under.
