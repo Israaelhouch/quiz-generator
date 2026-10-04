@@ -2,7 +2,7 @@
 
 Per-cell retrieval quality across the shipped subjects. Each row was
 produced by `scripts/eval/run_retriever_eval.py` against the production
-index in `data/vector_store/chroma_db_phase1/`, using language- or
+index in `data/vector_store/chroma_db/`, using language- or
 subject-specific topics CSVs as ground truth.
 
 Numbers are **unscoped** (no `school_phase` filter) — i.e., the

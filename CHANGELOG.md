@@ -70,6 +70,27 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Changed
 
+- Scope narrows to the three language subjects — ENGLISH, ARABIC, FRENCH.
+  Mathematics leaves the corpus: French-as-a-subject is 15 questions here, so
+  the multilingual claim had been resting on French maths, and maths retrieval
+  is a different task from prose retrieval. ~4,411 indexed questions instead of
+  5,782.
+- The data artefacts drop their `phase1` suffix — `flat.jsonl`,
+  `normalized.jsonl`, `ready.jsonl`, `chroma_db/` — matching the earlier rename
+  of `phase1_scope.yaml`. The suffix named a project phase that ended when
+  maths shipped in v1.1.0. Renaming the index directory forces a reindex, which
+  the scope change required anyway.
+- `ingest` no longer re-imports the scope filter inside its row loop, and
+  checks scope against the two fields it needs instead of serialising every
+  question with `model_dump()`.
+
+### Fixed
+
+- The runbook and screenshot walkthroughs wrote their sample-corpus output into
+  `data/processed/` and then indexed the real payload instead of the sample one
+  they had just built. Both now stay inside `data/sample/` and index what they
+  produced.
+
 - The README is a technical reference rather than a narrative: standard
   headings (Overview, Architecture, Evaluation, Installation, Usage, Project
   structure, Documentation, License), 269 lines down to 167. The pipeline

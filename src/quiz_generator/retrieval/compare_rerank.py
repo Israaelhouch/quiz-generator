@@ -38,7 +38,7 @@ def _parse_args() -> argparse.Namespace:
     )
     p.add_argument("query", help="Query text (quote if it has spaces)")
     p.add_argument("--config", type=Path, default=Path("configs/models.yaml"))
-    p.add_argument("--ready", type=Path, default=Path("data/processed/ready_phase1.jsonl"))
+    p.add_argument("--ready", type=Path, default=Path("data/processed/ready.jsonl"))
     p.add_argument("--language", required=True, choices=["en", "fr", "ar"])
     p.add_argument("--top-k", type=int, default=5)
     p.add_argument(

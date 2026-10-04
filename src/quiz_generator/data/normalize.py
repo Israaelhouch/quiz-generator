@@ -1,7 +1,7 @@
 """Normalization — and, despite the name, the stage that decides what stays.
 
-Transforms `data/interim/flat_phase1.jsonl` →
-`data/interim/normalized_phase1.jsonl`.
+Transforms `data/interim/flat.jsonl` →
+`data/interim/normalized.jsonl`.
 
 "Normalize" undersells this module. It cleans text, but it also applies the
 curriculum business rules and deduplicates, so it removes rows: 869 of 6,651
@@ -400,9 +400,9 @@ def normalize(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input",  type=Path, default=Path("data/interim/flat_phase1.jsonl"))
-    parser.add_argument("--output", type=Path, default=Path("data/interim/normalized_phase1.jsonl"))
-    parser.add_argument("--stats",  type=Path, default=Path("data/interim/normalized_phase1_stats.json"))
+    parser.add_argument("--input",  type=Path, default=Path("data/interim/flat.jsonl"))
+    parser.add_argument("--output", type=Path, default=Path("data/interim/normalized.jsonl"))
+    parser.add_argument("--stats",  type=Path, default=Path("data/interim/normalized_stats.json"))
     parser.add_argument(
         "--aliases",
         type=Path,

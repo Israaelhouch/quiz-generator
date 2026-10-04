@@ -38,11 +38,11 @@ python -m quiz_generator.data.normalize --input  data/sample/interim/flat.jsonl 
 
 # 3. build_index_text — compose the embedded text per configs/pipeline.yaml
 python -m quiz_generator.data.build_index_text --input  data/sample/interim/normalized.jsonl \
-                                               --output data/processed/ready_phase1.jsonl \
-                                               --stats  data/processed/ready_stats.json
+                                               --output data/sample/processed/ready.jsonl \
+                                               --stats  data/sample/processed/ready_stats.json
 
 # 4. index — BGE-M3 embeddings into Chroma (~1 min after the model downloads)
-python -m quiz_generator.indexing.build
+python -m quiz_generator.indexing.build --input data/sample/processed/ready.jsonl
 ```
 
 Each stage writes a `*_stats.json` beside its output recording what it dropped

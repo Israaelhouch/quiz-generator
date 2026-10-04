@@ -95,7 +95,7 @@ K_RETRIEVE_MAX = 10
 K_VALUES = (1, 3, 5, 10)
 
 DEFAULT_CONFIG_PATH = Path("configs/models.yaml")
-DEFAULT_READY_JSONL = Path("data/processed/ready_phase1.jsonl")
+DEFAULT_READY_JSONL = Path("data/processed/ready.jsonl")
 
 
 # ---------------------------------------------------------------------------

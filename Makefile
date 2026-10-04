@@ -116,11 +116,11 @@ ci: lint test audit  ## Everything CI runs, locally
 
 RAW        ?= data/raw/quizzes-raw-data.json
 SCOPE      ?= configs/scope.yaml
-FLAT       ?= data/interim/flat_phase1.jsonl
-FLAT_STATS ?= data/interim/flat_phase1_stats.json
-NORM       ?= data/interim/normalized_phase1.jsonl
-NORM_STATS ?= data/interim/normalized_phase1_stats.json
-READY      ?= data/processed/ready_phase1.jsonl
+FLAT       ?= data/interim/flat.jsonl
+FLAT_STATS ?= data/interim/flat_stats.json
+NORM       ?= data/interim/normalized.jsonl
+NORM_STATS ?= data/interim/normalized_stats.json
+READY      ?= data/processed/ready.jsonl
 BUILD_SUM  ?= data/vector_store/build_summary.json
 
 ingest:  ## Stage 1: raw -> flat (scope filter + structural drops)

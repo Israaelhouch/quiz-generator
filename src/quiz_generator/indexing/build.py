@@ -1,4 +1,4 @@
-"""build the Chroma vector store from `data/processed/ready_phase1.jsonl`.
+"""build the Chroma vector store from `data/processed/ready.jsonl`.
 
 Run:
     python -m quiz_generator.indexing.build
@@ -242,7 +242,7 @@ def build(
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--config", type=Path, default=Path("configs/models.yaml"))
-    p.add_argument("--input", type=Path, default=Path("data/processed/ready_phase1.jsonl"))
+    p.add_argument("--input", type=Path, default=Path("data/processed/ready.jsonl"))
     p.add_argument(
         "--summary",
         type=Path,

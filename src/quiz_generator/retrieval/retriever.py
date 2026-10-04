@@ -143,7 +143,7 @@ class Retriever:
     def __init__(
         self,
         config_path: Path | str = Path("configs/models.yaml"),
-        ready_jsonl_path: Path | str = Path("data/processed/ready_phase1.jsonl"),
+        ready_jsonl_path: Path | str = Path("data/processed/ready.jsonl"),
         *,
         _model: Any | None = None,
         _collection: Any | None = None,

@@ -29,7 +29,7 @@ Exit code: 0 if every case and the answer key are valid, 1 otherwise.
 Usage:
     python -m scripts.eval.validate_test_cases eval/english_retriever_test_cases.json
     python -m scripts.eval.validate_test_cases eval/arabic_retriever_test_cases.json \\
-        --ready-jsonl data/processed/ready_phase1.jsonl
+        --ready-jsonl data/processed/ready.jsonl
 """
 
 from __future__ import annotations
@@ -116,7 +116,7 @@ TOPICS_FILE_BY_LANG_SUBJECT: dict[tuple[str, str], Path] = {
 }
 
 # The payload the retriever serves — same default as run_retriever_eval.
-DEFAULT_READY_JSONL = Path("data/processed/ready_phase1.jsonl")
+DEFAULT_READY_JSONL = Path("data/processed/ready.jsonl")
 
 
 def load_topic_index(

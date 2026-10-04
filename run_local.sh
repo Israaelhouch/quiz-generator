@@ -43,10 +43,10 @@ RAW=data/raw/quizzes-raw-data.json
 # flat.jsonl / normalized.jsonl — files nothing creates — so the "skip if
 # already built" test below was always true and both stages re-ran every
 # time, contradicting the idempotence this script promises at the top.
-FLAT=data/interim/flat_phase1.jsonl
-NORM=data/interim/normalized_phase1.jsonl
-READY=data/processed/ready_phase1.jsonl
-CHROMA=data/vector_store/chroma_db_phase1
+FLAT=data/interim/flat.jsonl
+NORM=data/interim/normalized.jsonl
+READY=data/processed/ready.jsonl
+CHROMA=data/vector_store/chroma_db
 SUMMARY=data/vector_store/build_summary.json
 
 # ---------------------------------------------------------------- 1. python
@@ -154,12 +154,12 @@ else
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$READY" ]; then
     echo "   → build_index_text   (the step the README forgets)"
     python -m quiz_generator.data.build_index_text
-  else ok "ready_phase1.jsonl exists (skip build_index_text)"; fi
+  else ok "ready.jsonl exists (skip build_index_text)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -d "$CHROMA" ]; then
     echo "   → indexing.build     (downloads ~1.2 GB of BGE models on first run)"
     python -m quiz_generator.indexing.build
-  else ok "chroma_db_phase1/ exists (skip index build)"; fi
+  else ok "chroma_db/ exists (skip index build)"; fi
   ok "data pipeline complete"
 fi
 

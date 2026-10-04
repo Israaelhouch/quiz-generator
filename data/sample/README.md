@@ -56,7 +56,7 @@ make sample-demo     # retrieval + generation with the mock LLM (no API key)
 
 Pipeline outputs land in `data/sample/interim/`, `data/sample/processed/` and
 `data/vector_store/sample/` — all gitignored, and all separate from the real
-`data/processed/ready_phase1.jsonl` / `data/vector_store/chroma_db_phase1`, so a
+`data/processed/ready.jsonl` / `data/vector_store/chroma_db`, so a
 sample run can never overwrite a real build.
 
 Row counts through the stages (see the `*_stats.json` files for the full audit):

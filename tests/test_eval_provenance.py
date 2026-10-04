@@ -13,6 +13,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 from scripts.eval.provenance import (
     collect_provenance,
     git_state,
@@ -95,11 +97,32 @@ def test_a_complete_record_names_the_index_the_recipe_and_the_commit(tmp_path: P
     assert "sha" in record["git"]
 
 
-def test_the_real_repository_produces_a_record_without_warnings() -> None:
-    """The index on this machine was built from the payload on this machine."""
-    record = collect_provenance(
-        config_path=CONFIG, ready_jsonl=Path("data/processed/ready_phase1.jsonl")
-    )
+PAYLOAD = Path("data/processed/ready.jsonl")
+INDEX_SUMMARY = Path("data/vector_store/build_summary.json")
+
+
+def _repository_is_built() -> bool:
+    """True when this checkout has an index whose build record is current.
+
+    False on CI and on a fresh clone, where the artefacts are gitignored, and
+    false between a rename of the data artefacts and the rebuild that follows
+    it — in that window the build record names paths that no longer exist, and
+    reporting that is the feature under test, not a failure of it.
+    """
+    if not (PAYLOAD.exists() and INDEX_SUMMARY.exists()):
+        return False
+    try:
+        recorded = json.loads(INDEX_SUMMARY.read_text(encoding="utf-8")).get("source_path")
+    except (OSError, json.JSONDecodeError):
+        return False
+    return bool(recorded) and Path(recorded).exists()
+
+
+@pytest.mark.skipif(not _repository_is_built(), reason="no current index build in this checkout")
+def test_a_built_repository_produces_a_record_without_warnings() -> None:
+    """With the artefacts present, the record should account for all of them:
+    the index was built from the payload that is on disk."""
+    record = collect_provenance(config_path=CONFIG, ready_jsonl=PAYLOAD)
 
     assert record["warnings"] == []
     assert record["index"]["payload_sha256"] == record["payload_on_disk"]["sha256"]

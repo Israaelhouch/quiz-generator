@@ -1,6 +1,6 @@
 """Build search_text.
 
-Consumes `data/interim/normalized.jsonl`, produces `data/processed/ready_phase1.jsonl`.
+Consumes `data/interim/normalized.jsonl`, produces `data/processed/ready.jsonl`.
 
 For each row, composes a `search_text` string per a recipe configured in
 `configs/pipeline.yaml`. The row is otherwise passed through unchanged.
@@ -266,9 +266,9 @@ def build_index_text(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input",  type=Path, default=Path("data/interim/normalized_phase1.jsonl"))
-    parser.add_argument("--output", type=Path, default=Path("data/processed/ready_phase1.jsonl"))
-    parser.add_argument("--stats",  type=Path, default=Path("data/processed/ready_phase1_stats.json"))
+    parser.add_argument("--input",  type=Path, default=Path("data/interim/normalized.jsonl"))
+    parser.add_argument("--output", type=Path, default=Path("data/processed/ready.jsonl"))
+    parser.add_argument("--stats",  type=Path, default=Path("data/processed/ready_stats.json"))
     parser.add_argument("--config", type=Path, default=Path("configs/pipeline.yaml"))
     return parser.parse_args()
 

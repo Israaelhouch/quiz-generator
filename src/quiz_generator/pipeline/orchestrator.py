@@ -76,7 +76,7 @@ class QuizPipeline:
     def __init__(
         self,
         config_path: Path = Path("configs/models.yaml"),
-        ready_jsonl_path: Path = Path("data/processed/ready_phase1.jsonl"),
+        ready_jsonl_path: Path = Path("data/processed/ready.jsonl"),
         *,
         # Test-injection hooks — pass these to skip the heavy real builds.
         _retriever: Any | None = None,

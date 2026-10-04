@@ -1,7 +1,7 @@
 """Ingestion — flatten the raw export, and drop most of it.
 
 Flattens raw quizzes JSON into a JSONL of FlatQuestion rows
-(`data/raw/quizzes-raw-data.json` → `data/interim/flat_phase1.jsonl`).
+(`data/raw/quizzes-raw-data.json` → `data/interim/flat.jsonl`).
 
 This stage removes far more than its name suggests: 5,829 of 12,480 questions
 on the measured build of 2026-09-08. Two independent filters run here, and the
@@ -43,6 +43,7 @@ from typing import Iterator
 from pydantic import ValidationError
 
 from quiz_generator.data.filters import decide_drop, derive_multiple_correct_answers, doc_id_suffix
+from quiz_generator.data.scope import decide_in_scope, load_scope
 from quiz_generator.shared.schemas import (
     FlatQuestion,
     IngestStats,
@@ -173,8 +174,6 @@ def ingest(
     # Optional scope filter
     scope_cfg = None
     if scope_path is not None:
-        from quiz_generator.data.scope import load_scope, decide_in_scope
-
         scope_cfg = load_scope(scope_path)
         print(f"Scope filter active : {scope_cfg.name}")
 
@@ -207,11 +206,13 @@ def ingest(
 
             assert flat is not None  # drop_reason empty implies valid flat
 
-            # Apply scope filter if configured
+            # Apply scope filter if configured. decide_in_scope reads only
+            # `subjects` and `levels`, so pass those rather than model_dump()
+            # serialising every choice of every question.
             if scope_cfg is not None:
-                from quiz_generator.data.scope import decide_in_scope
-
-                in_scope, scope_reason = decide_in_scope(flat.model_dump(), scope_cfg)
+                in_scope, scope_reason = decide_in_scope(
+                    {"subjects": flat.subjects, "levels": flat.levels}, scope_cfg
+                )
                 if not in_scope:
                     dropped[f"scope_{scope_reason}"] += 1
                     continue
@@ -245,12 +246,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("data/interim/flat_phase1.jsonl"),
+        default=Path("data/interim/flat.jsonl"),
     )
     parser.add_argument(
         "--stats",
         type=Path,
-        default=Path("data/interim/flat_phase1_stats.json"),
+        default=Path("data/interim/flat_stats.json"),
     )
     parser.add_argument(
         "--limit-quizzes",

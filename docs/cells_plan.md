@@ -120,12 +120,11 @@ See `CHANGELOG.md` for what shipped per release.
 
 ## A note on filenames
 
-Some data/config artifacts carry a `phase1` suffix for historical reasons:
-`configs/scope.yaml`, `data/processed/ready_phase1.jsonl`,
-`data/vector_store/chroma_db_phase1/`. These predate the descriptive-scope
-naming and are kept as-is to avoid invasive renames across hardcoded paths.
-The conceptual scope (what's locked / next / future) is defined in this
-document; the filenames are just labels.
+The data artefacts were renamed on 2026-10-04: `flat.jsonl`,
+`normalized.jsonl`, `ready.jsonl` and `chroma_db/`
+dropped the suffix, which named a project phase that ended when maths
+shipped in v1.1.0. `configs/phase1_scope.yaml` became `configs/scope.yaml`
+in the same series.
 
 ---
 
