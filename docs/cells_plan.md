@@ -121,7 +121,7 @@ See `CHANGELOG.md` for what shipped per release.
 ## A note on filenames
 
 Some data/config artifacts carry a `phase1` suffix for historical reasons:
-`configs/phase1_scope.yaml`, `data/processed/ready_phase1.jsonl`,
+`configs/scope.yaml`, `data/processed/ready_phase1.jsonl`,
 `data/vector_store/chroma_db_phase1/`. These predate the descriptive-scope
 naming and are kept as-is to avoid invasive renames across hardcoded paths.
 The conceptual scope (what's locked / next / future) is defined in this
@@ -134,8 +134,7 @@ document; the filenames are just labels.
 - `docs/data_audit.md` — what the raw corpus contains and what is wrong with it
   (MathJax/KaTeX rendering, auth, error handling)
 - `CHANGELOG.md` — per-release shipped/known-issue breakdown
-- `configs/phase1_scope.yaml` — declarative scope filter (subjects + levels + languages)
-- `configs/phase2_math_audit.yaml` — audit scope used during Phase-2 discovery
+- `configs/scope.yaml` — declarative scope filter (subjects, levels, languages)
 - `src/data/curriculum_rules.py` — Tunisian curriculum compliance rules
   (drops mistagged rows at normalize time)
 - `notebooks/math_data_audit.ipynb` — Phase-2 discovery notebook
