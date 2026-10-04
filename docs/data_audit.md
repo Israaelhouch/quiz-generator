@@ -1,4 +1,9 @@
-# Stage 1 — Data Understanding & Scoping
+# Corpus audit
+
+What the raw export actually contains, what is wrong with it, and how many
+rows survive each pipeline stage. Every count below reproduces against the
+current export (last re-verified 2026-09-08). Read this before changing
+anything about the data.
 
 Status: LOCKED (2026-04-21). Re-verified 2026-09-08 — every count in
 section 2 still reproduces exactly against the current export.
@@ -139,7 +144,7 @@ quiz-generator/
 ├── configs/            pipeline.yaml, models.yaml
 ├── tests/
 ├── scripts/            CLI entrypoints
-├── docs/               scope.md, cells_plan.md
+├── docs/               data_audit.md, cells_plan.md, DECISIONS.md
 ```
 
 ## 9. Deferred decisions
