@@ -185,7 +185,7 @@ def _summarize_lengths(lengths: list[int]) -> dict[str, float]:
     if not lengths:
         return {"min": 0.0, "max": 0.0, "mean": 0.0, "median": 0.0, "p95": 0.0}
     sorted_lengths = sorted(lengths)
-    p95_index = max(0, int(round(0.95 * (len(sorted_lengths) - 1))))
+    p95_index = max(0, round(0.95 * (len(sorted_lengths) - 1)))
     return {
         "min": float(min(sorted_lengths)),
         "max": float(max(sorted_lengths)),

@@ -80,6 +80,15 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Changed
 
+- `data/` is split into `ingestion/` (ingest, normalize, build_index_text,
+  filters, scope), `curriculum/` (the Tunisian curriculum rules, which the API
+  and UI depend on and which are not an ingest stage) and `shared/` (the
+  `language` and `latex` helpers, used by both the offline and the online
+  path). `data/` named only that the modules touched data, and collided
+  conceptually with `pipeline/`, which is the request-time orchestrator. The
+  offline path is now `ingestion/` then `indexing/`; the online path is `api/`
+  → `pipeline/` → `retrieval/` + `generation/`.
+
 - `ingest` logs through `logging` instead of printing from inside the library
   function, and reports its outcome and any validation rejections at the end
   of a run. The CLI's own summary output is unchanged.

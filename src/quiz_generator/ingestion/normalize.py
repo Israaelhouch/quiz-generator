@@ -124,9 +124,9 @@ def split_choices(choices_raw: list[dict]) -> tuple[list[str], list[str], list[s
             seen_texts.add(answer)
         texts.append(answer)
         media.append(media_value)
-        if choice.get("isTrue") and (answer or media_value):
-            if answer not in correct:  # also dedup correct list
-                correct.append(answer)
+        # also dedup the correct list
+        if choice.get("isTrue") and (answer or media_value) and answer not in correct:
+            correct.append(answer)
     return texts, correct, media
 
 
