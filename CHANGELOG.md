@@ -182,6 +182,16 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Security
 
+- `urllib3` 2.7.0 -> 2.8.0 and `oauthlib` 3.3.1 -> 4.0.0 in
+  `requirements.lock.txt`, closing four advisories that had turned the CI
+  security job red (PYSEC-2026-4175/4176/4177 and PYSEC-2026-4114). Both are
+  transitive — `urllib3` through `requests` and the Kubernetes client,
+  `oauthlib` through `requests-oauthlib` — and the Kubernetes client arrives
+  with chromadb and is never imported by this project. Neither upgrade is
+  constrained by a dependent: `requests` allows `<3`, `requests-oauthlib`
+  allows `>=3.0.0`. Verified with `pip check`, the full suite and a clean
+  `pip-audit`.
+
 - `pip-audit` found 7 advisories in `pip`, fixed by the upgrade `make setup`
   now performs, and 4 in `chromadb==1.5.9`, which has no fixed release. Those
   four are accepted with evidence and a 2026-12-01 review date: all target the
