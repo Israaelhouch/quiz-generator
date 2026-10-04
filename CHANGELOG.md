@@ -14,6 +14,13 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Added
 
+- `tests/test_normalize_pipeline.py` — `normalize_row` and `dedup_rows` were
+  tested, the stage that drives them was not, though it removes 869 of 6,651
+  rows. 18 tests now cover cleaning, the subject-locked language override,
+  every drop reason, deduplication and the stats record. They found the
+  miscount above, and recorded a detector limitation: a short Spanish sentence
+  is read as French, so such a row would be relabelled rather than dropped.
+
 - `tests/test_ingest_pipeline.py` — the ingest stage had 7 tests, all of them
   on the pure helpers in `filters.py`, and none on the stage itself: the
   flattening, the per-quiz `order` counter, the scope integration, the stats
@@ -108,6 +115,13 @@ answer key. The reasoning behind the non-obvious choices is in
   question with `model_dump()`.
 
 ### Fixed
+
+- `normalize` reported `output_rows`, `by_language` and `by_type` over the
+  rows that reached the writer rather than the rows that survived validation
+  there, so a row rejected on the way out was still counted in the stats and
+  in every downstream check made against them. The counts now follow the file.
+- `normalize` wrote straight into `normalized.jsonl`; like `ingest`, it now
+  writes to a temporary file and renames on success.
 
 - **One malformed question used to reject its entire quiz.** `RawQuiz` declared
   `questions: list[RawQuestion]`, so validating a quiz validated every question

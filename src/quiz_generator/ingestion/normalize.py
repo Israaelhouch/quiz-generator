@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -50,6 +51,8 @@ from quiz_generator.ingestion.filters import strip_html_to_plain
 from quiz_generator.shared.language import SUPPORTED_LANGUAGES, resolve_language
 from quiz_generator.shared.latex import strip_latex_for_detection
 from quiz_generator.shared.yaml_config import read_yaml_mapping
+
+logger = logging.getLogger(__name__)
 
 QUIZ_PREFIX_RE = re.compile(r"^\s*quiz\s*:\s*", re.IGNORECASE)
 IMG_TAG_RE = re.compile(r"<img\b", re.IGNORECASE)
@@ -368,7 +371,11 @@ def normalize(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     stats_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with output_path.open("w", encoding="utf-8") as out:
+    # Written to a sibling temp file and renamed on success, so a crash partway
+    # cannot leave a truncated corpus that the next stage reads as complete.
+    temp_path = output_path.with_name(output_path.name + ".tmp")
+    written_rows: list[dict] = []
+    with temp_path.open("w", encoding="utf-8") as out:
         for row in deduped_rows:
             try:
                 validated = NormalizedQuestion.model_validate(row)
@@ -376,13 +383,18 @@ def normalize(
                 dropped["schema_validation_failed"] += 1
                 continue
             out.write(validated.model_dump_json() + "\n")
+            written_rows.append(row)
+    temp_path.replace(output_path)
 
-    by_language = Counter(row["language"] for row in deduped_rows)
-    by_type = Counter(row["question_type"] for row in deduped_rows)
+    # Counted over the rows that were actually written, not over the ones that
+    # reached the writer: a row rejected on the way out is not in the file, and
+    # the stats are what every downstream count is checked against.
+    by_language = Counter(row["language"] for row in written_rows)
+    by_type = Counter(row["question_type"] for row in written_rows)
 
     stats = NormalizeStats(
         input_rows=input_rows_total,
-        output_rows=len(deduped_rows),
+        output_rows=len(written_rows),
         dropped=dict(dropped),
         language_corrections=dict(lang_corrections),
         by_language=dict(by_language),
@@ -391,7 +403,17 @@ def normalize(
         duplicate_groups=duplicate_groups,
         duplicate_rows_dropped=duplicate_rows_dropped,
     )
-    stats_path.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    stats_temp = stats_path.with_name(stats_path.name + ".tmp")
+    stats_temp.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    stats_temp.replace(stats_path)
+
+    logger.info(
+        "normalize complete: %d/%d rows kept (%d dropped, %d duplicate groups)",
+        len(written_rows),
+        input_rows_total,
+        sum(dropped.values()),
+        duplicate_groups,
+    )
     return stats
 
 
