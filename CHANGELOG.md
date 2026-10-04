@@ -70,6 +70,15 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Changed
 
+- The README is a technical reference rather than a narrative: standard
+  headings (Overview, Architecture, Evaluation, Installation, Usage, Project
+  structure, Documentation, License), 269 lines down to 167. The pipeline
+  stages, container commands and evaluation commands move to
+  `docs/RUNBOOK.md`; the bug narratives are left to the ADRs that already
+  record them. Three claims were corrected in the process: the test count
+  (267 -> 389), the eval case count (4,387 counted a file since deleted; 4,287
+  template cases across five cells), and the sample-corpus figure.
+
 - **Every eval run records what it searched.** A run directory described how
   the retriever was configured but not what was in the index, so rebuilding the
   index made earlier runs unattributable. Each run now writes

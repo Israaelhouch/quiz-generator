@@ -1,60 +1,42 @@
-# Quiz Generator — multilingual RAG over a school curriculum
+# Quiz Generator
 
 [![CI](https://github.com/Israaelhouch/quiz-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/Israaelhouch/quiz-generator/actions/workflows/ci.yml)
 
-A retrieval-augmented generation service that writes new exam questions in
-**English, French and Arabic** across four subjects, grounded in a corpus of
-real curriculum questions. Built as a production service: FastAPI, a Chroma
-vector store, a cross-encoder reranker, and a measured retrieval eval.
+A retrieval-augmented generation service that produces exam questions in
+English, French and Arabic, grounded in a corpus of curriculum questions.
+Retrieval supplies real questions on the requested topic as few-shot examples,
+so the model follows how a topic is taught rather than its own prior.
 
-> **About the data.** This was built against a private corpus of ~5,800
-> curriculum questions that is not mine to publish, so it isn't here. The
-> repository ships a **synthetic sample corpus** (`data/sample/`) that
-> exercises the entire pipeline, so you can clone this and run it end to end.
-> All quality numbers below were measured on the real corpus.
+Python 3.11 · FastAPI · BGE-M3 · BGE-reranker-v2-m3 · ChromaDB · Pydantic v2 ·
+Gemini / Groq / Ollama · Docker
 
----
+## Overview
 
-## What it looks like
+A request names a topic, a language, a subject and a school phase. The service
+retrieves curriculum questions matching those constraints, passes them to an
+LLM as few-shot examples, validates the generated output against a schema, and
+returns typed JSON.
+
+The corpus used in development is private: ~5,800 curriculum questions that
+cannot be published. A synthetic sample corpus is included in `data/sample/`
+and exercises every pipeline stage, so the repository runs end to end from a
+clone. The evaluation results below were measured on the private corpus.
 
 ![Generating a quiz](docs/screenshots/ui-generate.png)
 
-Subject, language and school level constrain each other according to the
-curriculum rules, so a combination the corpus cannot satisfy — maths in
-English, say — is unselectable rather than a failed request. Each question
-carries its choices, the correct answer, an explanation, and a thumbs
-up/down that feeds the evaluation loop below.
+Subject, language and school phase constrain each other according to the
+curriculum rules in `src/quiz_generator/data/curriculum_rules.py`. Combinations
+the corpus cannot satisfy are unselectable rather than rejected after a
+request.
 
 ![Retrieval panel](docs/screenshots/ui-retrieval.png)
 
-The same page with the debug panel open: per-stage timings (retrieval vs LLM
-vs total), how many examples survived the distance floor, and every chunk the
-model actually received with its cosine distance colour-coded against that
-floor. This is what separates *"the output is bad"* from *"the retriever fed
-it the wrong thing"* — and it's how `llm.default_max_distance` gets tuned
-against evidence instead of intuition.
+The debug panel reports per-stage timings, how many retrieved examples passed
+the distance floor, and each chunk sent to the model with its cosine distance.
+Screenshots were taken against the synthetic sample corpus (137 indexed
+questions).
 
-> Screenshots are taken against the synthetic sample corpus in this
-> repository (137 indexed questions), so everything visible is generated demo
-> content. The amber distances are honest: at that corpus size the retriever
-> reaches for adjacent grammar topics, which is the sibling-topic behaviour
-> documented in [`eval/RESULTS.md`](eval/RESULTS.md).
-
----
-
-## The problem
-
-Teachers need fresh quiz questions. Asking an LLM directly doesn't work: it
-invents content that looks plausible but doesn't match how a concept is
-actually taught — wrong level, wrong language conventions, wrong definition of
-the topic.
-
-So the model doesn't get to decide what a topic means. Retrieval finds real
-questions on that topic from the existing curriculum, and those become few-shot
-examples. The prompt says it explicitly: *if the examples conflict with what
-you think you know, trust the examples.*
-
-## How it works
+## Architecture
 
 ```mermaid
 flowchart TD
@@ -80,190 +62,107 @@ flowchart TD
     H -- valid --> J["typed quiz JSON"]
 ```
 
-Two-stage retrieval is the core: a bi-encoder for recall over the whole corpus,
-then a cross-encoder that reads (query, candidate) as one input for precision.
-Metadata filtering happens *inside* Chroma rather than after, so the phase and
-subject constraints narrow the candidate pool before anything is scored.
+Retrieval is two-stage: a bi-encoder for recall across the corpus, then a
+cross-encoder that scores each (query, candidate) pair for precision. Metadata
+filtering is applied inside Chroma before scoring, so subject and school-phase
+constraints narrow the candidate pool rather than trimming results afterwards.
 
-## Measured retrieval quality
+One question is one document; the corpus requires no chunking. Correct answers
+are excluded from the embedded text so they cannot influence retrieval, and are
+supplied to the model separately.
 
-| Cell | N | P@1 | Hit@10 | MRR |
-|------|--:|----:|-------:|----:|
+Generated output is validated against a Pydantic schema and a LaTeX
+renderability check. Validation failures are fed back into the prompt and
+retried up to three times.
+
+The API exposes `/quiz/generate`, `/retrieve`, `/taxonomy`, `/feedback`,
+`/health`, `/ready`, `/metrics` and a single-page console at `/ui`. API-key
+authentication, per-caller rate limiting, correlation IDs and Prometheus
+metrics are built in.
+
+## Evaluation
+
+Retrieval is measured per (language × subject) cell against a ground-truth
+answer key, over 4,287 template test cases across five cells.
+
+| Cell | Cases | P@1 | Hit@10 | MRR |
+|------|------:|----:|-------:|----:|
 | `en × ENGLISH` | 2,761 | 0.806 | 0.875 | 0.828 |
 | `ar × ARABIC` | 400 | 0.585 | 0.778 | 0.655 |
 | `fr × FRENCH` | 46 | 0.870 | 1.000 | 0.914 |
-| `fr × MATHEMATICS` | 720 | 0.615 | 0.735 | 0.649 |
-| `ar × MATHEMATICS` | 360 | 0.492 | 0.692 | 0.547 |
 
-English was re-measured on 2026-09-10. Its answer key turned out to be stale —
-built before a doc_id fix, so correct retrievals were being scored as wrong —
-and was repaired in three separately measured steps (it previously read
-0.735). The other rows are May runs whose answer keys were re-checked and are
-current.
+On a separate set of 50 teacher-phrased questions that do not contain the quiz
+title, English P@1 is 0.76 and Hit@10 is 0.94.
 
-On 50 realistic teacher questions that don't contain the quiz title, English
-P@1 is 0.76 (likely range 0.64–0.88), while 94% still have a correct quiz in the
-top 10: retrieval finds the right material, and ranking it first is the weak
-spot, especially when a teacher describes a problem rather than naming the
-grammar point.
+Limitations of these numbers:
 
-The numbers have known limits, written down rather than hidden. The test
-queries are templates that contain the target title, and some are labelled
-with several different correct quizzes, which caps the best possible score:
-0.71 for French maths, 0.67 for Arabic maths. Measured against that ceiling,
-maths is not the weak spot it looks like; the Arabic language cell is. The
-French number looks excellent and isn't: 46 test cases over 15 documents.
+- The template queries contain the target title, so they measure an easier task
+  than production traffic.
+- The French cell is 46 cases over 15 documents.
+- Some test cases have several valid answers, which caps the maximum reachable
+  score per cell.
+- The mathematics cells score lower than the language cells; their results are
+  reported in `eval/RESULTS.md`.
+- The answer keys derive from the private corpus and cannot be published, so
+  the table is not independently reproducible. The harness, metrics and
+  key validator are in this repository.
 
-These rows are not independently reproducible, and saying so is part of
-reporting them. The harness, the metric code and the answer-key validator are
-all in this repository, but the test cases and answer keys are derived from the
-private curriculum corpus and cannot ship with it. A fresh clone can run
-`make eval` against its own index; it cannot re-measure the table above.
+Each run records its metrics, the configuration that produced them, the git
+commit, and the index it searched. Methodology and per-cell ceilings:
+[`eval/RESULTS.md`](eval/RESULTS.md).
 
-Full methodology and limits in [`eval/RESULTS.md`](eval/RESULTS.md).
-
-## Engineering decisions worth reading
-
-**The corpus decides what's possible.** The curriculum constrains which
-language a subject is taught in at each level — maths is Arabic in primary and
-middle school, French in high school. Rows violating that are mistagged at
-source, so [`curriculum_rules.py`](src/quiz_generator/data/curriculum_rules.py) drops them at
-cleaning time, and the UI encodes the same rules so an impossible request can't
-be made.
-
-**Language detection beats the label.** ~15% of rows carry a wrong language
-tag. Detection runs on LaTeX-*stripped* text, because normalising `\to` to "to"
-and `\infty` to "infinity" injects fake English tokens and breaks stopword
-detection on maths content. Subject is a stronger prior than any detector here:
-a MATHEMATICS row labelled English is essentially always wrong.
-
-**A doc_id collision was silently eating 6% of the corpus.** Question `order`
-repeats within a quiz in ~20% of cases, so `{quiz_id}__q{order}` collided and
-Chroma overwrote rows during indexing. Fixed with collision-aware suffixes,
-kept backward-compatible with existing eval ground truth.
-
-**Generated LaTeX is validated before it ships.** A walk-based parser catches
-unclosed math and over-escaped delimiters — `\\)` tokenises as a line-break
-plus a literal paren, not a closing delimiter, so a regex counter over-counts
-and misses the bug. Failures feed back into the retry loop with a specific
-message.
-
-**One pipeline instance serves every request**, from a thread pool. Anything a
-request needs after `generate()` returns travels on the return value, never on
-`self` — otherwise concurrent requests overwrite each other's retrieval. The ML
-layer is serialised behind a lock; the LLM call deliberately isn't, so
-generation stays concurrent.
-
-**Generation quality is measured, not asserted.** `POST /feedback` records
-per-question human judgements; `scripts/analyze_feedback.py` joins them to the
-runs that produced them and compares retrieval distance against verdict. If bad
-questions came from distant chunks, the distance floor is too loose — a config
-change with evidence behind it.
-
-## Run it
-
-Three commands from a clean clone:
+## Installation
 
 ```bash
-make setup        # virtualenv + pinned dependencies + dev tools
-make test         # 267 tests, no models, no keys, no network — ~1s
-make run          # builds anything missing, then serves on :8000/ui
+make setup        # virtualenv, pinned dependencies, dev tools
+make test         # 389 tests; no models, keys or network required
 ```
 
-`make run` wraps `run_local.sh`, which is idempotent: every stage is skipped
-if its output already exists. `make help` lists the rest (`lint`, `fmt`,
-`audit`, `eval`, `clean`).
+Generation requires a provider key. Copy `.env.example` to `.env` and set
+`GEMINI_API_KEY`, `GROQ_API_KEY`, or `OLLAMA_HOST` for a local Ollama.
+Retrieval requires no key. All 14 environment variables are documented in
+`.env.example` and validated at startup.
 
-Generation needs a provider key — copy `.env.example` to `.env` and fill in
-`GEMINI_API_KEY` (or `GROQ_API_KEY`, or point `OLLAMA_HOST` at a local
-Ollama). Retrieval alone needs no key.
-
-<details>
-<summary>The same thing stage by stage, if you want to watch it happen</summary>
+## Usage
 
 ```bash
-git clone <this-repo> && cd quiz-generator
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-# build an index from the synthetic sample corpus (~1 min after model download)
-python -m quiz_generator.data.ingest        --input data/sample/quizzes-sample-raw.json \
-                                 --scope configs/scope.yaml \
-                                 --output data/sample/interim/flat.jsonl \
-                                 --stats  data/sample/interim/flat_stats.json
-python -m quiz_generator.data.normalize     --input  data/sample/interim/flat.jsonl \
-                                 --output data/sample/interim/normalized.jsonl \
-                                 --stats  data/sample/interim/normalized_stats.json
-python -m quiz_generator.data.build_index_text --input  data/sample/interim/normalized.jsonl \
-                                 --output data/processed/ready_phase1.jsonl \
-                                 --stats  data/processed/ready_stats.json
-python -m quiz_generator.indexing.build
-
-# retrieval only — no API key needed
-python -m quiz_generator.retrieval.query "past tense" --language en --top-k 3
-
-# full generation needs a key
-echo "GEMINI_API_KEY=..." > .env
-set -a; source .env; set +a
-python -m quiz_generator.api          # then open http://localhost:8000/ui
+make run          # builds any missing artefacts, then serves on :8000/ui
 ```
 
-</details>
+`make run` wraps `run_local.sh`, which skips any stage whose output already
+exists. `make help` lists the remaining targets, including `lint`, `fmt`,
+`audit`, `eval` and `clean`.
 
-The sample corpus deliberately contains messy rows — duplicates, a question
-with no correct answer, an image-only question, colliding `order` values, a
-curriculum violation — so the cleaning stages have real work to do and the
-stats files are worth reading.
+Pipeline stages, container commands and the evaluation harness are documented
+in [`docs/RUNBOOK.md`](docs/RUNBOOK.md).
 
-Tests run without models, keys or network — every heavy adapter is mocked,
-so the whole suite needs neither torch nor a GPU:
-
-```bash
-make test          # or: pytest
-make lint          # ruff + mypy --strict, the same gates CI runs
-```
-
-## Layout
+## Project structure
 
 ```
 src/quiz_generator/
   data/        ingestion, cleaning, language resolution, curriculum rules
   indexing/    embedding, Chroma build, taxonomy discovery
-  retrieval/   filtered vector search + cross-encoder rerank
-  generation/  prompts (en/fr/ar), LLM clients, validation + retry
-  pipeline/    orchestrator + CLI
-  api/         FastAPI surface, security, metrics, single-page UI
-scripts/       retrieval eval harness, run analysis, feedback analysis
+  retrieval/   filtered vector search and cross-encoder rerank
+  generation/  prompts (en/fr/ar), LLM clients, validation and retry
+  pipeline/    orchestrator and CLI
+  api/         FastAPI surface, security, metrics, single-page console
+scripts/       evaluation harness, run analysis, feedback analysis
+configs/       model, pipeline, scope and subject-alias configuration
 ```
 
-## Where things are
+## Documentation
 
-The `src/` tree above is only half the repository. These are the documents,
-and most of them answer a question this README deliberately leaves short.
-
-| | |
+| Document | Contents |
 |---|---|
-| [`docs/data_audit.md`](docs/data_audit.md) | **Read this first for anything about the data.** The full audit of the raw corpus: 1,372 quizzes / 12,480 questions, the language-label variants, and the integrity findings — 7.2% of questions have no correct answer, the `multipleChoice` flag is unreliable, 99% of descriptions carry HTML, `hintText` is junk. Also the scope filters and per-stage row counts. |
-| [`docs/cells_plan.md`](docs/cells_plan.md) | Which (language × subject) cells are shipped, beta, or out of scope, and why. Also the note explaining the `phase1` suffix on several filenames. |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | ADRs. Includes the four accepted chromadb advisories and, importantly, the condition under which they stop being safe. |
-| [`eval/RESULTS.md`](eval/RESULTS.md) | Measured retrieval metrics per cell, their limits, and results on realistic teacher questions. |
-| [`data/sample/README.md`](data/sample/README.md) | What the synthetic corpus is, what is deliberately broken in it, and why no real content appears. |
-| [`docker/README.md`](docker/README.md) | Running the service in containers. |
-| [`CHANGELOG.md`](CHANGELOG.md) | What shipped, per release. |
+| [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | Pipeline stages, containers, evaluation commands |
+| [`docs/data_audit.md`](docs/data_audit.md) | Raw corpus audit: integrity findings, scope filters, per-stage row counts |
+| [`docs/cells_plan.md`](docs/cells_plan.md) | Which (language × subject) cells ship, are beta, or are out of scope |
+| [`eval/RESULTS.md`](eval/RESULTS.md) | Retrieval metrics per cell, ceilings, realistic-question results |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Architecture decision records |
+| [`CHANGELOG.md`](CHANGELOG.md) | Release history |
 
-This index exists because it was missing. Six of those files were reachable
-from nothing, and the cost was real: work was repeated that `docs/data_audit.md`
-had already recorded in April, and a wrong filename in that document was
-copied into `run_local.sh`, where it silently disabled the script's
-skip-if-already-built logic for two of four stages.
-
-## Licence
+## License
 
 [MIT](LICENSE). The synthetic sample corpus in `data/sample/` is covered by the
-same licence; the real curriculum corpus it stands in for is not mine to
-publish and is not part of this repository.
-
-## Stack
-
-Python 3.11 · FastAPI · BGE-M3 · BGE-reranker-v2-m3 · ChromaDB · Pydantic v2 ·
-Gemini / Groq / Ollama · Docker
+same licence. The curriculum corpus used in development is not part of this
+repository.
