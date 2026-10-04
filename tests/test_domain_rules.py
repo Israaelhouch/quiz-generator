@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 
-from quiz_generator.data.domain_rules import apply_subject_language_rule
+from quiz_generator.curriculum.domain_rules import apply_subject_language_rule
 
 
 def test_subject_english_locks_to_en() -> None:

@@ -26,18 +26,18 @@ pip install -r requirements.txt
 export PYTHONPATH=src
 
 # 1. ingest — scope filter + structural filters
-python -m quiz_generator.data.ingest --input data/sample/quizzes-sample-raw.json \
+python -m quiz_generator.ingestion.ingest --input data/sample/quizzes-sample-raw.json \
                                      --scope configs/scope.yaml \
                                      --output data/sample/interim/flat.jsonl \
                                      --stats  data/sample/interim/flat_stats.json
 
 # 2. normalize — language resolution, HTML strip, aliases, curriculum rules
-python -m quiz_generator.data.normalize --input  data/sample/interim/flat.jsonl \
+python -m quiz_generator.ingestion.normalize --input  data/sample/interim/flat.jsonl \
                                         --output data/sample/interim/normalized.jsonl \
                                         --stats  data/sample/interim/normalized_stats.json
 
 # 3. build_index_text — compose the embedded text per configs/pipeline.yaml
-python -m quiz_generator.data.build_index_text --input  data/sample/interim/normalized.jsonl \
+python -m quiz_generator.ingestion.build_index_text --input  data/sample/interim/normalized.jsonl \
                                                --output data/sample/processed/ready.jsonl \
                                                --stats  data/sample/processed/ready_stats.json
 
@@ -92,7 +92,7 @@ See [`docker/README.md`](../docker/README.md). In short:
 docker compose up --build            # API on :8000
 docker compose -f docker-compose.gpu.yml up    # with GPU
 docker compose -f docker-compose.etl.yml run --rm api \
-  python -m quiz_generator.data.ingest --scope configs/scope.yaml
+  python -m quiz_generator.ingestion.ingest --scope configs/scope.yaml
 ```
 
 The image builds from `requirements.lock.txt`, so a later rebuild resolves to

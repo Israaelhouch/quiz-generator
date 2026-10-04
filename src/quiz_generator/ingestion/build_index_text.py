@@ -19,13 +19,12 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from quiz_generator.data.latex import normalize_latex
+from quiz_generator.shared.latex import normalize_latex
 from quiz_generator.shared.yaml_config import read_yaml_mapping
 
 
@@ -132,6 +131,7 @@ def compose_search_text(
     The original payload fields are not touched — only the search_text
     output of this function is normalized.
     """
+
     def _maybe_norm(text: str) -> str:
         return normalize_latex(text) if normalize_latex_flag else text
 
@@ -204,6 +204,7 @@ def build_index_text(
 ):
     # Lazy imports so helper tests run without Pydantic.
     from pydantic import ValidationError
+
     from quiz_generator.shared.schemas import BuildIndexTextStats, IndexedQuestion
 
     recipe_name, flags, separators, token_threshold, normalize_latex_flag = load_recipe(config_path)
@@ -217,9 +218,10 @@ def build_index_text(
     rows_over_threshold = 0
     empty_search_text_rows = 0
 
-    with input_path.open("r", encoding="utf-8") as src, output_path.open(
-        "w", encoding="utf-8"
-    ) as dst:
+    with (
+        input_path.open("r", encoding="utf-8") as src,
+        output_path.open("w", encoding="utf-8") as dst,
+    ):
         for line in src:
             line = line.strip()
             if not line:
@@ -266,9 +268,9 @@ def build_index_text(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input",  type=Path, default=Path("data/interim/normalized.jsonl"))
+    parser.add_argument("--input", type=Path, default=Path("data/interim/normalized.jsonl"))
     parser.add_argument("--output", type=Path, default=Path("data/processed/ready.jsonl"))
-    parser.add_argument("--stats",  type=Path, default=Path("data/processed/ready_stats.json"))
+    parser.add_argument("--stats", type=Path, default=Path("data/processed/ready_stats.json"))
     parser.add_argument("--config", type=Path, default=Path("configs/pipeline.yaml"))
     return parser.parse_args()
 

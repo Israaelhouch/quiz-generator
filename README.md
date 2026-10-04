@@ -25,7 +25,7 @@ clone. The evaluation results below were measured on the private corpus.
 ![Generating a quiz](docs/screenshots/ui-generate.png)
 
 Subject, language and school phase constrain each other according to the
-curriculum rules in `src/quiz_generator/data/curriculum_rules.py`. Combinations
+curriculum rules in `src/quiz_generator/curriculum/curriculum_rules.py`. Combinations
 the corpus cannot satisfy are unselectable rather than rejected after a
 request.
 

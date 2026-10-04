@@ -15,7 +15,7 @@ from typing import Any
 
 import pytest
 
-from quiz_generator.data.ingest import ingest
+from quiz_generator.ingestion.ingest import ingest
 from quiz_generator.shared.schemas import IngestStats
 
 

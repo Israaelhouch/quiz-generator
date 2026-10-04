@@ -1,6 +1,6 @@
 # Current scope — defines which rows survive the ingest filter.
 #
-# Used by:  python -m quiz_generator.data.ingest --scope configs/scope.yaml
+# Used by:  python -m quiz_generator.ingestion.ingest --scope configs/scope.yaml
 # (Was `phase1_scope.yaml` until v1.1.0 added MATHEMATICS. The conceptual
 # scope is described in docs/cells_plan.md.)
 #

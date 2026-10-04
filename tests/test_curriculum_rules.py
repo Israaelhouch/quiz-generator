@@ -6,7 +6,7 @@ these tests run in minimal environments alongside test_ingest.py.
 
 from __future__ import annotations
 
-from quiz_generator.data.curriculum_rules import (
+from quiz_generator.curriculum.curriculum_rules import (
     EXPECTED_LANGUAGES,
     check_compliance,
 )

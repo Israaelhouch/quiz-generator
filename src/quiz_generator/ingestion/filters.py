@@ -13,7 +13,6 @@ from __future__ import annotations
 import html
 import re
 
-
 HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 # The question types the raw export may carry. Mirrors RAW_QUESTION_TYPES in

@@ -41,17 +41,15 @@ import json
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Any
 
-import yaml
-
-from quiz_generator.data.curriculum_rules import check_compliance as check_curriculum_compliance
-from quiz_generator.data.domain_rules import apply_subject_language_rule
-from quiz_generator.data.filters import strip_html_to_plain
-from quiz_generator.data.language import SUPPORTED_LANGUAGES, resolve_language
+from quiz_generator.curriculum.curriculum_rules import (
+    check_compliance as check_curriculum_compliance,
+)
+from quiz_generator.curriculum.domain_rules import apply_subject_language_rule
+from quiz_generator.ingestion.filters import strip_html_to_plain
+from quiz_generator.shared.language import SUPPORTED_LANGUAGES, resolve_language
+from quiz_generator.shared.latex import strip_latex_for_detection
 from quiz_generator.shared.yaml_config import read_yaml_mapping
-from quiz_generator.data.latex import normalize_latex, strip_latex_for_detection
-
 
 QUIZ_PREFIX_RE = re.compile(r"^\s*quiz\s*:\s*", re.IGNORECASE)
 IMG_TAG_RE = re.compile(r"<img\b", re.IGNORECASE)
@@ -127,7 +125,7 @@ def split_choices(choices_raw: list[dict]) -> tuple[list[str], list[str], list[s
         texts.append(answer)
         media.append(media_value)
         if choice.get("isTrue") and (answer or media_value):
-            if answer not in correct:    # also dedup correct list
+            if answer not in correct:  # also dedup correct list
                 correct.append(answer)
     return texts, correct, media
 
@@ -277,9 +275,7 @@ def dedup_key(row: dict) -> tuple[str, str, str, tuple[str, ...]]:
     question_text = row["question_text"].casefold().strip()
     choices_key = tuple(
         sorted(
-            choice.casefold().strip()
-            for choice in row["choices_text"]
-            if choice and choice.strip()
+            choice.casefold().strip() for choice in row["choices_text"] if choice and choice.strip()
         )
     )
     return (language, question_type, question_text, choices_key)
@@ -332,6 +328,7 @@ def normalize(
 ):
     # Lazy import so unit tests on the helper functions can run without Pydantic.
     from pydantic import ValidationError
+
     from quiz_generator.shared.schemas import NormalizedQuestion, NormalizeStats
 
     aliases = load_subject_aliases(aliases_path)
@@ -375,7 +372,7 @@ def normalize(
         for row in deduped_rows:
             try:
                 validated = NormalizedQuestion.model_validate(row)
-            except ValidationError as exc:
+            except ValidationError:
                 dropped["schema_validation_failed"] += 1
                 continue
             out.write(validated.model_dump_json() + "\n")
@@ -400,9 +397,9 @@ def normalize(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input",  type=Path, default=Path("data/interim/flat.jsonl"))
+    parser.add_argument("--input", type=Path, default=Path("data/interim/flat.jsonl"))
     parser.add_argument("--output", type=Path, default=Path("data/interim/normalized.jsonl"))
-    parser.add_argument("--stats",  type=Path, default=Path("data/interim/normalized_stats.json"))
+    parser.add_argument("--stats", type=Path, default=Path("data/interim/normalized_stats.json"))
     parser.add_argument(
         "--aliases",
         type=Path,
@@ -426,7 +423,9 @@ def main() -> None:
     print(f"By type             : {dict(stats.by_type)}")
     print(f"Lang corrections    : {dict(stats.language_corrections)}")
     print(f"Subjects remapped   : {stats.subjects_remapped_rows} rows")
-    print(f"Dedup duplicate grps: {stats.duplicate_groups} (dropped {stats.duplicate_rows_dropped} rows)")
+    print(
+        f"Dedup duplicate grps: {stats.duplicate_groups} (dropped {stats.duplicate_rows_dropped} rows)"
+    )
     print(f"Output JSONL        : {args.output}")
     print(f"Stats JSON          : {args.stats}")
 

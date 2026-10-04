@@ -16,14 +16,13 @@ from __future__ import annotations
 
 import re
 
-
 # langdetect is optional — detection falls back gracefully without it.
 try:
-    from langdetect import detect_langs as _ld_detect_langs
     from langdetect import DetectorFactory as _ld_DetectorFactory
+    from langdetect import detect_langs as _ld_detect_langs
     from langdetect.lang_detect_exception import LangDetectException as _LangDetectException
 
-    _ld_DetectorFactory.seed = 42   # deterministic output
+    _ld_DetectorFactory.seed = 42  # deterministic output
     _HAS_LANGDETECT = True
 except ImportError:
     _HAS_LANGDETECT = False
@@ -51,17 +50,82 @@ LATIN_SCRIPT_RE = re.compile(r"[A-Za-zÀ-ÿ]")
 TOKEN_RE = re.compile(r"[A-Za-zÀ-ÿ']+")
 
 _EN_STOPWORDS = {
-    "the", "and", "of", "to", "in", "is", "are", "was", "were", "be",
-    "a", "an", "on", "at", "by", "from", "as", "or", "for", "with",
-    "what", "which", "who", "how", "when", "where", "why", "this",
-    "that", "these", "those", "it", "its",
+    "the",
+    "and",
+    "of",
+    "to",
+    "in",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "a",
+    "an",
+    "on",
+    "at",
+    "by",
+    "from",
+    "as",
+    "or",
+    "for",
+    "with",
+    "what",
+    "which",
+    "who",
+    "how",
+    "when",
+    "where",
+    "why",
+    "this",
+    "that",
+    "these",
+    "those",
+    "it",
+    "its",
 }
 _FR_STOPWORDS = {
-    "le", "la", "les", "de", "des", "du", "et", "ou", "est", "sont",
-    "dans", "pour", "avec", "sur", "par", "qui", "que", "où", "un",
-    "une", "au", "aux", "ce", "cette", "ces", "se", "son", "sa",
-    "ses", "il", "elle", "ils", "elles", "nous", "vous", "mais",
-    "comme", "quand", "quoi", "pas", "plus",
+    "le",
+    "la",
+    "les",
+    "de",
+    "des",
+    "du",
+    "et",
+    "ou",
+    "est",
+    "sont",
+    "dans",
+    "pour",
+    "avec",
+    "sur",
+    "par",
+    "qui",
+    "que",
+    "où",
+    "un",
+    "une",
+    "au",
+    "aux",
+    "ce",
+    "cette",
+    "ces",
+    "se",
+    "son",
+    "sa",
+    "ses",
+    "il",
+    "elle",
+    "ils",
+    "elles",
+    "nous",
+    "vous",
+    "mais",
+    "comme",
+    "quand",
+    "quoi",
+    "pas",
+    "plus",
 }
 _FR_HINT_CHARS = set("àâçéèêëîïôùûüÿœæ")
 

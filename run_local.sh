@@ -143,17 +143,17 @@ else
   bold "   building (this takes ~10-15 min; the index build is the slow part)"
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$FLAT" ]; then
     echo "   → ingest"
-    python -m quiz_generator.data.ingest --scope configs/scope.yaml
+    python -m quiz_generator.ingestion.ingest --scope configs/scope.yaml
   else ok "flat.jsonl exists (skip ingest)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$NORM" ]; then
     echo "   → normalize"
-    python -m quiz_generator.data.normalize
+    python -m quiz_generator.ingestion.normalize
   else ok "normalized.jsonl exists (skip normalize)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$READY" ]; then
     echo "   → build_index_text   (the step the README forgets)"
-    python -m quiz_generator.data.build_index_text
+    python -m quiz_generator.ingestion.build_index_text
   else ok "ready.jsonl exists (skip build_index_text)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -d "$CHROMA" ]; then

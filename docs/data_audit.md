@@ -97,7 +97,7 @@ All other filters (subject, level, publish, generatedByAI) are **not applied**.
 
 ```
 1. Data Understanding & Scoping        — this document
-2. Data Cleaning & Preparation         — src/quiz_generator/data/
+2. Data Cleaning & Preparation         — src/quiz_generator/ingestion/
    2a. ingest.py           raw JSON    → interim/flat.jsonl
    2b. normalize.py        flat        → interim/normalized.jsonl
    2c. build_index_text.py normalized  → processed/ready.jsonl

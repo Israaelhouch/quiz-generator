@@ -36,7 +36,7 @@ its own failure modes, and its own tuning. The locked scope is:
   future scope. These reuse the same retrieval + generation stack as the
   current cells, so adding them is a data-and-eval task, not an
   infrastructure task. Each will need a curriculum rule in
-  `src/quiz_generator/data/curriculum_rules.py` if its (subject, phase) → language
+  `src/quiz_generator/curriculum/curriculum_rules.py` if its (subject, phase) → language
   mapping is constrained.
 
 ---
@@ -134,7 +134,7 @@ in the same series.
   (MathJax/KaTeX rendering, auth, error handling)
 - `CHANGELOG.md` — per-release shipped/known-issue breakdown
 - `configs/scope.yaml` — declarative scope filter (subjects, levels, languages)
-- `src/quiz_generator/data/curriculum_rules.py` — Tunisian curriculum compliance rules
+- `src/quiz_generator/curriculum/curriculum_rules.py` — Tunisian curriculum compliance rules
   (drops mistagged rows at normalize time)
 - `notebooks/math_data_audit.ipynb` — Phase-2 discovery notebook
 - `notebooks/level_categoris.ipynb` — level taxonomy exploration

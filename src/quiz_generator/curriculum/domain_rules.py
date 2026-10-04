@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-
 # Subjects whose content language is fixed by the subject itself.
 # Locking one of these overrides any detector or raw label disagreement.
 SUBJECT_LANGUAGE_LOCKED: dict[str, str] = {
@@ -32,16 +31,18 @@ SUBJECT_LANGUAGE_LOCKED: dict[str, str] = {
 
 # Subjects where English is impossible in our corpus.
 # Everything else — math, science, etc. — is taught in fr or ar only.
-SUBJECTS_NO_ENGLISH: frozenset[str] = frozenset({
-    "MATHEMATICS",
-    "PHYSICS",
-    "CHEMISTRY",
-    "SCIENCE",
-    "COMPUTER_SCIENCE",
-    "HISTORY",
-    "TECHNIQUE",
-    "ECONOMICS",
-})
+SUBJECTS_NO_ENGLISH: frozenset[str] = frozenset(
+    {
+        "MATHEMATICS",
+        "PHYSICS",
+        "CHEMISTRY",
+        "SCIENCE",
+        "COMPUTER_SCIENCE",
+        "HISTORY",
+        "TECHNIQUE",
+        "ECONOMICS",
+    }
+)
 
 
 def apply_subject_language_rule(
@@ -97,7 +98,8 @@ def apply_subject_language_rule(
     # Rule 2: subjects where English is impossible
     if primary in SUBJECTS_NO_ENGLISH and detected_language == "en":
         # Decide en→fr or en→ar based on whether content has Arabic script
-        from quiz_generator.data.language import ARABIC_SCRIPT_RE
+        from quiz_generator.shared.language import ARABIC_SCRIPT_RE
+
         has_arabic = bool(ARABIC_SCRIPT_RE.search(text_sample or ""))
         forced = "ar" if has_arabic else "fr"
         return forced, f"subject_{primary}_forbids_en_using_{forced}"

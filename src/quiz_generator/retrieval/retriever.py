@@ -28,8 +28,8 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from quiz_generator.data.latex import normalize_latex
 from quiz_generator.retrieval.schemas import RetrievedQuestion
+from quiz_generator.shared.latex import normalize_latex
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +188,7 @@ class Retriever:
         if not self.ready_jsonl_path.exists():
             raise FileNotFoundError(
                 f"Payload JSONL not found: {self.ready_jsonl_path}. "
-                "Run `python -m quiz_generator.data.build_index_text` first."
+                "Run `python -m quiz_generator.ingestion.build_index_text` first."
             )
 
         from quiz_generator.indexing.config import load_models_config

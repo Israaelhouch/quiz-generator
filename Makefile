@@ -124,13 +124,13 @@ READY      ?= data/processed/ready.jsonl
 BUILD_SUM  ?= data/vector_store/build_summary.json
 
 ingest:  ## Stage 1: raw -> flat (scope filter + structural drops)
-	$(PY) -m quiz_generator.data.ingest --input $(RAW) --output $(FLAT) 	  --stats $(FLAT_STATS) --scope $(SCOPE)
+	$(PY) -m quiz_generator.ingestion.ingest --input $(RAW) --output $(FLAT) 	  --stats $(FLAT_STATS) --scope $(SCOPE)
 
 normalize:  ## Stage 2: flat -> normalized (HTML, language, curriculum, dedup)
-	$(PY) -m quiz_generator.data.normalize --input $(FLAT) --output $(NORM) 	  --stats $(NORM_STATS)
+	$(PY) -m quiz_generator.ingestion.normalize --input $(FLAT) --output $(NORM) 	  --stats $(NORM_STATS)
 
 build-text:  ## Stage 3: normalized -> ready (compose search_text)
-	$(PY) -m quiz_generator.data.build_index_text --input $(NORM) --output $(READY)
+	$(PY) -m quiz_generator.ingestion.build_index_text --input $(NORM) --output $(READY)
 
 build-index:  ## Stage 4: ready -> Chroma (BGE-M3 embed)
 	$(PY) -m quiz_generator.indexing.build --input $(READY)

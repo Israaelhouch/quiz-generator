@@ -43,8 +43,12 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from quiz_generator.data.filters import decide_drop, derive_multiple_correct_answers, doc_id_suffix
-from quiz_generator.data.scope import decide_in_scope, load_scope
+from quiz_generator.ingestion.filters import (
+    decide_drop,
+    derive_multiple_correct_answers,
+    doc_id_suffix,
+)
+from quiz_generator.ingestion.scope import decide_in_scope, load_scope
 from quiz_generator.shared.hashing import sha256_of
 from quiz_generator.shared.schemas import (
     FlatQuestion,

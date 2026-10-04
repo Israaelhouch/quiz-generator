@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 
-from quiz_generator.data.build_index_text import (
+from quiz_generator.ingestion.build_index_text import (
     DEFAULT_RECIPE_FLAGS,
     DEFAULT_SEPARATORS,
     _nonempty_strings,
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 def test_the_repository_pipeline_config_loads() -> None:
     from pathlib import Path as _Path
 
-    from quiz_generator.data.build_index_text import load_recipe
+    from quiz_generator.ingestion.build_index_text import load_recipe
 
     name, flags, separators, threshold, latex = load_recipe(_Path("configs/pipeline.yaml"))
 
@@ -173,7 +173,7 @@ def test_a_missing_pipeline_config_is_an_error(tmp_path) -> None:
     config that was never read and the run would look successful."""
     import pytest
 
-    from quiz_generator.data.build_index_text import load_recipe
+    from quiz_generator.ingestion.build_index_text import load_recipe
 
     with pytest.raises(FileNotFoundError):
         load_recipe(tmp_path / "absent.yaml")
@@ -185,7 +185,7 @@ def test_a_recipe_naming_an_unknown_flag_is_refused(tmp_path) -> None:
     import pytest
     from pydantic import ValidationError
 
-    from quiz_generator.data.build_index_text import load_recipe
+    from quiz_generator.ingestion.build_index_text import load_recipe
 
     config = tmp_path / "pipeline.yaml"
     config.write_text(
@@ -202,7 +202,7 @@ def test_selecting_an_undefined_recipe_is_refused(tmp_path) -> None:
     recipes could run the control twice and report it as a comparison."""
     import pytest
 
-    from quiz_generator.data.build_index_text import load_recipe
+    from quiz_generator.ingestion.build_index_text import load_recipe
 
     config = tmp_path / "pipeline.yaml"
     config.write_text(
@@ -219,7 +219,7 @@ def test_a_nonsensical_token_threshold_is_refused(tmp_path) -> None:
     import pytest
     from pydantic import ValidationError
 
-    from quiz_generator.data.build_index_text import load_recipe
+    from quiz_generator.ingestion.build_index_text import load_recipe
 
     config = tmp_path / "pipeline.yaml"
     config.write_text(

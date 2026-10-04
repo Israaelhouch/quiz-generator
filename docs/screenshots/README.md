@@ -14,14 +14,14 @@ copy that holds a real index — `vector_store.reset_on_build: true` deletes the
 persist directory before writing.
 
 ```bash
-python -m quiz_generator.data.ingest --input data/sample/quizzes-sample-raw.json \
+python -m quiz_generator.ingestion.ingest --input data/sample/quizzes-sample-raw.json \
     --scope configs/scope.yaml \
     --output data/sample/interim/flat.jsonl \
     --stats data/sample/interim/flat_stats.json
-python -m quiz_generator.data.normalize --input data/sample/interim/flat.jsonl \
+python -m quiz_generator.ingestion.normalize --input data/sample/interim/flat.jsonl \
     --output data/sample/interim/normalized.jsonl \
     --stats data/sample/interim/normalized_stats.json
-python -m quiz_generator.data.build_index_text --input data/sample/interim/normalized.jsonl \
+python -m quiz_generator.ingestion.build_index_text --input data/sample/interim/normalized.jsonl \
     --output data/sample/processed/ready.jsonl \
     --stats data/sample/processed/ready_stats.json
 python -m quiz_generator.indexing.build --input data/sample/processed/ready.jsonl
