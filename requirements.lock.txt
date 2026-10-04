@@ -71,7 +71,7 @@ nvidia-nccl-cu13==2.29.7
 nvidia-nvjitlink==13.3.33
 nvidia-nvshmem-cu13==3.4.5
 nvidia-nvtx==13.0.85
-oauthlib==3.3.1
+oauthlib==4.0.0
 ollama==0.6.2
 onnxruntime==1.29.0
 openai==3.3.0
@@ -129,7 +129,7 @@ truststore==0.10.4
 typer==0.27.1
 typing-inspection==0.4.4
 typing_extensions==4.16.0
-urllib3==2.7.0
+urllib3==2.8.0
 uvicorn==0.52.4
 uvloop==0.22.1
 watchfiles==1.2.0
