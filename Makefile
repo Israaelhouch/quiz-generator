@@ -111,7 +111,7 @@ ci: lint test audit  ## Everything CI runs, locally
 # recipes:  make build RAW=data/other.json
 
 RAW        ?= data/raw/quizzes-raw-data.json
-SCOPE      ?= configs/phase1_scope.yaml
+SCOPE      ?= configs/scope.yaml
 FLAT       ?= data/interim/flat_phase1.jsonl
 FLAT_STATS ?= data/interim/flat_phase1_stats.json
 NORM       ?= data/interim/normalized_phase1.jsonl

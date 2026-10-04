@@ -140,7 +140,7 @@ else
   bold "   building (this takes ~10-15 min; the index build is the slow part)"
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$FLAT" ]; then
     echo "   → ingest"
-    python -m src.data.ingest --scope configs/phase1_scope.yaml
+    python -m src.data.ingest --scope configs/scope.yaml
   else ok "flat.jsonl exists (skip ingest)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$NORM" ]; then

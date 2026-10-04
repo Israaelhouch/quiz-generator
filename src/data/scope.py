@@ -1,6 +1,6 @@
 """Scope filtering — narrow the corpus to a defined scope (current or future).
 
-Reads a YAML config (e.g. `configs/phase1_scope.yaml`) and exposes a single
+Reads a YAML config (e.g. `configs/scope.yaml`) and exposes a single
 function `decide_in_scope(row, scope) -> tuple[bool, str]`:
 
     in_scope, reason = decide_in_scope(flat_row_dict, scope_obj)

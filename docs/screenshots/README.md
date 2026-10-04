@@ -15,7 +15,7 @@ persist directory before writing.
 
 ```bash
 python -m src.data.ingest --input data/sample/quizzes-sample-raw.json \
-    --scope configs/phase1_scope.yaml \
+    --scope configs/scope.yaml \
     --output data/sample/interim/flat.jsonl \
     --stats data/sample/interim/flat_stats.json
 python -m src.data.normalize --input data/sample/interim/flat.jsonl \

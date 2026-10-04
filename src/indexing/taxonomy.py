@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # In-scope level prefixes for the Tunisian school curriculum.
 #
 # Mirrors two other places that must stay in sync:
-#   - configs/phase1_scope.yaml → scope.level_prefixes (ingest filter)
+#   - configs/scope.yaml → scope.level_prefixes (ingest filter)
 #   - src/data/normalize.py::derive_school_phase (school_phase derivation)
 #
 # PREPARATORY_* and LICENCE_* are deliberately absent — higher education is

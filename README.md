@@ -188,7 +188,7 @@ pip install -r requirements.txt
 
 # build an index from the synthetic sample corpus (~1 min after model download)
 python -m src.data.ingest        --input data/sample/quizzes-sample-raw.json \
-                                 --scope configs/phase1_scope.yaml \
+                                 --scope configs/scope.yaml \
                                  --output data/sample/interim/flat.jsonl \
                                  --stats  data/sample/interim/flat_stats.json
 python -m src.data.normalize     --input  data/sample/interim/flat.jsonl \

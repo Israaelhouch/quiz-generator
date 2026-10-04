@@ -7,7 +7,7 @@ This stage removes far more than its name suggests: 5,829 of 12,480 questions
 on the measured build of 2026-09-08. Two independent filters run here, and the
 larger one is the scope filter, not the structural checks.
 
-1. Scope filter — only when --scope is passed, from configs/phase1_scope.yaml
+1. Scope filter — only when --scope is passed, from configs/scope.yaml
    via src/data/scope.py. Reasons are recorded with a `scope_` prefix. This is
    the big one: 4,901 rows.
      - scope_no_subjects            2,210   the quiz carries no subject at all
@@ -15,7 +15,7 @@ larger one is the scope filter, not the structural checks.
      - scope_level_out_of_scope     1,274   no level, or one outside the three
                                             school prefixes
    These rows are not bad data. They are questions in subjects and levels this
-   project does not cover, and widening `configs/phase1_scope.yaml` brings them
+   project does not cover, and widening `configs/scope.yaml` brings them
    back with no code change.
 
 2. Structural filters — always applied, from src/data/filters.py. 928 rows.
@@ -261,7 +261,7 @@ def _parse_args() -> argparse.Namespace:
         "--scope",
         type=Path,
         default=None,
-        help="Optional path to a scope YAML (e.g. configs/phase1_scope.yaml). "
+        help="Optional path to a scope YAML (e.g. configs/scope.yaml). "
         "When set, rows outside the scope are dropped with reason 'scope_*'.",
     )
     return parser.parse_args()

@@ -94,6 +94,10 @@ answer key. The reasoning behind the non-obvious choices is in
   files to 89 in 20.
 - Applied ruff's 62 safe autofixes; every file is formatted and the check is a
   real gate in CI, `make lint` and pre-commit.
+- `configs/phase1_scope.yaml` is now `configs/scope.yaml`: it has included
+  MATHEMATICS since v1.1.0, and the old name described a project phase rather
+  than the file. `configs/phase2_math_audit.yaml` is deleted — it scoped a
+  one-off audit for a notebook that is not part of this repository.
 - The README and `eval/RESULTS.md` report the repaired English numbers, add a
   Limits section and the realistic-question results, and revise the maths
   explanation: most of that gap is the test set's own ceiling.

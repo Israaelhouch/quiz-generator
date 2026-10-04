@@ -1,8 +1,8 @@
 # Current scope — defines which rows survive the ingest filter.
 #
-# Used by:  python -m src.data.ingest --scope configs/phase1_scope.yaml
-# (Filename retains its `phase1` suffix for backward compatibility with
-# existing tooling. The conceptual scope is described in docs/cells_plan.md.)
+# Used by:  python -m src.data.ingest --scope configs/scope.yaml
+# (Was `phase1_scope.yaml` until v1.1.0 added MATHEMATICS. The conceptual
+# scope is described in docs/cells_plan.md.)
 #
 # Filtering rules (applied in this order, after structural filters):
 #   1. Drop rows with NO subjects (subjects list is empty).

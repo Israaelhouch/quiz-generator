@@ -14,10 +14,9 @@ model:
 
 vector_store:
   type: chroma
-  # Current-scope index — keeps the v1 index at chroma_db/ untouched as a
-  # baseline so we can compare. Filename retains the `_phase1` suffix for
-  # backward compatibility; when math support lands, the index will either
-  # rebuild here or branch into a parallel directory.
+  # The live index. The `_phase1` suffix is historical — maths shipped into
+  # this same directory in v1.1.0 — and is kept because renaming it would
+  # force every existing deployment to reindex for no gain.
   persist_directory: data/vector_store/chroma_db_phase1
   collection_name: quiz_questions
   distance_metric: cosine
