@@ -70,6 +70,15 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Changed
 
+- **The environment is read once, through a typed `Settings` object**
+  (`src/shared/settings.py`). The 13 scattered `os.environ` reads across five
+  modules are gone; every variable has a declared type, a declared default and
+  startup validation, and the provider keys are `SecretStr` so they cannot
+  reach a log line. A malformed value now stops the process instead of falling
+  back to a default — `RATE_LIMIT_PER_MINUTE=abc` used to warn and apply 30. A
+  test also fails if `.env.example` and the settings fields drift apart, which
+  they had: two documented defaults did not match the code. `pydantic-settings`
+  is now a declared dependency (ADR-0006).
 - **Author PII removed from API responses and the run log.** `author_name` and
   `author_email` identify the real teachers who wrote the source corpus and
   were shipping on every `include_retrieval=true` response and every logged

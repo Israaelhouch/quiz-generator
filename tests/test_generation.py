@@ -801,27 +801,51 @@ def test_resolve_timeout_defaults_and_env_override() -> None:
     import os as _os
 
     from src.generation.llm_client import DEFAULT_TIMEOUT_SECONDS, resolve_timeout
+    from src.shared.settings import reset_settings
 
     previous = _os.environ.pop("LLM_TIMEOUT_SECONDS", None)
+    reset_settings()
     try:
         assert resolve_timeout() == DEFAULT_TIMEOUT_SECONDS
         assert resolve_timeout(5.0) == 5.0  # explicit wins
 
         _os.environ["LLM_TIMEOUT_SECONDS"] = "12.5"
+        reset_settings()
         assert resolve_timeout() == 12.5
 
         _os.environ["LLM_TIMEOUT_SECONDS"] = "0"  # 0 disables
-        assert resolve_timeout() == 0.0
-
-        _os.environ["LLM_TIMEOUT_SECONDS"] = "not-a-number"
-        assert resolve_timeout() == DEFAULT_TIMEOUT_SECONDS  # falls back, no crash
-
-        _os.environ["LLM_TIMEOUT_SECONDS"] = "-30"  # clamped, never negative
+        reset_settings()
         assert resolve_timeout() == 0.0
     finally:
         _os.environ.pop("LLM_TIMEOUT_SECONDS", None)
         if previous is not None:
             _os.environ["LLM_TIMEOUT_SECONDS"] = previous
+        reset_settings()
+
+
+def test_resolve_timeout_rejects_a_value_it_cannot_honour() -> None:
+    """A garbled or negative timeout used to fall back to 90s with a warning,
+    so a typo in the deployment config looked like it had been applied. It is
+    now a startup failure: the value is either honoured or refused."""
+    import os as _os
+
+    import pytest
+    from pydantic import ValidationError
+
+    from src.shared.settings import get_settings, reset_settings
+
+    previous = _os.environ.pop("LLM_TIMEOUT_SECONDS", None)
+    try:
+        for bad in ("not-a-number", "-30"):
+            _os.environ["LLM_TIMEOUT_SECONDS"] = bad
+            reset_settings()
+            with pytest.raises(ValidationError):
+                get_settings()
+    finally:
+        _os.environ.pop("LLM_TIMEOUT_SECONDS", None)
+        if previous is not None:
+            _os.environ["LLM_TIMEOUT_SECONDS"] = previous
+        reset_settings()
 
 
 def test_llm_clients_reuse_their_sdk_client() -> None:

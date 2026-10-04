@@ -27,8 +27,9 @@ built without it and logs a warning once, rather than failing every call.
 from __future__ import annotations
 
 import logging
-import os
 from typing import Protocol
+
+from src.shared.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -39,18 +40,7 @@ def resolve_timeout(explicit: float | None = None) -> float:
     """Per-call LLM timeout in seconds. Env-overridable; 0 disables."""
     if explicit is not None:
         return explicit
-    raw = os.environ.get("LLM_TIMEOUT_SECONDS")
-    if raw is None:
-        return DEFAULT_TIMEOUT_SECONDS
-    try:
-        return max(0.0, float(raw))
-    except ValueError:
-        logger.warning(
-            "LLM_TIMEOUT_SECONDS=%r is not a number; using %.0fs",
-            raw,
-            DEFAULT_TIMEOUT_SECONDS,
-        )
-        return DEFAULT_TIMEOUT_SECONDS
+    return get_settings().llm_timeout_seconds
 
 
 class LLMClient(Protocol):
@@ -134,7 +124,7 @@ class GroqClient:
         timeout_seconds: float | None = None,
     ) -> None:
         self.model = model
-        self.api_key = api_key or os.environ.get("GROQ_API_KEY")
+        self.api_key = api_key or get_settings().groq_key
         if not self.api_key:
             raise ValueError(
                 "GROQ_API_KEY is required for GroqClient. "
@@ -198,7 +188,7 @@ class GeminiClient:
         timeout_seconds: float | None = None,
     ) -> None:
         self.model = model
-        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        self.api_key = api_key or get_settings().gemini_key
         if not self.api_key:
             raise ValueError(
                 "GEMINI_API_KEY is required for GeminiClient. "

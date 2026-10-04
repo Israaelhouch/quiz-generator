@@ -21,7 +21,6 @@ from __future__ import annotations
 import datetime as _dt
 import json
 import logging
-import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -46,6 +45,7 @@ from src.api.security import (
     require_api_key,
 )
 from src.shared.logging_setup import request_id_ctx
+from src.shared.settings import describe_settings, get_settings
 
 logger = logging.getLogger("quiz_api")
 logging.basicConfig(level=logging.INFO)
@@ -63,6 +63,7 @@ async def lifespan(app: FastAPI):
     If `app.state.pipeline` is already set (e.g. a test injected a fake),
     skip the heavy real load — this is the test-injection hook.
     """
+    logger.info("Settings: %s", describe_settings())
     log_security_posture()
     if getattr(app.state, "pipeline", None) is None:
         logger.info("Loading QuizPipeline (BGE-M3 + reranker + Ollama warmup)…")
@@ -170,7 +171,7 @@ def _include_author_metadata() -> bool:
     personal data accumulating in an unrotated file. Off by default; set
     INCLUDE_AUTHOR_METADATA=1 to restore the old behaviour.
     """
-    return os.environ.get("INCLUDE_AUTHOR_METADATA", "0") == "1"
+    return get_settings().include_author_metadata
 
 
 def _retrieved_to_dict(c: Any) -> dict:
@@ -213,7 +214,11 @@ def _get_pipeline(request: Request) -> Any:
 # Useful for testing — you accumulate every query+result pair in one place.
 # Set LOG_RUNS=0 in the environment to disable.
 
-RUNS_LOG_PATH = Path(os.environ.get("RUNS_LOG_PATH", "/app/logs/runs.jsonl"))
+
+def runs_log_path() -> Path:
+    """Where generation runs are appended. Settable via RUNS_LOG_PATH."""
+    return get_settings().runs_log_path
+
 
 # Size-based rotation. One /quiz/generate line with 12 retrieved chunks runs
 # 20-40 KB, so an unrotated file fills a disk quietly over a few months.
@@ -221,20 +226,17 @@ RUNS_LOG_PATH = Path(os.environ.get("RUNS_LOG_PATH", "/app/logs/runs.jsonl"))
 # Set RUNS_LOG_MAX_BYTES=0 to disable.
 # Human judgements about generated questions. Separate file from runs.jsonl:
 # runs are machine-generated and voluminous, feedback is scarce and precious.
-FEEDBACK_LOG_PATH = Path(os.environ.get("FEEDBACK_LOG_PATH", "/app/logs/feedback.jsonl"))
+def feedback_log_path() -> Path:
+    """Where human judgements are appended. Settable via FEEDBACK_LOG_PATH."""
+    return get_settings().feedback_log_path
+
 
 DEFAULT_RUNS_LOG_MAX_BYTES = 50 * 1024 * 1024
 RUNS_LOG_KEEP = 3
 
 
 def _runs_log_max_bytes() -> int:
-    raw = os.environ.get("RUNS_LOG_MAX_BYTES")
-    if raw is None:
-        return DEFAULT_RUNS_LOG_MAX_BYTES
-    try:
-        return max(0, int(raw))
-    except ValueError:
-        return DEFAULT_RUNS_LOG_MAX_BYTES
+    return get_settings().runs_log_max_bytes
 
 
 def _rotate_runs_log_if_needed(path: Path) -> None:
@@ -266,18 +268,18 @@ def _append_run_log(*, request_dict: dict, response_dict: dict) -> None:
     when a teacher reports a bad output and you only have the
     timestamp + request ID from the platform's records.
     """
-    if os.environ.get("LOG_RUNS", "1") != "1":
+    if not get_settings().log_runs:
         return
     try:
-        RUNS_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _rotate_runs_log_if_needed(RUNS_LOG_PATH)
+        runs_log_path().parent.mkdir(parents=True, exist_ok=True)
+        _rotate_runs_log_if_needed(runs_log_path())
         entry = {
             "timestamp": _dt.datetime.now().isoformat(timespec="seconds"),
             "request_id": request_id_ctx.get(),
             "request": request_dict,
             "response": response_dict,
         }
-        with RUNS_LOG_PATH.open("a", encoding="utf-8") as f:
+        with runs_log_path().open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     except Exception as exc:  # don't break the API on logging failure
         logger.warning("Failed to append run log: %s", exc)
@@ -360,9 +362,9 @@ def feedback(req: FeedbackRequest, request: Request) -> dict:
     entry["request_id"] = req.request_id or request_id_ctx.get()
 
     try:
-        FEEDBACK_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _rotate_runs_log_if_needed(FEEDBACK_LOG_PATH)
-        with FEEDBACK_LOG_PATH.open("a", encoding="utf-8") as f:
+        feedback_log_path().parent.mkdir(parents=True, exist_ok=True)
+        _rotate_runs_log_if_needed(feedback_log_path())
+        with feedback_log_path().open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     except Exception as exc:
         logger.warning("Failed to append feedback: %s", exc)
