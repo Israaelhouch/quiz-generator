@@ -14,6 +14,10 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Added
 
+- `CONTRIBUTING.md` and a pull-request template: how to run the gates, how the
+  mypy and ruff ratchets work, what must never enter a commit (the corpus, and
+  any metric that does not come from a recorded run).
+
 - `tests/test_build_index_text_pipeline.py` — 11 tests for the stage that
   composes the single string every embedding is computed from: the recipe is
   applied, the correct answer stays out of it, every other field passes
@@ -318,7 +322,8 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ## v1.1.0 — Phase 2 (math)
 
-**Tag:** `v1.1.0` on `main`
+**Tag:** `v1.1.0`, in the private repository this mirror was built from — the
+public history starts later, so the tag is not reachable here.
 **Merged via:** `feature/math-subject` → `dev` → `main`
 
 ### Added — Mathematics subject
@@ -379,7 +384,8 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ## v1.0.0 — Phase 1 (en/ar/fr literature + grammar)
 
-**Tag:** `v1.0.0` on `main` (`c73791b`)
+**Tag:** `v1.0.0` (`c73791b`), in the private repository this mirror was built
+from — the public history starts later, so the tag is not reachable here.
 
 ### Shipped
 

@@ -6,7 +6,7 @@ Pipeline stages, container commands and the evaluation harness.
 
 ```bash
 make setup        # virtualenv + pinned dependencies + dev tools
-make test         # 389 tests, no models, no keys, no network
+make test         # 445 tests, no models, no keys, no network
 make run          # builds anything missing, then serves on :8000/ui
 ```
 

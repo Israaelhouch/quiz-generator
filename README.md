@@ -17,10 +17,11 @@ retrieves curriculum questions matching those constraints, passes them to an
 LLM as few-shot examples, validates the generated output against a schema, and
 returns typed JSON.
 
-The corpus used in development is private: ~5,800 curriculum questions that
-cannot be published. A synthetic sample corpus is included in `data/sample/`
-and exercises every pipeline stage, so the repository runs end to end from a
-clone. The evaluation results below were measured on the private corpus.
+The corpus used in development is private and cannot be published: a
+12,480-question export, of which 4,411 survive scoping and cleaning and are
+indexed. A synthetic sample corpus is included in `data/sample/` and exercises
+every pipeline stage, so the repository runs end to end from a clone. The
+evaluation results below were measured on the private corpus.
 
 ![Generating a quiz](docs/screenshots/ui-generate.png)
 
@@ -83,7 +84,7 @@ metrics are built in.
 ## Evaluation
 
 Retrieval is measured per (language × subject) cell against a ground-truth
-answer key, over 4,287 template test cases across five cells.
+answer key, over 3,207 template test cases across the three shipped cells.
 
 | Cell | Cases | P@1 | Hit@10 | MRR |
 |------|------:|----:|-------:|----:|
@@ -101,8 +102,10 @@ Limitations of these numbers:
 - The French cell is 46 cases over 15 documents.
 - Some test cases have several valid answers, which caps the maximum reachable
   score per cell.
-- The mathematics cells score lower than the language cells; their results are
-  reported in `eval/RESULTS.md`.
+- Mathematics shipped in v1.1.0 and left the scope on 2026-10-04 (ADR-0009):
+  formula retrieval is a different task from prose, and it was the only place
+  French existed in volume. Its last measured numbers are kept in
+  `eval/RESULTS.md` rather than deleted.
 - The answer keys derive from the private corpus and cannot be published, so
   the table is not independently reproducible. The harness, metrics and
   key validator are in this repository.
@@ -115,7 +118,7 @@ commit, and the index it searched. Methodology and per-cell ceilings:
 
 ```bash
 make setup        # virtualenv, pinned dependencies, dev tools
-make test         # 389 tests; no models, keys or network required
+make test         # 445 tests; no models, keys or network required
 ```
 
 Generation requires a provider key. Copy `.env.example` to `.env` and set
@@ -160,6 +163,7 @@ configs/       model, pipeline, scope and subject-alias configuration
 | [`eval/RESULTS.md`](eval/RESULTS.md) | Retrieval metrics per cell, ceilings, realistic-question results |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Architecture decision records |
 | [`CHANGELOG.md`](CHANGELOG.md) | Release history |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to run the gates, and what must never enter a commit |
 
 ## License
 

@@ -23,8 +23,8 @@ its own failure modes, and its own tuning. The locked scope is:
 | C1  | `ar × ARABIC`       | ar       | ARABIC      | ✅ v1.0 | Arabic literature / grammar — diacritics in source, usually absent in queries |
 | C2  | `en × ENGLISH`      | en       | ENGLISH     | ✅ v1.0 | Best data coverage in corpus — easiest cell |
 | C3  | `fr × FRENCH`       | fr       | FRENCH      | ✅ v1.0 | Limited corpus (~15 rows) — beta status |
-| C4  | `fr × MATHEMATICS`  | fr       | MATHEMATICS | ✅ Phase 2 (`feature/math-subject`) | High-school math in French (1,003 docs). Sibling-topic confusion at ~10pp below language cells. |
-| C5  | `ar × MATHEMATICS`  | ar       | MATHEMATICS | ✅ Phase 2 (`feature/math-subject`) | Middle + primary math in Arabic (368 docs). |
+| C4  | `fr × MATHEMATICS`  | fr       | MATHEMATICS | ⛔ Out of scope since 2026-10-04 | Shipped in v1.1.0, 1,003 docs. Removed with ADR-0009: formula-bearing retrieval is a different task from prose, and this cell was the only place French existed in volume, which made the French cell look larger than the language is here. |
+| C5  | `ar × MATHEMATICS`  | ar       | MATHEMATICS | ⛔ Out of scope since 2026-10-04 | Shipped in v1.1.0, 368 docs. Removed with ADR-0009, alongside C4. |
 
 ### Out of scope
 
