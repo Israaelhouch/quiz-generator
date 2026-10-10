@@ -26,6 +26,7 @@ pip-audit==2.10.1
 
 # Imported directly by src/ under test
 pydantic==2.13.4
+pydantic-settings==2.15.0   # src/quiz_generator/shared/settings.py
 fastapi==0.141.1
 httpx==0.28.1          # fastapi.testclient
 pyyaml==6.0.3

@@ -7,6 +7,8 @@ pylatexenc
 langdetect
 python-dotenv
 sentence-transformers
+torch            # imported directly by indexing + reranker; also a sentence-transformers dep
+tqdm             # progress bar in indexing.build
 chromadb
 faiss-cpu
 scikit-learn

@@ -14,6 +14,12 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Added
 
+- `tests/test_dependencies.py` — reads the imports out of `src/` and
+  `scripts/` and fails when one is missing from the requirements file CI
+  installs. It found the two gaps above. Packages the gate never executes
+  (chromadb, torch, the provider SDKs, uvicorn, dotenv) are listed explicitly
+  with the reason, so the exemption is a decision rather than an oversight.
+
 - `CONTRIBUTING.md` and a pull-request template: how to run the gates, how the
   mypy and ruff ratchets work, what must never enter a commit (the corpus, and
   any metric that does not come from a recorded run).
@@ -132,6 +138,15 @@ answer key. The reasoning behind the non-obvious choices is in
   question with `model_dump()`.
 
 ### Fixed
+
+- **CI could not import the code.** `pydantic-settings` arrived with the typed
+  `Settings` object and was declared in `requirements.txt`, but CI installs
+  `requirements-dev.txt`, so both the lint and the test jobs failed on an
+  ImportError while every local run passed — a developer virtualenv is built
+  from the lockfile and already had it. Declared where the gate can see it.
+- `requirements.txt` did not list `torch` or `tqdm`, both imported directly by
+  the indexing and reranking modules. They resolved anyway as
+  sentence-transformers dependencies, which is luck rather than intent.
 
 - `build_index_text` discarded rows the output schema rejected with a bare
   `except ValidationError: continue` — no counter, no reason, nothing in the
