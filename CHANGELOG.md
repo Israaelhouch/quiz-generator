@@ -274,6 +274,9 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Security
 
+- `multidict` 6.7.1 -> 6.9.1, closing CVE-2026-104874. Transitive through
+  aiohttp and yarl; `pip check` clean and the suite unchanged.
+
 - `urllib3` 2.7.0 -> 2.8.0 and `oauthlib` 3.3.1 -> 4.0.0 in
   `requirements.lock.txt`, closing four advisories that had turned the CI
   security job red (PYSEC-2026-4175/4176/4177 and PYSEC-2026-4114). Both are

@@ -13,23 +13,33 @@ empirically.
 
 ## Latest results
 
+The corpus was narrowed to the three language subjects on 2026-10-04
+(ADR-0009) and the index rebuilt: 4,411 questions instead of 5,782. The
+mathematics cells left the scope and their last measurements are kept in
+[Retired cells](#retired-cells) rather than deleted.
+
 | Cell                | Run dir                              |   N   | P@1   | P@5   | P@10  | R@10  | Hit@1 | Hit@10 |  MRR  |
 |---------------------|--------------------------------------|------:|------:|------:|------:|------:|------:|-------:|------:|
 | `en × ENGLISH`      | `en_20260910T093958Z/`               | 2,761 | 0.806 | 0.795 | 0.684 | 0.638 | 0.806 |  0.875 | 0.828 |
 | `ar × ARABIC`       | `ar_20260515T081801Z/`               |   400 | 0.585 | 0.586 | 0.544 | 0.415 | 0.585 |  0.778 | 0.655 |
-| `fr × FRENCH`       | `fr_20260514T153707Z/`               |    46 | 0.870 | 0.843 | 0.657 | 0.872 | 0.870 |  1.000 | 0.914 |
-| `fr × MATHEMATICS`  | `fr_20260519T143604Z/`               |   720 | 0.615 | 0.587 | 0.544 | 0.392 | 0.615 |  0.735 | 0.649 |
-| `ar × MATHEMATICS`  | `ar_20260519T144413Z/`               |   360 | 0.492 | 0.484 | 0.450 | 0.354 | 0.492 |  0.692 | 0.547 |
+| `fr × FRENCH`       | `fr_20261010T122124Z/`               |    46 | 0.870 | 0.843 | 0.657 | 0.872 | 0.870 |  1.000 | 0.914 |
 
 **N** = test cases.
 **P@k** = precision at top-k. **R@10** = recall at top-10. **Hit@k** =
 fraction of queries that found at least one relevant doc in top-k.
 **MRR** = mean reciprocal rank.
 
-**The English row was re-run on 2026-09-10 against a repaired answer key**
-(next section; it previously read P@1 0.735). The Arabic, French and maths
-rows are still the May runs. Their answer keys were checked against the
-current index the same day and are complete and current, so those runs stand.
+**Which run each row came from matters, so the run directory is in the table.**
+French was re-measured on 2026-10-10 against the rebuilt index and reproduced
+its May figures to the fourth decimal (P@1 0.8696 against 0.870, Hit@10 1.000,
+MRR 0.9143 against 0.914). That is the expected result rather than a lucky
+one: Chroma applies the subject filter *before* scoring, so rows from another
+subject never competed for these slots, and removing them cannot move the
+number. English and Arabic are earlier runs against the larger index for the
+same reason — the English row was re-run on 2026-09-10 against a repaired
+answer key (next section; it previously read P@1 0.735), and the Arabic row is
+the May run. All three answer keys were re-validated against the rebuilt index
+on 2026-10-10 and pass.
 
 Before quoting any of these numbers, read [Limits](#limits-of-these-numbers)
 and [Realistic teacher questions](#realistic-teacher-questions-english-2026-09-10).
@@ -74,6 +84,27 @@ step, or in a single pass, gives identical doc_ids for every topic. The
 validator now refuses to start an eval whose answer key disagrees with the
 index, so a key cannot go stale silently again.
 
+## Retired cells
+
+Mathematics shipped in v1.1.0 and left the scope on 2026-10-04 (ADR-0009):
+retrieval over formula-bearing questions is a different task from retrieval
+over prose, and in this corpus it was also the only place French content
+existed in volume, which made the French cell look larger than the language
+itself is here. These are the last measurements taken while it was in scope,
+against the 5,782-row index.
+
+| Cell                | Run dir                              |   N   | P@1   | P@5   | Hit@10 |  MRR  |
+|---------------------|--------------------------------------|------:|------:|------:|-------:|------:|
+| `fr × MATHEMATICS`  | `fr_20260519T143604Z/`               |   720 | 0.615 | 0.587 |  0.735 | 0.649 |
+| `ar × MATHEMATICS`  | `ar_20260519T144413Z/`               |   360 | 0.492 | 0.484 |  0.692 | 0.547 |
+
+Measured against their own ceilings (below) these were 87% and 74%, so the
+gap to the language cells was mostly the test sets rather than the retriever.
+The test cases and answer keys still exist locally; the cells can be restored
+by adding MATHEMATICS back to `configs/scope.yaml` and rebuilding, which
+`tests/test_scope.py` deliberately makes a conscious act rather than an
+accident.
+
 ## Limits of these numbers
 
 ### Some test cases cannot be passed
@@ -88,8 +119,10 @@ perfect retriever could reach on each test set:
 | `en × ENGLISH` | 2,761 | 313 | 0.887 | 0.806 | 91% |
 | `ar × ARABIC` | 400 | 43 | 0.892 | 0.585 | 66% |
 | `fr × FRENCH` | 46 | 6 | 0.870 | 0.870 | 100% |
-| `fr × MATHEMATICS` | 720 | 210 | 0.708 | 0.615 | 87% |
-| `ar × MATHEMATICS` | 360 | 120 | 0.667 | 0.492 | 74% |
+| `fr × MATHEMATICS` † | 720 | 210 | 0.708 | 0.615 | 87% |
+| `ar × MATHEMATICS` † | 360 | 120 | 0.667 | 0.492 | 74% |
+
+† retired on 2026-10-04 — see [Retired cells](#retired-cells).
 
 The worst single query is `'english grammar exercises'`, labelled with 206
 different quizzes. That is most of why the `vague` query type scores so
@@ -104,10 +137,13 @@ The English and Arabic test cases were generated from fixed templates —
 title word for word (for Arabic, once vowel marks are ignored). `search_text`
 embeds that same title. These cells
 therefore mostly measure whether retrieval can match a title, not whether it
-understands how a teacher phrases a request. The maths sets are less
-templated (62% of French and 34% of Arabic maths queries contain the title);
-the French queries are genuinely semantic (2%). The generator that produced
-the test cases is not in the repository, so they cannot be regenerated.
+understands how a teacher phrases a request. The French queries are the
+exception and are genuinely semantic — 2% contain the title — which is one
+reason that cell scores as it does on 46 cases. The retired maths sets sat in
+between (62% of French and 34% of Arabic maths queries contained the title).
+The generator that produced the test cases is not in the repository, so they
+cannot be regenerated; this is also why the realistic set below was written by
+hand.
 
 ### Retrieval is not exactly reproducible
 
@@ -160,11 +196,12 @@ not been investigated.
 **French** looks great on the metric (`hit@10 = 1.0`) but the sample is
 tiny (46 cases, 15 corpus docs). Not diagnostic.
 
-**Maths** sits below the language cells in raw numbers, but much of that gap
-is its test set. 40–50% of maths cases share a query with a different target
-title, which caps P@1 at 0.708 for French maths and 0.667 for Arabic maths.
-Measured against those ceilings, French maths reaches 87%, close to English
-at 91%; Arabic maths reaches 74%. Sibling topics are genuinely
+**Maths**, while it was in scope, sat below the language cells in raw numbers,
+but much of that gap was its test set. 40–50% of maths cases shared a query
+with a different target title, which capped P@1 at 0.708 for French maths and
+0.667 for Arabic maths. Measured against those ceilings, French maths reached
+87%, close to English at 91%; Arabic maths reached 74%. Sibling topics are
+genuinely
 close — a query about functions can fairly match "Fonction Logarithme 2",
 "Fonctions affines" or "Généralités sur les fonctions" — so this is a
 test-design problem at least as much as a retrieval one. The retrieved content
