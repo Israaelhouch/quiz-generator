@@ -233,7 +233,7 @@ def _files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     topics = tmp_path / "topics_english.csv"
     pd.DataFrame([_csv_row("Writing Ads", "q1__q3")], columns=COLUMNS).to_csv(topics, index=False)
     monkeypatch.setitem(TOPICS_FILE_BY_LANG_SUBJECT, EN, topics)
-    ready = tmp_path / "ready.jsonl"
+    ready = tmp_path / "payload.jsonl"
     ready.write_text(
         "".join(json.dumps(_row(d, "Writing Ads")) + "\n" for d in ("q1__q3", "q1__q3_2")),
         encoding="utf-8",
@@ -244,9 +244,9 @@ def _files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def test_main_dry_run_writes_nothing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     ready = _files(tmp_path, monkeypatch)
     before = (tmp_path / "topics_english.csv").read_bytes()
-    assert refresh_topics.main(["--cell", "en:ENGLISH", "--ready-jsonl", str(ready)]) == 0
+    assert refresh_topics.main(["--cell", "en:ENGLISH", "--payload", str(ready)]) == 0
     assert (tmp_path / "topics_english.csv").read_bytes() == before
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["ready.jsonl", "topics_english.csv"]
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["payload.jsonl", "topics_english.csv"]
 
 
 def test_main_write_updates_csv_and_keeps_backup_as_csv(
@@ -254,9 +254,7 @@ def test_main_write_updates_csv_and_keeps_backup_as_csv(
 ) -> None:
     ready = _files(tmp_path, monkeypatch)
     before = (tmp_path / "topics_english.csv").read_bytes()
-    assert (
-        refresh_topics.main(["--cell", "en:ENGLISH", "--ready-jsonl", str(ready), "--write"]) == 0
-    )
+    assert refresh_topics.main(["--cell", "en:ENGLISH", "--payload", str(ready), "--write"]) == 0
     with (tmp_path / "topics_english.csv").open(encoding="utf-8", newline="") as f:
         assert next(csv.DictReader(f))["doc_ids"] == "q1__q3,q1__q3_2"
     backups = list(tmp_path.glob("topics_english.backup-*.csv"))

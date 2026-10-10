@@ -1,6 +1,6 @@
 """Taxonomy — the known set of valid values for each filter field.
 
-Discovered at index time by scanning ready.jsonl, persisted inside
+Discovered at index time by scanning payload.jsonl, persisted inside
 build_summary.json, and loaded at query time to:
   - validate user inputs (warn on typos like 'HIGH_SCHOOL_4TH_GRAD_MATH')
   - feed a frontend dropdown listing available levels/subjects
@@ -79,7 +79,7 @@ class Taxonomy:
         """Scan a corpus and collect every distinct enum value observed.
 
         Args:
-            rows: the indexed corpus (ready_phase1.jsonl rows).
+            rows: the indexed corpus (payload.jsonl rows).
             level_prefixes: when given, only level values starting with one
                 of these prefixes are collected. Pass
                 `SCHOOL_LEVEL_PREFIXES` to keep out-of-scope secondary tags

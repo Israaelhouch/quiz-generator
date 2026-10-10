@@ -83,7 +83,7 @@ services:
       - ./data/raw:/app/data/raw                     # quizzes-raw-data.json
       - ./data/interim:/app/data/interim             # flat/normalized JSONLs
       - ./data/vector_store:/app/data/vector_store   # Chroma DB
-      - ./data/processed:/app/data/processed         # ready_phase1.jsonl
+      - ./data/processed:/app/data/processed         # payload.jsonl
       - ./configs:/app/configs                       # models.yaml
       - ./logs:/app/logs                             # append-only runs.jsonl log
       # Named volume for HuggingFace model cache (BGE-M3, reranker).

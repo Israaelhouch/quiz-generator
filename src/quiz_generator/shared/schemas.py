@@ -6,7 +6,7 @@ The ingest module produces FlatQuestion. the normalize module produces CleanedQu
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -68,7 +68,12 @@ class RawQuiz(BaseModel):
     subjects: list[str] = Field(default_factory=list)
     levels: list[str] = Field(default_factory=list)
     createdBy: RawCreatedBy | None = None
-    questions: list[RawQuestion] = Field(default_factory=list)
+    # Deliberately NOT list[RawQuestion]: validating the questions here makes
+    # one malformed question reject its whole quiz, discarding every healthy
+    # sibling and making the per-question validation path below unreachable.
+    # Each question is validated on its own in ingest, so a bad row costs that
+    # row only.
+    questions: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class FlatQuestion(BaseModel):
@@ -96,6 +101,18 @@ class FlatQuestion(BaseModel):
     author_email: str | None
 
 
+class ValidationFailure(BaseModel):
+    """One rejected row, identified but not reproduced.
+
+    Records where the failure was and what the validator said — never the
+    payload, which is corpus content and may carry author names.
+    """
+
+    level: Literal["quiz", "question"]
+    quiz_id: str | None = None
+    error: str
+
+
 class IngestStats(BaseModel):
     """Audit record written alongside flat.jsonl after every ingest run."""
 
@@ -107,6 +124,14 @@ class IngestStats(BaseModel):
     kept_by_type: dict[str, int]
     quiz_validation_errors: int = 0
     question_validation_errors: int = 0
+    # Which scope produced these drop counts. Without it, two stats files from
+    # different scopes are indistinguishable.
+    scope_name: str | None = None
+    scope_config_path: str | None = None
+    scope_config_sha256: str | None = None
+    # The first few validation failures, so a non-zero count above is
+    # actionable rather than just alarming.
+    validation_failure_samples: list[ValidationFailure] = Field(default_factory=list)
 
 
 SUPPORTED_LANGUAGES = Literal["en", "fr", "ar"]
@@ -191,7 +216,7 @@ class IndexedQuestion(BaseModel):
 
 
 class BuildIndexTextStats(BaseModel):
-    """Audit record written alongside ready_phase1.jsonl."""
+    """Audit record written alongside payload.jsonl."""
 
     input_rows: int
     output_rows: int
@@ -201,6 +226,8 @@ class BuildIndexTextStats(BaseModel):
     rows_over_token_threshold: int
     token_threshold: int
     empty_search_text_rows: int
+    # Rows the output schema rejected. They used to disappear with no record.
+    schema_validation_failed: int = 0
 
 
 class TaxonomyRecord(BaseModel):

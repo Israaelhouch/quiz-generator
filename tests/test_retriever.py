@@ -136,7 +136,7 @@ def _make_retriever(
     """Build a Retriever with injected fakes — skips disk/model loading."""
     return Retriever(
         config_path=Path("unused"),
-        ready_jsonl_path=Path("unused"),
+        payload_path=Path("unused"),
         _model=FakeModel(),
         _collection=FakeCollection(ids=ids, distances=distances),
         _taxonomy=taxonomy
@@ -621,7 +621,7 @@ def test_diagnose_empty_shows_filter_counts_and_suggestions() -> None:
 
     r = Retriever.__new__(Retriever)
     r.config_path = Path("x")
-    r.ready_jsonl_path = Path("x")
+    r.payload_path = Path("x")
     r._model = FakeModel()
     r._collection = CountingCollection()
     r._taxonomy = None
@@ -705,7 +705,7 @@ def test_retrieve_serialises_concurrent_callers() -> None:
     payload = {f"id-{i}": _payload_row(f"id-{i}") for i in range(4)}
     retriever = Retriever(
         config_path=Path("unused"),
-        ready_jsonl_path=Path("unused"),
+        payload_path=Path("unused"),
         _model=_ObservingModel(),
         _collection=FakeCollection(ids=list(payload), distances=[0.1, 0.2, 0.3, 0.4]),
         _taxonomy=Taxonomy(languages={"en"}),

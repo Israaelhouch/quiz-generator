@@ -45,7 +45,7 @@ ignore = [
 # contract, not stray debugging (CLAUDE.md §3).
 "src/quiz_generator/pipeline/__main__.py" = ["T20"]
 "src/quiz_generator/api/__main__.py" = ["T20"]
-"src/quiz_generator/data/*.py" = ["T20"]
+"src/quiz_generator/ingestion/*.py" = ["T20"]
 # Ad-hoc query tools with `__main__` blocks; stdout is their output contract.
 "src/quiz_generator/indexing/query.py" = ["T20", "E741"]
 "src/quiz_generator/retrieval/query.py" = ["T20", "E741"]
@@ -217,23 +217,23 @@ module = "quiz_generator.api.server"
 disable_error_code = ["no-untyped-def", "type-arg"]  # 12 error(s)
 
 [[tool.mypy.overrides]]
-module = "quiz_generator.data.build_index_text"
+module = "quiz_generator.ingestion.build_index_text"
 disable_error_code = ["no-untyped-def", "type-arg"]  # 2 error(s)
 
 [[tool.mypy.overrides]]
-module = "quiz_generator.data.filters"
+module = "quiz_generator.ingestion.filters"
 disable_error_code = ["type-arg"]  # 4 error(s)
 
 [[tool.mypy.overrides]]
-module = "quiz_generator.data.ingest"
+module = "quiz_generator.ingestion.ingest"
 disable_error_code = ["type-arg"]  # 4 error(s)
 
 [[tool.mypy.overrides]]
-module = "quiz_generator.data.latex"
+module = "quiz_generator.shared.latex"
 disable_error_code = ["type-arg"]  # 1 error(s)
 
 [[tool.mypy.overrides]]
-module = "quiz_generator.data.normalize"
+module = "quiz_generator.ingestion.normalize"
 disable_error_code = ["arg-type", "no-untyped-def", "type-arg"]  # 11 error(s)
 
 [[tool.mypy.overrides]]

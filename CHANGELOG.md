@@ -14,6 +14,39 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Added
 
+- `tests/test_dependencies.py` — reads the imports out of `src/` and
+  `scripts/` and fails when one is missing from the requirements file CI
+  installs. It found the two gaps above. Packages the gate never executes
+  (chromadb, torch, the provider SDKs, uvicorn, dotenv) are listed explicitly
+  with the reason, so the exemption is a decision rather than an oversight.
+
+- `CONTRIBUTING.md` and a pull-request template: how to run the gates, how the
+  mypy and ruff ratchets work, what must never enter a commit (the corpus, and
+  any metric that does not come from a recorded run).
+
+- `tests/test_build_index_text_pipeline.py` — 11 tests for the stage that
+  composes the single string every embedding is computed from: the recipe is
+  applied, the correct answer stays out of it, every other field passes
+  through untouched, empty and rejected rows are counted, the stats name the
+  recipe, and long rows are flagged against the token threshold.
+
+- `tests/test_normalize_pipeline.py` — `normalize_row` and `dedup_rows` were
+  tested, the stage that drives them was not, though it removes 869 of 6,651
+  rows. 18 tests now cover cleaning, the subject-locked language override,
+  every drop reason, deduplication and the stats record. They found the
+  miscount above, and recorded a detector limitation: a short Spanish sentence
+  is read as French, so such a row would be relabelled rather than dropped.
+
+- `tests/test_ingest_pipeline.py` — the ingest stage had 7 tests, all of them
+  on the pure helpers in `filters.py`, and none on the stage itself: the
+  flattening, the per-quiz `order` counter, the scope integration, the stats
+  record and both validation paths were untested. 27 tests now cover them, and
+  they found the two defects above.
+- The ingest stats record names the scope that produced its drop counts
+  (`scope_name`, `scope_config_path`, `scope_config_sha256`) and samples the
+  first five validation failures — the field and the rule, never the payload,
+  which is corpus content.
+
 - **API-key authentication** (`src/api/security.py`) — `X-API-Key` or
   `Authorization: Bearer`, constant-time comparison, keys from `API_KEYS`.
   Unset means auth is disabled, with a loud startup warning: fail-open so local
@@ -69,6 +102,80 @@ answer key. The reasoning behind the non-obvious choices is in
   their tests failed in CI without it.
 
 ### Changed
+
+- `data/processed/ready.jsonl` is now `payload.jsonl` (and its stats file
+  follows). "Ready" said when the file is used, not what it is, and thirteen
+  modules already called it the payload — `retriever.py` loads "payload
+  (ready.jsonl)", and an eval run records it as `payload_sha256`. The CLI
+  flags, the Makefile variable and the function parameters take the same name,
+  so `--payload` now points at `payload.jsonl`.
+
+- `data/` is split into `ingestion/` (ingest, normalize, build_index_text,
+  filters, scope), `curriculum/` (the Tunisian curriculum rules, which the API
+  and UI depend on and which are not an ingest stage) and `shared/` (the
+  `language` and `latex` helpers, used by both the offline and the online
+  path). `data/` named only that the modules touched data, and collided
+  conceptually with `pipeline/`, which is the request-time orchestrator. The
+  offline path is now `ingestion/` then `indexing/`; the online path is `api/`
+  → `pipeline/` → `retrieval/` + `generation/`.
+
+- `ingest` logs through `logging` instead of printing from inside the library
+  function, and reports its outcome and any validation rejections at the end
+  of a run. The CLI's own summary output is unchanged.
+
+- Scope narrows to the three language subjects — ENGLISH, ARABIC, FRENCH.
+  Mathematics leaves the corpus: French-as-a-subject is 15 questions here, so
+  the multilingual claim had been resting on French maths, and maths retrieval
+  is a different task from prose retrieval. ~4,411 indexed questions instead of
+  5,782.
+- The data artefacts drop their `phase1` suffix — `flat.jsonl`,
+  `normalized.jsonl`, `payload.jsonl`, `chroma_db/` — matching the earlier rename
+  of `phase1_scope.yaml`. The suffix named a project phase that ended when
+  maths shipped in v1.1.0. Renaming the index directory forces a reindex, which
+  the scope change required anyway.
+- `ingest` no longer re-imports the scope filter inside its row loop, and
+  checks scope against the two fields it needs instead of serialising every
+  question with `model_dump()`.
+
+### Fixed
+
+- **CI could not import the code.** `pydantic-settings` arrived with the typed
+  `Settings` object and was declared in `requirements.txt`, but CI installs
+  `requirements-dev.txt`, so both the lint and the test jobs failed on an
+  ImportError while every local run passed — a developer virtualenv is built
+  from the lockfile and already had it. Declared where the gate can see it.
+- `requirements.txt` did not list `torch` or `tqdm`, both imported directly by
+  the indexing and reranking modules. They resolved anyway as
+  sentence-transformers dependencies, which is luck rather than intent.
+
+- `build_index_text` discarded rows the output schema rejected with a bare
+  `except ValidationError: continue` — no counter, no reason, nothing in the
+  stats. The payload could be short and no record would say so. Rejections are
+  now counted, reported by the CLI and logged as a warning. Its output and
+  stats are also written to a temporary file and renamed on success, like the
+  earlier stages.
+
+- `normalize` reported `output_rows`, `by_language` and `by_type` over the
+  rows that reached the writer rather than the rows that survived validation
+  there, so a row rejected on the way out was still counted in the stats and
+  in every downstream check made against them. The counts now follow the file.
+- `normalize` wrote straight into `normalized.jsonl`; like `ingest`, it now
+  writes to a temporary file and renames on success.
+
+- **One malformed question used to reject its entire quiz.** `RawQuiz` declared
+  `questions: list[RawQuestion]`, so validating a quiz validated every question
+  in it: a single bad row discarded all of its healthy siblings, and the
+  per-question validation path — with its own counter in the stats record —
+  was unreachable. Questions are now validated individually, so a bad row costs
+  that row only. No change on the current export, where both counters are zero.
+- `ingest` wrote straight into `flat.jsonl`; a crash partway through left a
+  truncated file that the next stage reads as a complete corpus. Output and
+  stats are now written to a temporary file and renamed on success.
+
+- The runbook and screenshot walkthroughs wrote their sample-corpus output into
+  `data/processed/` and then indexed the real payload instead of the sample one
+  they had just built. Both now stay inside `data/sample/` and index what they
+  produced.
 
 - The README is a technical reference rather than a narrative: standard
   headings (Overview, Architecture, Evaluation, Installation, Usage, Project
@@ -182,6 +289,9 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ### Security
 
+- `multidict` 6.7.1 -> 6.9.1, closing CVE-2026-104874. Transitive through
+  aiohttp and yarl; `pip check` clean and the suite unchanged.
+
 - `urllib3` 2.7.0 -> 2.8.0 and `oauthlib` 3.3.1 -> 4.0.0 in
   `requirements.lock.txt`, closing four advisories that had turned the CI
   security job red (PYSEC-2026-4175/4176/4177 and PYSEC-2026-4114). Both are
@@ -230,7 +340,8 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ## v1.1.0 — Phase 2 (math)
 
-**Tag:** `v1.1.0` on `main`
+**Tag:** `v1.1.0`, in the private repository this mirror was built from — the
+public history starts later, so the tag is not reachable here.
 **Merged via:** `feature/math-subject` → `dev` → `main`
 
 ### Added — Mathematics subject
@@ -291,7 +402,8 @@ answer key. The reasoning behind the non-obvious choices is in
 
 ## v1.0.0 — Phase 1 (en/ar/fr literature + grammar)
 
-**Tag:** `v1.0.0` on `main` (`c73791b`)
+**Tag:** `v1.0.0` (`c73791b`), in the private repository this mirror was built
+from — the public history starts later, so the tag is not reachable here.
 
 ### Shipped
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import sys
 
-from quiz_generator.data.latex import _regex_normalize, contains_latex
+from quiz_generator.shared.latex import _regex_normalize, contains_latex
 
 
 def test_inline_math_delimiters_are_unwrapped() -> None:

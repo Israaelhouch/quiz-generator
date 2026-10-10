@@ -1,6 +1,6 @@
 # Current scope — defines which rows survive the ingest filter.
 #
-# Used by:  python -m quiz_generator.data.ingest --scope configs/scope.yaml
+# Used by:  python -m quiz_generator.ingestion.ingest --scope configs/scope.yaml
 # (Was `phase1_scope.yaml` until v1.1.0 added MATHEMATICS. The conceptual
 # scope is described in docs/cells_plan.md.)
 #
@@ -22,12 +22,16 @@
 scope:
   name: current
 
+  # The three language subjects, each taught in its own language. MATHEMATICS
+  # was in scope until 2026-10-04 and is now out: it is a different task —
+  # formula-bearing questions whose retrieval behaves unlike prose — and in
+  # this corpus it was also the only place French content existed in volume,
+  # which made the French cell look larger than the language itself is here.
+  # See docs/DECISIONS.md ADR-0009 and docs/cells_plan.md.
   subjects:
     - ARABIC
     - ENGLISH
     - FRENCH
-    - MATHEMATICS    # Tunisian curriculum: primary/middle ar, high fr.
-                     # Violations dropped by curriculum_rules.py.
 
   level_prefixes:
     - PRIMARY_SCHOOL  # added — biggest single Arabic-corpus lever (+802 docs)

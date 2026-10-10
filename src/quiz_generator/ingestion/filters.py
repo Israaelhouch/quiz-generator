@@ -1,8 +1,11 @@
-"""Scope-filter logic.
+"""Structural filters — the rules that decide a question is unusable.
 
-Pure functions — operate on plain dicts so they are trivially testable
-without instantiating Pydantic models. The ingest orchestrator wraps
-these with validated models.
+Scope filtering (which subjects and levels this project covers) lives in
+`scope.py`; this module is about rows that cannot be used at all: no choices,
+no correct answer, nothing but an image.
+
+Pure functions over plain dicts, so they are testable without instantiating
+Pydantic models. The ingest orchestrator wraps them with validated models.
 """
 
 from __future__ import annotations
@@ -10,8 +13,14 @@ from __future__ import annotations
 import html
 import re
 
-
 HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+# The question types the raw export may carry. Mirrors RAW_QUESTION_TYPES in
+# shared/schemas.py, which cannot be imported here without pulling Pydantic
+# into a deliberately dependency-free module.
+ALLOWED_RAW_QUESTION_TYPES = frozenset(
+    {"MULTIPLE_CHOICE", "FILL_IN_THE_BLANKS", "TEXT_MULTIPLE_CHOICE"}
+)
 
 
 def strip_html_to_plain(text: str | None) -> str:
@@ -59,8 +68,12 @@ def decide_drop(question: dict) -> tuple[bool, str]:
     if not choices:
         return True, "empty_choices"
 
+    # A guard for callers that pass unvalidated dicts. Ingest never reaches it:
+    # RawQuestion's Literal rejects an unknown type first, and the row is
+    # counted as a validation failure instead. Kept in sync with that Literal
+    # by test_question_types_match_the_schema.
     qtype = question.get("type")
-    if qtype not in {"MULTIPLE_CHOICE", "FILL_IN_THE_BLANKS", "TEXT_MULTIPLE_CHOICE"}:
+    if qtype not in ALLOWED_RAW_QUESTION_TYPES:
         return True, "invalid_type"
 
     if not has_correct_answer(choices):

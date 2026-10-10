@@ -25,7 +25,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-
 # Map (subject_upper, school_phase) → set of acceptable language codes.
 #
 # When a row's subject + phase matches a key here, its language MUST be in
@@ -44,8 +43,8 @@ EXPECTED_LANGUAGES: dict[tuple[str, str], frozenset[str]] = {
     # (Preparatory & Licence levels are out of current scope; their rule
     # would be added here when those phases enter scope.)
     ("MATHEMATICS", "PRIMARY"): frozenset({"ar"}),
-    ("MATHEMATICS", "MIDDLE"):  frozenset({"ar"}),
-    ("MATHEMATICS", "HIGH"):    frozenset({"fr"}),
+    ("MATHEMATICS", "MIDDLE"): frozenset({"ar"}),
+    ("MATHEMATICS", "HIGH"): frozenset({"fr"}),
 }
 
 

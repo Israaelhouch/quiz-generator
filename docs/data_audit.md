@@ -97,10 +97,10 @@ All other filters (subject, level, publish, generatedByAI) are **not applied**.
 
 ```
 1. Data Understanding & Scoping        — this document
-2. Data Cleaning & Preparation         — src/quiz_generator/data/
-   2a. ingest.py           raw JSON    → interim/flat_phase1.jsonl
-   2b. normalize.py        flat        → interim/normalized_phase1.jsonl
-   2c. build_index_text.py normalized  → processed/ready_phase1.jsonl
+2. Data Cleaning & Preparation         — src/quiz_generator/ingestion/
+   2a. ingest.py           raw JSON    → interim/flat.jsonl
+   2b. normalize.py        flat        → interim/normalized.jsonl
+   2c. build_index_text.py normalized  → processed/payload.jsonl
 3. Embedding & Vector Store            — src/quiz_generator/indexing/
 4. Retrieval Logic                     — src/quiz_generator/retrieval/ (kept)
 5. Generation Prompt Design            — src/quiz_generator/generation/prompts/
@@ -130,8 +130,8 @@ Exact per-reason counts are written to `*_stats.json` beside each output.
 quiz-generator/
 ├── data/
 │   ├── raw/            quizzes-raw-data.json
-│   ├── interim/        flat_phase1.jsonl, normalized_phase1.jsonl
-│   ├── processed/      ready_phase1.jsonl
+│   ├── interim/        flat.jsonl, normalized.jsonl
+│   ├── processed/      payload.jsonl
 │   └── vector_store/   (gitignored)
 ├── src/
 │   ├── data/           ingest.py, normalize.py, build_index_text.py

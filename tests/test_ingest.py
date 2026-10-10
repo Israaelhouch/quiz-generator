@@ -7,7 +7,7 @@ in every environment. Full-pipeline tests live in test_ingest_pipeline.py.
 
 from __future__ import annotations
 
-from quiz_generator.data.filters import (
+from quiz_generator.ingestion.filters import (
     count_correct,
     decide_drop,
     derive_multiple_correct_answers,
@@ -116,3 +116,15 @@ if __name__ == "__main__":
     testdoc_id_suffix_is_backward_compatible_on_first_occurrence()
     testdoc_id_suffix_disambiguates_duplicate_orders()
     print("All Stage 2a filter tests passed.")
+
+
+def test_question_types_match_the_schema() -> None:
+    """`filters.py` keeps its own copy of the allowed question types, because
+    importing the Pydantic Literal would pull Pydantic into a module that is
+    deliberately dependency-free. Two copies drift; this is the tripwire."""
+    from typing import get_args
+
+    from quiz_generator.ingestion.filters import ALLOWED_RAW_QUESTION_TYPES
+    from quiz_generator.shared.schemas import RAW_QUESTION_TYPES
+
+    assert frozenset(get_args(RAW_QUESTION_TYPES)) == ALLOWED_RAW_QUESTION_TYPES

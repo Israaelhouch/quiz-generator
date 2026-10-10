@@ -8,7 +8,7 @@
 # Usage — always pass BOTH files:
 #
 #   docker compose -f docker-compose.yml -f docker-compose.etl.yml \
-#     run --rm api python -m quiz_generator.data.ingest --scope configs/scope.yaml \
+#     run --rm api python -m quiz_generator.ingestion.ingest --scope configs/scope.yaml \
 #       --output data/interim/flat_verify.jsonl \
 #       --stats  data/interim/flat_verify_stats.json
 #

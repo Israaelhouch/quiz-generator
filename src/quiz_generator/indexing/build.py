@@ -1,4 +1,4 @@
-"""build the Chroma vector store from `data/processed/ready_phase1.jsonl`.
+"""build the Chroma vector store from `data/processed/payload.jsonl`.
 
 Run:
     python -m quiz_generator.indexing.build
@@ -219,7 +219,9 @@ def build(
     )
 
     summary_path.parent.mkdir(parents=True, exist_ok=True)
-    summary_path.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    summary_temp = summary_path.with_name(summary_path.name + ".tmp")
+    summary_temp.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    summary_temp.replace(summary_path)
 
     print(f"\nIndexed {rows_indexed} rows in {wall:.1f}s ({rows_per_sec} rows/s).")
     print(f"By language: {dict(by_language)}")
@@ -242,7 +244,7 @@ def build(
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--config", type=Path, default=Path("configs/models.yaml"))
-    p.add_argument("--input", type=Path, default=Path("data/processed/ready_phase1.jsonl"))
+    p.add_argument("--input", type=Path, default=Path("data/processed/payload.jsonl"))
     p.add_argument(
         "--summary",
         type=Path,

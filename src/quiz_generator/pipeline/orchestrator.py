@@ -76,7 +76,7 @@ class QuizPipeline:
     def __init__(
         self,
         config_path: Path = Path("configs/models.yaml"),
-        ready_jsonl_path: Path = Path("data/processed/ready_phase1.jsonl"),
+        payload_path: Path = Path("data/processed/payload.jsonl"),
         *,
         # Test-injection hooks — pass these to skip the heavy real builds.
         _retriever: Any | None = None,
@@ -86,7 +86,7 @@ class QuizPipeline:
         from quiz_generator.indexing.config import load_models_config
 
         self.config_path = config_path
-        self.ready_jsonl_path = ready_jsonl_path
+        self.payload_path = payload_path
         self.config = load_models_config(config_path)
         self.llm_config = self.config.llm
 
@@ -98,7 +98,7 @@ class QuizPipeline:
 
             self.retriever = Retriever(
                 config_path=config_path,
-                ready_jsonl_path=ready_jsonl_path,
+                payload_path=payload_path,
             )
 
         # 2. LLM client — provider switch lives here. Add new branches when

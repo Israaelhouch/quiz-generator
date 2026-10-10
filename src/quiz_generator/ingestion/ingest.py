@@ -1,7 +1,7 @@
 """Ingestion — flatten the raw export, and drop most of it.
 
 Flattens raw quizzes JSON into a JSONL of FlatQuestion rows
-(`data/raw/quizzes-raw-data.json` → `data/interim/flat_phase1.jsonl`).
+(`data/raw/quizzes-raw-data.json` → `data/interim/flat.jsonl`).
 
 This stage removes far more than its name suggests: 5,829 of 12,480 questions
 on the measured build of 2026-09-08. Two independent filters run here, and the
@@ -36,19 +36,34 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 from collections import Counter, defaultdict
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 from pydantic import ValidationError
 
-from quiz_generator.data.filters import decide_drop, derive_multiple_correct_answers, doc_id_suffix
+from quiz_generator.ingestion.filters import (
+    decide_drop,
+    derive_multiple_correct_answers,
+    doc_id_suffix,
+)
+from quiz_generator.ingestion.scope import decide_in_scope, load_scope
+from quiz_generator.shared.hashing import sha256_of
 from quiz_generator.shared.schemas import (
     FlatQuestion,
     IngestStats,
     RawQuestion,
     RawQuiz,
+    ValidationFailure,
 )
+
+logger = logging.getLogger(__name__)
+
+# How many validation failures to record in the stats file. Enough to debug a
+# schema drift, few enough that a systematically broken export does not write
+# a hundred-megabyte stats file.
+VALIDATION_SAMPLE_LIMIT = 5
 
 
 def load_raw_quizzes(path: Path) -> list[dict]:
@@ -98,20 +113,29 @@ def _flat_from_validated(
     )
 
 
-def flatten_quizzes(raw_quizzes: list[dict]) -> Iterator[tuple[FlatQuestion | None, str, dict]]:
-    """Yield one triple per input question.
+def flatten_quizzes(
+    raw_quizzes: list[dict],
+) -> Iterator[tuple[FlatQuestion | None, str, dict, ValidationFailure | None]]:
+    """Yield one tuple per input question.
 
-    Returns (flat_or_none, drop_reason, raw_question_dict).
+    Returns (flat_or_none, drop_reason, raw_question_dict, validation_failure).
     When drop_reason == "" the FlatQuestion is valid and should be written.
-    raw_question_dict is included so the caller can record stats even for dropped rows.
+    raw_question_dict lets the caller record stats for dropped rows too, and
+    validation_failure carries the validator's message when the row was
+    rejected by a schema rather than by a filter.
     """
     for quiz_dict in raw_quizzes:
         try:
             quiz = RawQuiz.model_validate(quiz_dict)
-        except ValidationError:
+        except ValidationError as exc:
             # A malformed quiz — all its questions are effectively skipped.
+            # The validator's message travels with the row so the caller can
+            # sample it; the quiz payload itself never does.
+            failure = ValidationFailure(
+                level="quiz", quiz_id=_quiz_id_of(quiz_dict), error=_first_error(exc)
+            )
             for question_dict in quiz_dict.get("questions") or []:
-                yield None, "quiz_validation_failed", question_dict
+                yield None, "quiz_validation_failed", question_dict, failure
             continue
 
         raw_question_dicts = quiz_dict.get("questions") or []
@@ -121,14 +145,21 @@ def flatten_quizzes(raw_quizzes: list[dict]) -> Iterator[tuple[FlatQuestion | No
         # occurrence keeps the historical "q{order}" form to preserve
         # existing eval ground-truth doc_ids.
         order_seen: dict[int, int] = defaultdict(int)
-        for question_dict, validated_question in _zip_question_validation(raw_question_dicts, quiz):
+        for question_dict, validated_question, error in _zip_question_validation(
+            raw_question_dicts
+        ):
             if validated_question is None:
-                yield None, "question_validation_failed", question_dict
+                yield (
+                    None,
+                    "question_validation_failed",
+                    question_dict,
+                    ValidationFailure(level="question", quiz_id=quiz.id, error=error or ""),
+                )
                 continue
 
             drop, reason = decide_drop(question_dict)
             if drop:
-                yield None, reason, question_dict
+                yield None, reason, question_dict, None
                 continue
 
             occurrence = order_seen[validated_question.order]
@@ -139,17 +170,34 @@ def flatten_quizzes(raw_quizzes: list[dict]) -> Iterator[tuple[FlatQuestion | No
                 _flat_from_validated(quiz, validated_question, doc_id_suffix=suffix),
                 "",
                 question_dict,
+                None,
             )
 
 
 def _zip_question_validation(
-    question_dicts: list[dict], quiz: RawQuiz
-) -> Iterator[tuple[dict, RawQuestion | None]]:
+    question_dicts: list[dict],
+) -> Iterator[tuple[dict, RawQuestion | None, str | None]]:
     for question_dict in question_dicts:
         try:
-            yield question_dict, RawQuestion.model_validate(question_dict)
-        except ValidationError:
-            yield question_dict, None
+            yield question_dict, RawQuestion.model_validate(question_dict), None
+        except ValidationError as exc:
+            yield question_dict, None, _first_error(exc)
+
+
+def _first_error(exc: ValidationError) -> str:
+    """One line naming the field and the rule it broke. Never the value."""
+    errors = exc.errors()
+    if not errors:
+        return "validation failed"
+    first = errors[0]
+    location = ".".join(str(part) for part in first["loc"]) or "(root)"
+    return f"{location}: {first['msg']}"
+
+
+def _quiz_id_of(quiz_dict: dict) -> str | None:
+    """Best-effort id for a quiz that failed validation."""
+    value = quiz_dict.get("_id") or quiz_dict.get("id")
+    return str(value) if value is not None else None
 
 
 def ingest(
@@ -173,10 +221,13 @@ def ingest(
     # Optional scope filter
     scope_cfg = None
     if scope_path is not None:
-        from quiz_generator.data.scope import load_scope, decide_in_scope
-
         scope_cfg = load_scope(scope_path)
-        print(f"Scope filter active : {scope_cfg.name}")
+        logger.info(
+            "scope filter active: name=%s subjects=%d path=%s",
+            scope_cfg.name,
+            len(scope_cfg.subjects),
+            scope_path,
+        )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     stats_path.parent.mkdir(parents=True, exist_ok=True)
@@ -188,10 +239,18 @@ def ingest(
     by_type: Counter[str] = Counter()
     quiz_validation_errors = 0
     question_validation_errors = 0
+    failure_samples: list[ValidationFailure] = []
 
-    with output_path.open("w", encoding="utf-8") as out:
-        for flat, reason, raw_q_dict in flatten_quizzes(raw_quizzes):
+    # Written to a sibling temp file and renamed on success: a crash partway
+    # through used to leave a truncated JSONL that the next stage reads as a
+    # complete corpus.
+    temp_path = output_path.with_name(output_path.name + ".tmp")
+    with temp_path.open("w", encoding="utf-8") as out:
+        for flat, reason, _raw_q_dict, failure in flatten_quizzes(raw_quizzes):
             input_questions += 1
+
+            if failure is not None and len(failure_samples) < VALIDATION_SAMPLE_LIMIT:
+                failure_samples.append(failure)
 
             if reason == "quiz_validation_failed":
                 quiz_validation_errors += 1
@@ -205,13 +264,19 @@ def ingest(
                 dropped[reason] += 1
                 continue
 
-            assert flat is not None  # drop_reason empty implies valid flat
+            if flat is None:  # pragma: no cover - the generator's contract
+                raise RuntimeError(
+                    "flatten_quizzes yielded no row and no drop reason; "
+                    "this is a bug in the generator, not in the data."
+                )
 
-            # Apply scope filter if configured
+            # Apply scope filter if configured. decide_in_scope reads only
+            # `subjects` and `levels`, so pass those rather than model_dump()
+            # serialising every choice of every question.
             if scope_cfg is not None:
-                from quiz_generator.data.scope import decide_in_scope
-
-                in_scope, scope_reason = decide_in_scope(flat.model_dump(), scope_cfg)
+                in_scope, scope_reason = decide_in_scope(
+                    {"subjects": flat.subjects, "levels": flat.levels}, scope_cfg
+                )
                 if not in_scope:
                     dropped[f"scope_{scope_reason}"] += 1
                     continue
@@ -220,6 +285,8 @@ def ingest(
             output_rows += 1
             by_language[str(flat.language_raw if flat.language_raw is not None else "null")] += 1
             by_type[flat.question_type] += 1
+
+    temp_path.replace(output_path)
 
     stats = IngestStats(
         input_quizzes=len(raw_quizzes),
@@ -230,8 +297,29 @@ def ingest(
         kept_by_type=dict(by_type),
         quiz_validation_errors=quiz_validation_errors,
         question_validation_errors=question_validation_errors,
+        scope_name=scope_cfg.name if scope_cfg is not None else None,
+        scope_config_path=str(scope_path) if scope_path is not None else None,
+        scope_config_sha256=sha256_of(scope_path) if scope_path is not None else None,
+        validation_failure_samples=failure_samples,
     )
-    stats_path.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    stats_temp = stats_path.with_name(stats_path.name + ".tmp")
+    stats_temp.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    stats_temp.replace(stats_path)
+
+    logger.info(
+        "ingest complete: %d/%d questions kept from %d quizzes (%d dropped)",
+        output_rows,
+        input_questions,
+        len(raw_quizzes),
+        sum(dropped.values()),
+    )
+    if quiz_validation_errors or question_validation_errors:
+        logger.warning(
+            "validation rejected rows: quiz=%d question=%d; first messages: %s",
+            quiz_validation_errors,
+            question_validation_errors,
+            "; ".join(f.error for f in failure_samples) or "none recorded",
+        )
     return stats
 
 
@@ -245,12 +333,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("data/interim/flat_phase1.jsonl"),
+        default=Path("data/interim/flat.jsonl"),
     )
     parser.add_argument(
         "--stats",
         type=Path,
-        default=Path("data/interim/flat_phase1_stats.json"),
+        default=Path("data/interim/flat_stats.json"),
     )
     parser.add_argument(
         "--limit-quizzes",

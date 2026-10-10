@@ -14,10 +14,9 @@ model:
 
 vector_store:
   type: chroma
-  # The live index. The `_phase1` suffix is historical — maths shipped into
-  # this same directory in v1.1.0 — and is kept because renaming it would
-  # force every existing deployment to reindex for no gain.
-  persist_directory: data/vector_store/chroma_db_phase1
+  # The live index. Renaming this directory forces a full reindex, so change
+  # it only alongside one.
+  persist_directory: data/vector_store/chroma_db
   collection_name: quiz_questions
   distance_metric: cosine
   add_batch_size: 128               # rows per Chroma insert
@@ -83,7 +82,7 @@ llm:
   default_max_distance: 0.60
 
 indexing:
-  # Which column of ready.jsonl gets embedded
+  # Which column of payload.jsonl gets embedded
   embedding_text_column: search_text
 
   # Scalar fields copied into Chroma metadata (filterable via Chroma `where`).

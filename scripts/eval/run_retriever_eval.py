@@ -95,7 +95,7 @@ K_RETRIEVE_MAX = 10
 K_VALUES = (1, 3, 5, 10)
 
 DEFAULT_CONFIG_PATH = Path("configs/models.yaml")
-DEFAULT_READY_JSONL = Path("data/processed/ready_phase1.jsonl")
+DEFAULT_PAYLOAD_JSONL = Path("data/processed/payload.jsonl")
 
 
 # ---------------------------------------------------------------------------
@@ -391,7 +391,7 @@ def print_headline(summary: dict) -> None:
 # ---------------------------------------------------------------------------
 
 
-def validate_or_die(test_cases_path: Path, ready_jsonl_path: Path) -> list[TestCase]:
+def validate_or_die(test_cases_path: Path, payload_path: Path) -> list[TestCase]:
     """Load + validate test cases and their answer key; exit 1 on any failure."""
     if not test_cases_path.exists():
         print(f"error: file not found: {test_cases_path}", file=sys.stderr)
@@ -409,9 +409,9 @@ def validate_or_die(test_cases_path: Path, ready_jsonl_path: Path) -> list[TestC
     missing, _recall_capped = cross_check(cases, topic_index)
     subject_mismatches = check_subject_consistency(cases)
     gt_problems = None
-    if ready_jsonl_path.exists():
+    if payload_path.exists():
         gt_problems = check_ground_truth_against_index(
-            load_topic_doc_ids(lang_subject_pairs), load_index(ready_jsonl_path)
+            load_topic_doc_ids(lang_subject_pairs), load_index(payload_path)
         )
 
     problems = []
@@ -422,7 +422,7 @@ def validate_or_die(test_cases_path: Path, ready_jsonl_path: Path) -> list[TestC
     if subject_mismatches:
         problems.append(f"{len(subject_mismatches)} subject mismatches")
     if gt_problems is None:
-        problems.append(f"index payload not found: {ready_jsonl_path}")
+        problems.append(f"index payload not found: {payload_path}")
     elif gt_problems.has_problems:
         problems.append(
             "answer key disagrees with the index "
@@ -438,7 +438,7 @@ def validate_or_die(test_cases_path: Path, ready_jsonl_path: Path) -> list[TestC
         )
         print(
             f"Run `python -m scripts.eval.validate_test_cases {test_cases_path}"
-            f" --ready-jsonl {ready_jsonl_path}` for details.",
+            f" --payload {payload_path}` for details.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -479,15 +479,15 @@ def main(argv: list[str] | None = None) -> int:
         help=f"Models config to use (default: {DEFAULT_CONFIG_PATH}).",
     )
     parser.add_argument(
-        "--ready-jsonl",
+        "--payload",
         type=Path,
-        default=DEFAULT_READY_JSONL,
-        help=f"Payload JSONL (default: {DEFAULT_READY_JSONL}).",
+        default=DEFAULT_PAYLOAD_JSONL,
+        help=f"Payload JSONL (default: {DEFAULT_PAYLOAD_JSONL}).",
     )
     args = parser.parse_args(argv)
 
     print(f"Validating {args.test_cases} ...")
-    cases = validate_or_die(args.test_cases, args.ready_jsonl)
+    cases = validate_or_die(args.test_cases, args.payload)
     print(f"  OK: {len(cases)} cases valid")
 
     if args.limit is not None and args.limit < len(cases):
@@ -500,7 +500,7 @@ def main(argv: list[str] | None = None) -> int:
 
     retriever = Retriever(
         config_path=args.config,
-        ready_jsonl_path=args.ready_jsonl,
+        payload_path=args.payload,
     )
     print("  Loaded.")
 
@@ -527,7 +527,7 @@ def main(argv: list[str] | None = None) -> int:
         "test_cases": str(args.test_cases),
         "limit": args.limit,
         "config": str(args.config),
-        "ready_jsonl": str(args.ready_jsonl),
+        "payload": str(args.payload),
         "k_retrieve_max": K_RETRIEVE_MAX,
         "k_values": list(K_VALUES),
         "n_cases_run": len(cases),
@@ -536,7 +536,7 @@ def main(argv: list[str] | None = None) -> int:
 
     write_results(out_dir, per_query, summary, args.config, args_record)
 
-    provenance = collect_provenance(config_path=args.config, ready_jsonl=args.ready_jsonl)
+    provenance = collect_provenance(config_path=args.config, payload=args.payload)
     write_provenance(out_dir, provenance)
     for warning in provenance["warnings"]:
         print(f"  provenance: {warning}")

@@ -1,7 +1,7 @@
 """Normalization — and, despite the name, the stage that decides what stays.
 
-Transforms `data/interim/flat_phase1.jsonl` →
-`data/interim/normalized_phase1.jsonl`.
+Transforms `data/interim/flat.jsonl` →
+`data/interim/normalized.jsonl`.
 
 "Normalize" undersells this module. It cleans text, but it also applies the
 curriculum business rules and deduplicates, so it removes rows: 869 of 6,651
@@ -38,20 +38,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Any
 
-import yaml
-
-from quiz_generator.data.curriculum_rules import check_compliance as check_curriculum_compliance
-from quiz_generator.data.domain_rules import apply_subject_language_rule
-from quiz_generator.data.filters import strip_html_to_plain
-from quiz_generator.data.language import SUPPORTED_LANGUAGES, resolve_language
+from quiz_generator.curriculum.curriculum_rules import (
+    check_compliance as check_curriculum_compliance,
+)
+from quiz_generator.curriculum.domain_rules import apply_subject_language_rule
+from quiz_generator.ingestion.filters import strip_html_to_plain
+from quiz_generator.shared.language import SUPPORTED_LANGUAGES, resolve_language
+from quiz_generator.shared.latex import strip_latex_for_detection
 from quiz_generator.shared.yaml_config import read_yaml_mapping
-from quiz_generator.data.latex import normalize_latex, strip_latex_for_detection
 
+logger = logging.getLogger(__name__)
 
 QUIZ_PREFIX_RE = re.compile(r"^\s*quiz\s*:\s*", re.IGNORECASE)
 IMG_TAG_RE = re.compile(r"<img\b", re.IGNORECASE)
@@ -126,9 +127,9 @@ def split_choices(choices_raw: list[dict]) -> tuple[list[str], list[str], list[s
             seen_texts.add(answer)
         texts.append(answer)
         media.append(media_value)
-        if choice.get("isTrue") and (answer or media_value):
-            if answer not in correct:    # also dedup correct list
-                correct.append(answer)
+        # also dedup the correct list
+        if choice.get("isTrue") and (answer or media_value) and answer not in correct:
+            correct.append(answer)
     return texts, correct, media
 
 
@@ -277,9 +278,7 @@ def dedup_key(row: dict) -> tuple[str, str, str, tuple[str, ...]]:
     question_text = row["question_text"].casefold().strip()
     choices_key = tuple(
         sorted(
-            choice.casefold().strip()
-            for choice in row["choices_text"]
-            if choice and choice.strip()
+            choice.casefold().strip() for choice in row["choices_text"] if choice and choice.strip()
         )
     )
     return (language, question_type, question_text, choices_key)
@@ -332,6 +331,7 @@ def normalize(
 ):
     # Lazy import so unit tests on the helper functions can run without Pydantic.
     from pydantic import ValidationError
+
     from quiz_generator.shared.schemas import NormalizedQuestion, NormalizeStats
 
     aliases = load_subject_aliases(aliases_path)
@@ -371,21 +371,30 @@ def normalize(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     stats_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with output_path.open("w", encoding="utf-8") as out:
+    # Written to a sibling temp file and renamed on success, so a crash partway
+    # cannot leave a truncated corpus that the next stage reads as complete.
+    temp_path = output_path.with_name(output_path.name + ".tmp")
+    written_rows: list[dict] = []
+    with temp_path.open("w", encoding="utf-8") as out:
         for row in deduped_rows:
             try:
                 validated = NormalizedQuestion.model_validate(row)
-            except ValidationError as exc:
+            except ValidationError:
                 dropped["schema_validation_failed"] += 1
                 continue
             out.write(validated.model_dump_json() + "\n")
+            written_rows.append(row)
+    temp_path.replace(output_path)
 
-    by_language = Counter(row["language"] for row in deduped_rows)
-    by_type = Counter(row["question_type"] for row in deduped_rows)
+    # Counted over the rows that were actually written, not over the ones that
+    # reached the writer: a row rejected on the way out is not in the file, and
+    # the stats are what every downstream count is checked against.
+    by_language = Counter(row["language"] for row in written_rows)
+    by_type = Counter(row["question_type"] for row in written_rows)
 
     stats = NormalizeStats(
         input_rows=input_rows_total,
-        output_rows=len(deduped_rows),
+        output_rows=len(written_rows),
         dropped=dict(dropped),
         language_corrections=dict(lang_corrections),
         by_language=dict(by_language),
@@ -394,15 +403,25 @@ def normalize(
         duplicate_groups=duplicate_groups,
         duplicate_rows_dropped=duplicate_rows_dropped,
     )
-    stats_path.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    stats_temp = stats_path.with_name(stats_path.name + ".tmp")
+    stats_temp.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    stats_temp.replace(stats_path)
+
+    logger.info(
+        "normalize complete: %d/%d rows kept (%d dropped, %d duplicate groups)",
+        len(written_rows),
+        input_rows_total,
+        sum(dropped.values()),
+        duplicate_groups,
+    )
     return stats
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input",  type=Path, default=Path("data/interim/flat_phase1.jsonl"))
-    parser.add_argument("--output", type=Path, default=Path("data/interim/normalized_phase1.jsonl"))
-    parser.add_argument("--stats",  type=Path, default=Path("data/interim/normalized_phase1_stats.json"))
+    parser.add_argument("--input", type=Path, default=Path("data/interim/flat.jsonl"))
+    parser.add_argument("--output", type=Path, default=Path("data/interim/normalized.jsonl"))
+    parser.add_argument("--stats", type=Path, default=Path("data/interim/normalized_stats.json"))
     parser.add_argument(
         "--aliases",
         type=Path,
@@ -426,7 +445,9 @@ def main() -> None:
     print(f"By type             : {dict(stats.by_type)}")
     print(f"Lang corrections    : {dict(stats.language_corrections)}")
     print(f"Subjects remapped   : {stats.subjects_remapped_rows} rows")
-    print(f"Dedup duplicate grps: {stats.duplicate_groups} (dropped {stats.duplicate_rows_dropped} rows)")
+    print(
+        f"Dedup duplicate grps: {stats.duplicate_groups} (dropped {stats.duplicate_rows_dropped} rows)"
+    )
     print(f"Output JSONL        : {args.output}")
     print(f"Stats JSON          : {args.stats}")
 

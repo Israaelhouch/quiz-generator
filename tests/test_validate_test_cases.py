@@ -122,7 +122,7 @@ def test_check_ground_truth_same_title_in_other_cell_is_not_flagged() -> None:
 
 def test_load_index_first_subject_defines_the_cell(tmp_path: Path) -> None:
     """subjects[0] is the scalar the vector store copies for pre-filtering."""
-    ready = tmp_path / "ready.jsonl"
+    ready = tmp_path / "payload.jsonl"
     rows = [
         {"doc_id": "a__q0", "language": "en", "subjects": ["ENGLISH"], "quiz_title": "Pets"},
         {
@@ -154,7 +154,7 @@ def _fixture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, listed: str) -> tu
         writer.writerow({"quiz_title": "Writing Ads", "doc_ids": listed})
     monkeypatch.setitem(TOPICS_FILE_BY_LANG_SUBJECT, EN, topics_csv)
 
-    ready = tmp_path / "ready.jsonl"
+    ready = tmp_path / "payload.jsonl"
     ready.write_text(
         "".join(
             json.dumps(

@@ -43,10 +43,10 @@ RAW=data/raw/quizzes-raw-data.json
 # flat.jsonl / normalized.jsonl — files nothing creates — so the "skip if
 # already built" test below was always true and both stages re-ran every
 # time, contradicting the idempotence this script promises at the top.
-FLAT=data/interim/flat_phase1.jsonl
-NORM=data/interim/normalized_phase1.jsonl
-READY=data/processed/ready_phase1.jsonl
-CHROMA=data/vector_store/chroma_db_phase1
+FLAT=data/interim/flat.jsonl
+NORM=data/interim/normalized.jsonl
+PAYLOAD=data/processed/payload.jsonl
+CHROMA=data/vector_store/chroma_db
 SUMMARY=data/vector_store/build_summary.json
 
 # ---------------------------------------------------------------- 1. python
@@ -123,17 +123,17 @@ ok "RUNS_LOG_PATH=$RUNS_LOG_PATH"
 # ------------------------------------------------------------------ 4. data
 bold "4. Data artifacts"
 have_index=0
-[ -d "$CHROMA" ] && [ -f "$SUMMARY" ] && [ -f "$READY" ] && have_index=1
+[ -d "$CHROMA" ] && [ -f "$SUMMARY" ] && [ -f "$PAYLOAD" ] && have_index=1
 
 if [ "$have_index" -eq 1 ] && [ "$REBUILD" -eq 0 ]; then
   ok "index + payload present — nothing to build"
-  ok "$(wc -l < "$READY" | tr -d ' ') rows in $READY"
+  ok "$(wc -l < "$PAYLOAD" | tr -d ' ') rows in $PAYLOAD"
 elif [ ! -f "$RAW" ] && [ "$have_index" -eq 0 ]; then
   echo
   die "BLOCKED — no data.
      Missing both of:
        a) $RAW          (the raw corpus, ~271 MB, gitignored)
-       b) $READY + $CHROMA/ + $SUMMARY   (the prebuilt artifacts)
+       b) $PAYLOAD + $CHROMA/ + $SUMMARY   (the prebuilt artifacts)
      You need one of them. Restore from your backup / the machine you
      deployed from / whoever delivered the dataset, then re-run this script."
 else
@@ -143,23 +143,23 @@ else
   bold "   building (this takes ~10-15 min; the index build is the slow part)"
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$FLAT" ]; then
     echo "   → ingest"
-    python -m quiz_generator.data.ingest --scope configs/scope.yaml
+    python -m quiz_generator.ingestion.ingest --scope configs/scope.yaml
   else ok "flat.jsonl exists (skip ingest)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -f "$NORM" ]; then
     echo "   → normalize"
-    python -m quiz_generator.data.normalize
+    python -m quiz_generator.ingestion.normalize
   else ok "normalized.jsonl exists (skip normalize)"; fi
 
-  if [ "$REBUILD" -eq 1 ] || [ ! -f "$READY" ]; then
+  if [ "$REBUILD" -eq 1 ] || [ ! -f "$PAYLOAD" ]; then
     echo "   → build_index_text   (the step the README forgets)"
-    python -m quiz_generator.data.build_index_text
-  else ok "ready_phase1.jsonl exists (skip build_index_text)"; fi
+    python -m quiz_generator.ingestion.build_index_text
+  else ok "payload.jsonl exists (skip build_index_text)"; fi
 
   if [ "$REBUILD" -eq 1 ] || [ ! -d "$CHROMA" ]; then
     echo "   → indexing.build     (downloads ~1.2 GB of BGE models on first run)"
     python -m quiz_generator.indexing.build
-  else ok "chroma_db_phase1/ exists (skip index build)"; fi
+  else ok "chroma_db/ exists (skip index build)"; fi
   ok "data pipeline complete"
 fi
 

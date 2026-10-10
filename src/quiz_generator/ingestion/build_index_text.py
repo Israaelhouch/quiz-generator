@@ -1,6 +1,6 @@
 """Build search_text.
 
-Consumes `data/interim/normalized.jsonl`, produces `data/processed/ready_phase1.jsonl`.
+Consumes `data/interim/normalized.jsonl`, produces `data/processed/payload.jsonl`.
 
 For each row, composes a `search_text` string per a recipe configured in
 `configs/pipeline.yaml`. The row is otherwise passed through unchanged.
@@ -18,15 +18,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import statistics
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from quiz_generator.data.latex import normalize_latex
+from quiz_generator.shared.latex import normalize_latex
 from quiz_generator.shared.yaml_config import read_yaml_mapping
+
+logger = logging.getLogger(__name__)
 
 
 class _RecipeFlags(BaseModel):
@@ -132,6 +134,7 @@ def compose_search_text(
     The original payload fields are not touched — only the search_text
     output of this function is normalized.
     """
+
     def _maybe_norm(text: str) -> str:
         return normalize_latex(text) if normalize_latex_flag else text
 
@@ -185,7 +188,7 @@ def _summarize_lengths(lengths: list[int]) -> dict[str, float]:
     if not lengths:
         return {"min": 0.0, "max": 0.0, "mean": 0.0, "median": 0.0, "p95": 0.0}
     sorted_lengths = sorted(lengths)
-    p95_index = max(0, int(round(0.95 * (len(sorted_lengths) - 1))))
+    p95_index = max(0, round(0.95 * (len(sorted_lengths) - 1)))
     return {
         "min": float(min(sorted_lengths)),
         "max": float(max(sorted_lengths)),
@@ -204,6 +207,7 @@ def build_index_text(
 ):
     # Lazy imports so helper tests run without Pydantic.
     from pydantic import ValidationError
+
     from quiz_generator.shared.schemas import BuildIndexTextStats, IndexedQuestion
 
     recipe_name, flags, separators, token_threshold, normalize_latex_flag = load_recipe(config_path)
@@ -216,10 +220,15 @@ def build_index_text(
     lengths: list[int] = []
     rows_over_threshold = 0
     empty_search_text_rows = 0
+    schema_validation_failed = 0
 
-    with input_path.open("r", encoding="utf-8") as src, output_path.open(
-        "w", encoding="utf-8"
-    ) as dst:
+    # Written to a sibling temp file and renamed on success, as the earlier
+    # stages do: a truncated payload is indistinguishable from a complete one.
+    temp_path = output_path.with_name(output_path.name + ".tmp")
+    with (
+        input_path.open("r", encoding="utf-8") as src,
+        temp_path.open("w", encoding="utf-8") as dst,
+    ):
         for line in src:
             line = line.strip()
             if not line:
@@ -241,6 +250,10 @@ def build_index_text(
             try:
                 validated = IndexedQuestion.model_validate(indexed)
             except ValidationError:
+                # Counted, not swallowed: a row that leaves the pipeline
+                # without a record is the failure mode CLAUDE.md Part II §7
+                # exists to prevent.
+                schema_validation_failed += 1
                 continue
             dst.write(validated.model_dump_json() + "\n")
             output_rows += 1
@@ -249,6 +262,8 @@ def build_index_text(
             lengths.append(token_count)
             if token_count > token_threshold:
                 rows_over_threshold += 1
+
+    temp_path.replace(output_path)
 
     stats = BuildIndexTextStats(
         input_rows=input_rows,
@@ -259,16 +274,33 @@ def build_index_text(
         rows_over_token_threshold=rows_over_threshold,
         token_threshold=token_threshold,
         empty_search_text_rows=empty_search_text_rows,
+        schema_validation_failed=schema_validation_failed,
     )
-    stats_path.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    stats_temp = stats_path.with_name(stats_path.name + ".tmp")
+    stats_temp.write_text(stats.model_dump_json(indent=2), encoding="utf-8")
+    stats_temp.replace(stats_path)
+
+    logger.info(
+        "search_text composed with recipe %r: %d/%d rows written (%d empty, %d rejected)",
+        recipe_name,
+        output_rows,
+        input_rows,
+        empty_search_text_rows,
+        schema_validation_failed,
+    )
+    if schema_validation_failed:
+        logger.warning(
+            "%d row(s) failed the IndexedQuestion schema and are not in the payload",
+            schema_validation_failed,
+        )
     return stats
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input",  type=Path, default=Path("data/interim/normalized_phase1.jsonl"))
-    parser.add_argument("--output", type=Path, default=Path("data/processed/ready_phase1.jsonl"))
-    parser.add_argument("--stats",  type=Path, default=Path("data/processed/ready_phase1_stats.json"))
+    parser.add_argument("--input", type=Path, default=Path("data/interim/normalized.jsonl"))
+    parser.add_argument("--output", type=Path, default=Path("data/processed/payload.jsonl"))
+    parser.add_argument("--stats", type=Path, default=Path("data/processed/payload_stats.json"))
     parser.add_argument("--config", type=Path, default=Path("configs/pipeline.yaml"))
     return parser.parse_args()
 
@@ -286,6 +318,7 @@ def main() -> None:
     print(f"Input rows          : {stats.input_rows}")
     print(f"Output rows         : {stats.output_rows}")
     print(f"Empty search_text   : {stats.empty_search_text_rows}")
+    print(f"Schema rejected     : {stats.schema_validation_failed}")
     print(f"Token length        : {stats.search_text_length_tokens}")
     print(f"Over {stats.token_threshold} tokens     : {stats.rows_over_token_threshold} rows")
     print(f"Output JSONL        : {args.output}")

@@ -38,6 +38,7 @@ from quiz_generator.shared.yaml_config import read_yaml_mapping
 @dataclass(frozen=True)
 class ScopeConfig:
     """Parsed scope filter rules."""
+
     name: str
     subjects: frozenset[str]
     level_prefixes: tuple[str, ...]
